@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ca43853250f7c94fa8ea3ae03c5b9c7, type: 3}
+  m_Name: TaskData
+  m_EditorClassIdentifier: 
+  taskDataList:
+  - taskID: 1
+    taskDesc: "\u51FB\u8D25\u7B2C\u4E00\u4E2A\u654C\u4EBA"
+    isUnlock: 1
+    isFinished: 0
+    taskType: 0
+    targetCount: 1
+    currentCount: 0
+    taskReward:
+      depotIds: 01000000020000000300000004000000
+      materialsId: 0100000002000000030000000400000005000000
+  - taskID: 2
+    taskDesc: "\u7ED9\u6BCF\u4E00\u4E2A\u78C1\u76D8\u90FD\u5347\u4E00\u7EA7"
+    isUnlock: 0
+    isFinished: 0
+    taskType: 1
+    targetCount: 4
+    currentCount: 0
+    taskReward:
+      depotIds: 01000000020000000300000004000000
+      materialsId: 0100000002000000030000000400000005000000
+  - taskID: 3
+    taskDesc: "\u51FB\u8D25\u7B2C3\u4E2A\u654C\u4EBA"
+    isUnlock: 0
+    isFinished: 0
+    taskType: 0
+    targetCount: 1
+    currentCount: 0
+    taskReward:
+      depotIds: 
+      materialsId: 

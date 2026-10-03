@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfb58bbe1f88a564583dba0e9d3684d7, type: 3}
+  m_Name: SkillConfig03
+  m_EditorClassIdentifier: 
+  skillConfigs:
+  - attackAnimationName: AttackBranch01
+    HitData:
+      hitClip: {fileID: 8300000, guid: be7658528d067aa4ab612584504b3060, type: 3}
+      hitPrefabs:
+      - {fileID: 3216087944670964729, guid: 549d5d3a43ea99240afe14844645a0c9, type: 3}
+      screenImpulseValue: 1.2
+      chromaticAberrationValue: 1
+      vignetteValue: 0
+      damageValue: 10
+    VFXDataList:
+    - prefab: {fileID: 8324676365719397752, guid: 21ce5faaa72d21749ad9fa7c2512d563, type: 3}
+      VFXClip: {fileID: 8300000, guid: f6b7d84faf3f2e24590394e6228d3417, type: 3}
+      spawnPos: {x: 0, y: 1.3, z: 0.8}
+      spawnRot: {x: 10, y: -180, z: 90}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 1
+      isInHitStop: 1
+  - attackAnimationName: AttackBranch04
+    HitData:
+      hitClip: {fileID: 8300000, guid: be7658528d067aa4ab612584504b3060, type: 3}
+      hitPrefabs:
+      - {fileID: 3216087944670964729, guid: 549d5d3a43ea99240afe14844645a0c9, type: 3}
+      - {fileID: 3216087944670964729, guid: 549d5d3a43ea99240afe14844645a0c9, type: 3}
+      screenImpulseValue: 1.2
+      chromaticAberrationValue: 1
+      vignetteValue: 0
+      damageValue: 10
+    VFXDataList:
+    - prefab: {fileID: 8324676365719397752, guid: 21ce5faaa72d21749ad9fa7c2512d563, type: 3}
+      VFXClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
+      spawnPos: {x: 0, y: 1.7, z: 0.6}
+      spawnRot: {x: 0, y: -180, z: 90}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 0
+      isInHitStop: 1
+    - prefab: {fileID: 8324676365719397752, guid: 21ce5faaa72d21749ad9fa7c2512d563, type: 3}
+      VFXClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
+      spawnPos: {x: 0.2, y: 3, z: 0.7}
+      spawnRot: {x: 0, y: -180, z: 90}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 0
+      isInHitStop: 0

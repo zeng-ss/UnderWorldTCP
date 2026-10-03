@@ -1,0 +1,51 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfb58bbe1f88a564583dba0e9d3684d7, type: 3}
+  m_Name: SkillConfigEx
+  m_EditorClassIdentifier: 
+  skillConfigs:
+  - attackAnimationName: AttackEx
+    HitData:
+      hitClip: {fileID: 8300000, guid: be7658528d067aa4ab612584504b3060, type: 3}
+      hitPrefabs:
+      - {fileID: 2981233846487126522, guid: ce5e7abcffa309b44b9b58d64153d78b, type: 3}
+      - {fileID: 2981233846487126522, guid: ce5e7abcffa309b44b9b58d64153d78b, type: 3}
+      - {fileID: 2981233846487126522, guid: ce5e7abcffa309b44b9b58d64153d78b, type: 3}
+      screenImpulseValue: 1.2
+      chromaticAberrationValue: 1
+      vignetteValue: 0
+      damageValue: 10
+    VFXDataList:
+    - prefab: {fileID: 1743412021257025471, guid: c258b15b94ddbd948968d0853164edc5, type: 3}
+      VFXClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
+      spawnPos: {x: 0.21, y: 1.4, z: 0.8}
+      spawnRot: {x: 0, y: 180, z: 90}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 0
+      isInHitStop: 1
+    - prefab: {fileID: 1743412021257025471, guid: c258b15b94ddbd948968d0853164edc5, type: 3}
+      VFXClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
+      spawnPos: {x: 0.21, y: 3.2, z: 0.8}
+      spawnRot: {x: 0, y: 180, z: 90}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 0
+      isInHitStop: 1
+    - prefab: {fileID: 5487650720231781904, guid: f5670dc5930535341a1c3debb5c38405, type: 3}
+      VFXClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
+      spawnPos: {x: 0, y: 0.4, z: 1.7}
+      spawnRot: {x: 0, y: 0, z: 0}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 0
+      isInHitStop: 1

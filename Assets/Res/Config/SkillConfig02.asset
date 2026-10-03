@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfb58bbe1f88a564583dba0e9d3684d7, type: 3}
+  m_Name: SkillConfig02
+  m_EditorClassIdentifier: 
+  skillConfigs:
+  - attackAnimationName: AttackRush
+    HitData:
+      hitClip: {fileID: 8300000, guid: 89969e178cd0c5d4a9e5b6539690e301, type: 3}
+      hitPrefabs:
+      - {fileID: 8118410277747691727, guid: c0f1845867019104fa02ad6a623bea39, type: 3}
+      - {fileID: 8118410277747691727, guid: c0f1845867019104fa02ad6a623bea39, type: 3}
+      screenImpulseValue: 1
+      chromaticAberrationValue: 0.7
+      vignetteValue: 0
+      damageValue: 10
+    VFXDataList:
+    - prefab: {fileID: 7773716002583555969, guid: 60b9fce3211b9d347a1faead526941ca, type: 3}
+      VFXClip: {fileID: 8300000, guid: fa322f0516ec4034b8b7df81a5de4e74, type: 3}
+      spawnPos: {x: -0.25, y: 0.6, z: 0.7}
+      spawnRot: {x: 0, y: -180, z: 0}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 0
+      isInHitStop: 0
+    - prefab: {fileID: 7773716002583555969, guid: 60b9fce3211b9d347a1faead526941ca, type: 3}
+      VFXClip: {fileID: 8300000, guid: 1b64cc9091420f94e8595fbf90572fb1, type: 3}
+      spawnPos: {x: -0.25, y: 0.73, z: 0.7}
+      spawnRot: {x: 0, y: -180, z: 0}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 0
+      isInHitStop: 0
+  - attackAnimationName: AttackB01Per
+    HitData:
+      hitClip: {fileID: 8300000, guid: 6b759dcfb1dd11447991d2534fc840c5, type: 3}
+      hitPrefabs:
+      - {fileID: 1753103436398305419, guid: 2bd3605232102aa40b3a17ebe7672e66, type: 3}
+      screenImpulseValue: 1
+      chromaticAberrationValue: 0.7
+      vignetteValue: 0
+      damageValue: 10
+    VFXDataList:
+    - prefab: {fileID: 6477124811497415813, guid: 8effb495422ff804dba3eeb98bfda04c, type: 3}
+      VFXClip: {fileID: 8300000, guid: f6b7d84faf3f2e24590394e6228d3417, type: 3}
+      spawnPos: {x: 0.1, y: 1, z: 0.75}
+      spawnRot: {x: 17.5, y: -183, z: 77}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 1
+      isInHitStop: 1
+  - attackAnimationName: AttackB04Per
+    HitData:
+      hitClip: {fileID: 8300000, guid: 3b0c652427fd1564aa86ffbc9ddcca67, type: 3}
+      hitPrefabs:
+      - {fileID: 8569734466310153063, guid: bb255115604864244bfe7afd72df5a11, type: 3}
+      - {fileID: 8569734466310153063, guid: bb255115604864244bfe7afd72df5a11, type: 3}
+      screenImpulseValue: 1
+      chromaticAberrationValue: 0.7
+      vignetteValue: 0
+      damageValue: 10
+    VFXDataList:
+    - prefab: {fileID: 7257810882012927379, guid: 250b98157dd7f104aa6fbd740b2329d7, type: 3}
+      VFXClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
+      spawnPos: {x: 0, y: 1.78, z: 0.8}
+      spawnRot: {x: 0, y: -180, z: 90}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 0
+      isInHitStop: 1
+    - prefab: {fileID: 7257810882012927379, guid: 250b98157dd7f104aa6fbd740b2329d7, type: 3}
+      VFXClip: {fileID: 8300000, guid: be7658528d067aa4ab612584504b3060, type: 3}
+      spawnPos: {x: 0.1, y: 3, z: 0.8}
+      spawnRot: {x: 0, y: -180, z: 90}
+      spawnScale: {x: 0, y: 0, z: 0}
+      spawnTime: 0
+      canRotate: 0
+      isInHitStop: 0

@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30848e165128e7e4a9953b09e0b971ac, type: 3}
+  m_Name: MaterialData
+  m_EditorClassIdentifier: 
+  materials:
+  - id: 1
+    name: "\u91D1\u5E01"
+    materialIconName: "\u91D1\u5E01"
+    materialValue: 0
+  - id: 2
+    name: "\u653B\u51FB\u9A71\u52A8"
+    materialIconName: "\u653B\u51FB"
+    materialValue: 100
+  - id: 3
+    name: "\u751F\u547D\u9A71\u52A8"
+    materialIconName: "\u751F\u547D"
+    materialValue: 100
+  - id: 4
+    name: "\u9632\u5FA1\u9A71\u52A8"
+    materialIconName: "\u9632\u5FA1"
+    materialValue: 100
+  - id: 5
+    name: "\u66B4\u51FB\u9A71\u52A8"
+    materialIconName: "\u66B4\u51FB"
+    materialValue: 100

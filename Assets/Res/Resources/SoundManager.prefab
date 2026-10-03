@@ -1,0 +1,64 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3547316516045958222
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2778132643508393942}
+  - component: {fileID: 7939829803379034484}
+  m_Layer: 0
+  m_Name: SoundManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2778132643508393942
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3547316516045958222}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1396.6646, y: 477.26288, z: 81.14625}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7939829803379034484
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3547316516045958222}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70e0eaf482416cc4da31b2ceb1b81376, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  footSound: {fileID: 8300000, guid: a7d39bb78dd35ed438aa29d107294902, type: 3}
+  footBackSound: {fileID: 8300000, guid: 1f2148c7b6d65ef489de620385639f7a, type: 3}
+  weaponBackSound: {fileID: 8300000, guid: e6e7f097429cc1b4182fbbc1291182b4, type: 3}
+  weaponEndSound: {fileID: 8300000, guid: 2eb0e25f8b7e9ec40a17a8a8d9f8a069, type: 3}
+  playerAttackSpeaks:
+  - {fileID: 8300000, guid: 03ce7510829862a48bff2d43ea4c2a8c, type: 3}
+  - {fileID: 8300000, guid: 96d6cac7aa3300b449f4389abfaa9110, type: 3}
+  - {fileID: 8300000, guid: 58a8e17b02c497d49ab52daf7d303508, type: 3}
+  - {fileID: 8300000, guid: 67962eeb9da990d4880a13891fe5c269, type: 3}
+  - {fileID: 8300000, guid: 4e106c77aaf89954ea2dece7534cbf1a, type: 3}
+  - {fileID: 8300000, guid: 9d2cba0049a938344b1ecf7ba5d1b748, type: 3}
+  startPinSound: {fileID: 0}
+  exSounds:
+  - {fileID: 8300000, guid: 1ac08f3f3e9dafd46b2a5143d85cd9bc, type: 3}
+  - {fileID: 8300000, guid: e53c9bdd76fe4544cb78a5b9a781aa20, type: 3}
+  - {fileID: 8300000, guid: 2d3571fbcdfd4ca4d8cf6ce5eb402353, type: 3}
+  - {fileID: 8300000, guid: 99a70b5b0acb3c348b251706dda3ecfa, type: 3}
+  - {fileID: 8300000, guid: 1f7eb56d1450d154a91c365efbe93721, type: 3}

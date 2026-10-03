@@ -36,7 +36,9 @@ crashlytics-build.properties
 /Bundles/
 /ServerData/
 /Assets/StreamingAssets/yoo/
+/Assets/StreamingAssets/yoo.meta
 /Assets/DllBytes/
+/Assets/DllBytes.meta
 
 # ---------- 3. IDE / 编辑器 ----------
 .vs/
@@ -73,7 +75,16 @@ Server/**/*.cache
 proto/out/
 proto/bin/protoc(1).exe
 
-# ---------- 8. 明确保留（不忽略） ----------
+# ---------- 9. 第三方纯美术资源包 ----------
+# 已确认这两个目录不含任何 .cs/.asmdef/.dll，忽略后不影响编译。
+# 注意：UnityShop / YooAsset / Resources/Third Parts(Vefects) 内含 C# 代码，
+#       被业务代码引用，绝不能忽略，否则 clone 后编译失败。
+Assets/KawaiiCity/
+Assets/KawaiiCity.meta
+Assets/SharpUI/
+Assets/SharpUI.meta
+
+# ---------- 10. 明确保留（不忽略） ----------
 # Assets/Plugins/Net/*.dll 及 .meta —— 对 Unity 而言是外部依赖库，clone 后必须能直接编译
 # Server/**/*.csproj、Server/ARPGDemo_Server.sln —— 服务端工程文件
 # proto/proto/*.proto、proto/bin/protoc.exe —— 契约源与构建工具，必须入库

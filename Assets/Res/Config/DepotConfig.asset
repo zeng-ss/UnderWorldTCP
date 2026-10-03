@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 687a2ec8ec9ab964593f13c59fee8dc8, type: 3}
+  m_Name: DepotConfig
+  m_EditorClassIdentifier: 
+  depots:
+  - depotName: "\u6DF7\u6C8C\u91CD\u91D1\u5C5E"
+    depotId: 1
+    level: 1
+    depotIconName: "\u4E3B\u653B\u51FB"
+    materialsId: 0100000002000000
+    curLevelMaxFill: 1000
+    curLevelFillValue: 0
+    depotValue:
+      depotType: 0
+      baseValue: 20
+      attackPercent: 10
+      defensePercent: 2
+      healthPercent: 2
+      baoJiPercent: 5
+  - depotName: "\u5544\u6728\u9E1F\u7535\u97F3"
+    depotId: 2
+    level: 1
+    depotIconName: "\u4E3B\u66B4\u51FB"
+    materialsId: 0100000005000000
+    curLevelMaxFill: 1000
+    curLevelFillValue: 0
+    depotValue:
+      depotType: 3
+      baseValue: 5
+      attackPercent: 5
+      defensePercent: 2
+      healthPercent: 2
+      baoJiPercent: 10
+  - depotName: "\u539F\u59CB\u670B\u514B"
+    depotId: 3
+    level: 1
+    depotIconName: "\u4E3B\u751F\u547D"
+    materialsId: 0100000003000000
+    curLevelMaxFill: 1000
+    curLevelFillValue: 0
+    depotValue:
+      depotType: 2
+      baseValue: 30
+      attackPercent: 4
+      defensePercent: 5
+      healthPercent: 10
+      baoJiPercent: 3
+  - depotName: "\u7075\u9B42\u6447\u6EDA"
+    depotId: 4
+    level: 1
+    depotIconName: "\u4E3B\u9632\u5FA1"
+    materialsId: 0100000004000000
+    curLevelMaxFill: 1000
+    curLevelFillValue: 0
+    depotValue:
+      depotType: 1
+      baseValue: 50
+      attackPercent: 2
+      defensePercent: 10
+      healthPercent: 4
+      baoJiPercent: 2
