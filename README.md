@@ -58,6 +58,18 @@ MySQL → CenterServer → LoginServer → 03_GameServer → 04_GateServer → U
 - `Assets/Plugins/Net/*.dll` 虽然来自服务端构建，但对 Unity 来说是外部依赖库，所以**入库**，保证 clone 下来能直接编译。
 - 详细的架构分析与已知问题见 `Server/项目分析说明.md`。
 
-## 待办
+## 被版本控制排除的目录
 
-- [ ] 美术资源（`Assets/KawaiiCity` 1.1G 等第三方包）是否入库 / 是否走 Git LFS，待定
+以下**不含任何 C# 代码**，为控制仓库体积已排除。clone 后若场景出现资源丢失（粉色材质），从原渠道重新导入即可：
+
+| 目录 | 体积 | 说明 |
+|------|------|------|
+| `Assets/KawaiiCity/` | 1.1G | 第三方城市资源包 |
+| `Assets/SharpUI/` | 13M | 第三方 UI 资源 |
+| `Assets/StreamingAssets/yoo/` | — | YooAsset 打包产物，本地构建即可生成 |
+| `Assets/DllBytes/` | — | HybridCLR 热更 DLL 产物 |
+| `Library/`、`Builds/`、`HybridCLRData/`、`Bundles/`、`ServerData/` | ~11G | Unity 缓存与构建产物，引擎自动重建 |
+
+反过来，这几个**含 C# 代码、被业务层引用，绝不能排除**：`Assets/YooAsset-3.0.3-beta`（697 个 .cs）、`Assets/UnityShop`（176 个 .cs）、`Assets/Resources/Third Parts/Vefects`（技能特效脚本）、`Assets/URP`。
+
+完整规则见 `.gitignore`。
