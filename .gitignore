@@ -52,6 +52,12 @@ crashlytics-build.properties
 .workbuddy/
 Server/.workbuddy/
 
+# ---------- 4b. 日志与崩溃转储 ----------
+*.log
+hs_err_pid*.log
+UpgradeLog*.htm
+UpgradeLog*.txt
+
 # ---------- 5. 操作系统 ----------
 Thumbs.db
 ehthumbs.db
