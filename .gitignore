@@ -42,6 +42,7 @@ crashlytics-build.properties
 .vs/
 .vscode/
 .idea/
+*.DotSettings
 *.DotSettings.user
 .vsconfig
 
