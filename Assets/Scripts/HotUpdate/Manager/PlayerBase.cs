@@ -1,0 +1,28 @@
+using UnityEngine;
+
+public abstract class PlayerBase : MonoBehaviour
+{
+    // 通用属性
+    public float Health { get; set; } = 100f;
+    public float Stamina { get; set; } = 100f;
+    public Vector3 Position => transform.position;
+    
+    // 通用组件
+    protected CharacterController characterController;
+    protected Animator animator;
+    protected Camera playerCamera;
+    
+    // 通用方法（所有角色都有）
+    public virtual void Initialize()
+    {
+        characterController = GetComponent<CharacterController>();
+        animator = GetComponentInChildren<Animator>();
+    }
+    
+    // 通用工具方法
+    protected void PlayAnimation(string animationName)
+    {
+        if (animator != null)
+            animator.Play(animationName);
+    }
+}

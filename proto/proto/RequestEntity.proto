@@ -1,0 +1,166 @@
+//发送请求的数据 
+
+syntax = "proto3";//指定proto使用proto3语法  
+//发送包的数据   连接服务器会发送这个数据   
+message BasePackage{
+  int32 proto_code = 1;//协议码
+  int32 unity_session_id = 2;//unity端的sessionID      
+  int32 gate_session_id = 3;//网关服务器与游戏服务器连接的sessionid
+  bytes data = 10;//数据
+}
+//注册请求的信息  
+message RegistReq{
+  string user_name = 1;//用户名 
+  string password = 3;//密码 
+}
+//登录请求信息
+message LoginReq{
+  string user_name = 1;//用户名 
+  string password = 2;//密码 
+}
+//获取服务器列表 选服的id   
+message GetServerListReq{
+  int32 server_id = 1;//如果你请求的时候server_id小于等0表示拿到所有的服务器信息，如果填写了具体的id那么就是拿到对应服务器的信息
+}
+//登录游戏服务器的请求 
+message LoginGameServerReq{
+  int32 account_id = 1;
+  int32 game_server_id = 2;
+}
+//创建角色请求数据 
+message CreateRoleReq{
+  int32 account_id = 1;
+  int32 game_server_id = 2;//在所属的服务器创建的角色 这里表示所属的服务器id   
+  string nickname = 3;//昵称
+  int32 job_id = 4;//职业  
+}
+
+//保存角色数据请求
+message SaveRoleReq{
+  int32 role_id = 1;//角色id
+  int32 server_id = 2;
+  //int32 map_id = 3;
+  //map<int32, NeedSaveDriverDiskInfo> driver_disk_map = 5;
+  //map<int32, NeedSaveMaterialInfo> material_map = 6;
+}
+/*message NeedSaveDriverDiskInfo{
+  int32 id = 1;                 // 数据库自增 id
+  int32 driver_disk_id = 2;     // 驱动盘模板 id
+  int32 driver_disk_count = 3;  // 驱动盘数量
+  string driver_disk_name = 4;  // 驱动盘名称
+  int32 base_value = 5;          // 驱动盘的初始加成
+  float attack_per = 6;      // 加成比率
+  float defense_per = 7;
+  float health_per = 8;
+  float baoJi_per = 9;
+  int32 level = 10;
+  float cur_max_fill_value = 11;
+  float cur_fill_value = 12;
+}
+message NeedSaveMaterialInfo{
+  int32 material_id = 1;        // 拥有材料 id
+  int32 material_count = 2;     // 拥有材料数量
+  string material_name = 3;     // 材料名称
+}*/
+
+//跳转场景请求
+message ChangeSceneReq{
+  int32 role_id = 1;
+  string scene_name = 2;
+}
+
+//请求生成敌人
+message SpawnEnemyReq{
+  int32 role_id = 1;
+  int32 trigger_type = 2; //触发类型: 1=对话结束 2=完成任务 3=进入区域
+  int32 trigger_id = 3;   //对应的对话/任务/区域id
+  int32 enemy_config_id = 4; // 敌人配置表ID（Luban）
+  float max_hp = 5;
+  float pos_x = 6;
+  float pos_y = 7;
+  float pos_z = 8;
+}
+
+// 玩家攻击请求
+message PlayerAttackReq{
+  int32 role_id = 1;
+  int32 enemy_instance_id = 2; // 服务端分配的敌人实例ID
+  float damage = 4;            // 客户端计算的伤害
+  float baoji_percent = 5;     // 暴击率
+  bool is_ex_attack = 6;       // 是否EX攻击
+  int32 sequence_id = 7;       // 客户端递增序列号，用于回包匹配
+}
+
+//获取奖励请求
+message GetRewardReq{
+  int32 role_id = 1;
+  int32 reward_type = 2;  //奖励类型: 1=任务奖励 2=击杀奖励 3=拾取物品
+}
+
+//开始游戏请求
+message StartGameReq{
+  int32 role_id = 1;//角色id
+}
+
+//打开对话请求
+message OpenDialogueReq{
+  int32 role_id = 1;//角色id
+}
+
+// 位置同步请求（客户端→服务端，每100ms发一次，仅GameScene）
+message PositionSyncReq{
+  int32 role_id = 1;
+  float pos_x = 2;
+  float pos_y = 3;
+  float pos_z = 4;
+  float rotation_y = 5;
+  string nike_name = 6;
+}
+
+// 创建房间请求
+message CreateRoomReq{
+  int32 role_id = 1;
+  string room_name = 2;
+  string nickname = 3;
+}
+
+// 加入房间请求
+message JoinRoomReq{
+  int32 role_id = 1;
+  int32 room_id = 2;
+  string nickname = 3;
+}
+
+// 离开房间请求
+message LeaveRoomReq{
+  int32 role_id = 1;
+}
+
+// 房主开始游戏请求
+message RoomStartGameReq{
+  int32 role_id = 1;
+}
+
+// 玩家准备状态切换请求
+message PlayerReadyReq{
+  int32 role_id = 1;
+  bool is_ready = 2;
+}
+
+message SyncAniReq{
+  int32 role_id = 1;
+  string animation_name = 2;
+  int32 skill_config_index = 3;
+}
+
+message EnemyPositionSyncReq{
+  int32 role_id = 1;
+  float pos_x = 2;
+  float pos_y = 3;
+  float pos_z = 4;
+  float rotation_y = 5;
+}
+message SyncEnemyAniReq{
+  int32 role_id = 1;
+  string animation_name = 2;
+}

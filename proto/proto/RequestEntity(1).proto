@@ -1,0 +1,45 @@
+
+//发送请求的数据 
+
+syntax = "proto3";//指定proto使用proto3语法  
+//发送包的数据   连接服务器会发送这个数据   
+message BasePackage{
+	int32 proto_code=1;//协议码
+	int32 unity_session_id=2;//unity端的sessionID      
+	int32 gate_session_id=3;//网关服务器与游戏服务器连接的sessionid
+	bytes data=10;//数据
+
+}
+//注册请求的信息  
+message RegistReq{
+	string user_name=1;//用户名 
+	string phone_num=2;//手机号 
+	string password=3;//密码 
+}
+//登录请求信息
+message LoginReq{
+	string user_name=1;//用户名 
+	string password=2;//密码 
+}
+//获取服务器列表 选服的id   
+message GetServerListReq{
+	int32 server_id=1;//如果你请求的时候server_id小于等0表示拿到所有的服务器信息，如果填写了具体的id那么就是拿到对应服务器的信息
+}
+//登录游戏服务器的请求 
+message LoginGameServerReq{
+	int32 account_id=1;
+    int32 game_server_id=2;
+}
+//创建角色请求数据 
+message CreateRoleReq{
+	int32 account_id=1;
+	int32 game_server_id=2;//在所属的服务器创建的角色 这里表示所属的服务器id   
+	string nickname=3;//昵称
+	int32 job_id=4;//职业  
+}
+
+//开始游戏请求数据 
+message StartGameReq{
+	int32 role_id=1;//角色id 
+}
+

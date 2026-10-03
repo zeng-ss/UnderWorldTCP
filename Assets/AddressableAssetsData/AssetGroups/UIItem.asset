@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: UIItem
+  m_EditorClassIdentifier: 
+  m_GroupName: UIItem
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 3be7b7adfcab09845ab3769a9e1fd73f
+  m_SerializeEntries:
+  - m_GUID: 24dfba8563bc31a4c811cd84a2e87e7d
+    m_Address: ChatRootLeft
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6bb1ba3ec4f2b4848afab0e0eb718550
+    m_Address: ChatRootRight
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 95300a0d91a8edb4ebe605f61ff3cedc
+    m_Address: headFrame
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a5f24d3e39099c9448a701b2335cdd9c
+    m_Address: PlayerRoomItem
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b019850ea1bbc3c4589817fbfb785c4a
+    m_Address: DialogueOptionItem
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: bf35762dd2d6b6b4c889994556f26153
+    m_Address: DepotItem
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d9e7aaa9596f8b749ae52494d7bb0bed
+    m_Address: TaskItem
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: f365035c43801984b949c9349eafb986, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 5dffec6043ff86240bcf5940c7841a9e, type: 2}
+    - {fileID: 11400000, guid: 7222f3f2fd98d7143a105145309235a0, type: 2}

@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: AOT
+  m_EditorClassIdentifier: 
+  m_GroupName: AOT
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 39f91e3140c848f499baaa914fd94f9e
+  m_SerializeEntries:
+  - m_GUID: 3c1d619a56ae9184f97c9f67e53f792b
+    m_Address: System.Core.dll
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4e5e6a49d3ab6ca43adb70acd3aa2ee8
+    m_Address: UnityEngine.dll
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 670635e48940af946afb265ef6dbba0e
+    m_Address: AOT.dll
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 7772c5aeb5c21684ab71c51bfe17d0c8
+    m_Address: UnityEngine.UI.dll
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9965f56e9106ffc40abbaed55353940e
+    m_Address: System.dll
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c4ba9068e966a1140bfb34159040b526
+    m_Address: mscorlib.dll
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: f365035c43801984b949c9349eafb986, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 35418b6c1135f8943a0a55ba645791f5, type: 2}
+    - {fileID: 11400000, guid: 1803b14f6b29ce949809cf22675a2871, type: 2}

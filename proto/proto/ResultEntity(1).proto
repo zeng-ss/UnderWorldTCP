@@ -1,0 +1,96 @@
+//返回的信息   
+
+syntax = "proto3";//指定proto使用proto3语法  
+//信息码   
+enum CmdCode{  
+	Succeed=0;//请求成功  
+	AcctExist=1;//账号已存在  
+	ServerError=2;//服务端错误 
+	AcctNotExist=3;//账号不存在  
+	PasswordError=4;//密码错误 
+	AcctDisable=5;//账号禁用   
+	ReqParamError=6;//请求参数错误 
+	NicknameExist=7;//昵称已存在 
+	UserNameIlegal=8;//用户名不合法 
+	phoneNumIlegal=9;//手机号不合法 
+	passwordIlegal=10;//密码不合法 
+	RoleNotExist=11;//角色不存在  
+}
+message ErrMsg{  
+	CmdCode cmd_code=1;//错误码  
+}
+message RegistRet{ 
+	CmdCode cmd_code=1;//表示注册是否成功  
+}
+
+message loginRet{
+	CmdCode cmd_code=1;//登录是否成功   信息码 记录登录的状态  
+	GameServer game_server=2;//表示最后登录服务器的id  
+	int32 account_id=3;//用户id  
+}
+
+
+message GameServer{ //游戏服   每个游戏服的信息 
+	int32  server_id=1;//服务器id 
+	string server_name=2;//名称 
+	int32 run_state=3;//运行状态 
+	int32 is_new=4;//是否是新服  
+	string ip_host=5;//ip
+	int32 port=6;//端口 
+	
+}
+//获取服务器列表返回数据 
+message GetServerListRet{
+	CmdCode cmd_code=1;//表示请求是否成功  
+	repeated GameServer game_servers=2;//protobuf中定义数组的方式  中间GameServer表示数组里面存的数据类型 
+}
+//获取登录服务器返回的数据
+message loginGameServerRet{
+	CmdCode cmd_code=1;//表示请求是否成功   信息码  记录返回的结果  
+	CreateRoleRet create_role_info=2;//已创建的角色信息    
+}
+//创建角色返回数据 
+message CreateRoleRet{
+	CmdCode cmd_code=1;//表示创建角色是否成功  
+	int32 role_id=2;//角色id  
+	string nickname=3;//昵称 
+	int32 job_id=4;
+	int32 level=5;
+}
+
+//开始游戏请求返回数据  
+message StartGameRet{
+	CmdCode cmd_code=1;//表示请求是否成功  
+	//角色的所有属性信息，角色有很多类型，主角、其他玩家、NPC、怪物等 
+	MainRoleInfo main_role_info=2;//主角信息  
+}
+//角色基础信息 
+message RoleBaseInfo{
+	int32 role_id=1;
+	string nickname=2;
+	int32 level=3;
+	int32 max_hp=4;
+	int32 curr_hp=5;
+	int32 max_mp=6;
+	int32 curr_mp=7;
+	int32 akt=8;//攻击
+	int32 def=9;//防御  
+	int32 crit=10;//暴击
+	int32 dodge=11;//闪避
+	int32 hit=12;//命中
+	int32 penet=13;//穿透  
+	string pos=14;//位置 
+	int32 map_id=15;//地图id  
+}
+//主角信息  
+message MainRoleInfo{
+	RoleBaseInfo base_info=1;
+	int32 account_id=2;//账号id 
+	int32 money=3;//金币 
+	int32 job_id=4;//职业
+	int32 exp=5;//经验值 
+	int32 skill_up_point=6;//技能升级点  
+	string camera_offset=7;//摄像机偏移量  
+	int32 server_id=8;//所处服务器id   
+	
+}

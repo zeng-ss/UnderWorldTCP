@@ -1,0 +1,225 @@
+//返回的信息   
+
+syntax = "proto3";//指定proto使用proto3语法  
+//信息码   
+enum CmdCode{
+  Succeed = 0;//请求成功  
+  AcctExist = 1;//账号已存在  
+  ServerError = 2;//服务端错误 
+  AcctNotExist = 3;//账号不存在  
+  PasswordError = 4;//密码错误 
+  AcctDisable = 5;//账号禁用   
+  ReqParamError = 6;//请求参数错误 
+  NicknameExist = 7;//昵称已存在 
+  UserNameIlegal = 8;//用户名不合法 
+  passwordIlegal = 10;//密码不合法 
+  RoleNotExist = 11;//角色不存在
+  EnemyNotExist = 12;//敌人不存在
+}
+message ErrMsg{
+  CmdCode cmd_code = 1;//错误码  
+}
+message RegistRet{
+  CmdCode cmd_code = 1;//表示注册是否成功  
+}
+
+message loginRet{
+  CmdCode cmd_code = 1;//登录是否成功   信息码 记录登录的状态  
+  GameServer game_server = 2;//表示最后登录服务器的id  
+  int32 account_id = 3;//用户id  
+}
+
+
+message GameServer{//游戏服   每个游戏服的信息 
+  int32  server_id = 1;//服务器id 
+  string server_name = 2;//名称 
+  int32 run_state = 3;//运行状态 
+  int32 is_new = 4;//是否是新服  
+  string ip_host = 5;//ip
+  int32 port = 6;//端口 
+
+}
+//获取服务器列表返回数据 
+message GetServerListRet{
+  CmdCode cmd_code = 1;//表示请求是否成功  
+  repeated GameServer game_servers = 2;//protobuf中定义数组的方式  中间GameServer表示数组里面存的数据类型 
+}
+//获取登录服务器返回的数据
+message loginGameServerRet{
+  CmdCode cmd_code = 1;//表示请求是否成功   信息码  记录返回的结果  
+  CreateRoleRet create_role_info = 2;//已创建的角色信息    
+}
+//创建角色返回数据 
+message CreateRoleRet{
+  CmdCode cmd_code = 1;//表示创建角色是否成功  
+  int32 role_id = 2;//角色id  
+  string nickname = 3;//昵称 
+  int32 job_id = 4;
+  int32 level = 5;
+}
+
+//保存角色数据返回
+message SaveRoleRet{
+  CmdCode cmd_code = 1;
+}
+//跳转场景返回
+message ChangeSceneRet{
+  CmdCode cmd_code = 1;
+}
+//生成敌人返回
+message SpawnEnemyRet{
+  CmdCode cmd_code = 1;
+  int32 enemy_instance_id = 2; // 服务端分配的敌人实例ID
+  float pos_x = 3;             // 出生位置X
+  float pos_y = 4;             // 出生位置Y
+  float pos_z = 5;             // 出生位置Z
+  float max_hp = 6;            // 最大血量
+  float curr_hp = 7;           // 当前血量
+  int32 enemy_config_id = 8;   // 敌人配置表ID
+  int32 role_id = 9;
+}
+
+// 玩家攻击返回
+message PlayerAttackRet{
+  CmdCode cmd_code = 1;
+  int32 enemy_instance_id = 2;
+  float damage_dealt = 3;       // 实际造成的伤害
+  float enemy_curr_hp = 4;      // 敌人当前血量
+  float enemy_max_hp = 5;       // 敌人最大血量
+  bool is_dead = 6;             // 敌人是否死亡
+  bool is_baoji = 7;            // 是否暴击
+  int32 attacker_role_id = 8;   // 攻击者的角色ID（客户端用于区分是自己打还是别人打）
+}
+//获取奖励返回
+message GetRewardRet{
+  CmdCode cmd_code = 1;
+  map<int32,int32> reward_map = 2;// 背包内容 id，数量
+}
+//开始游戏请求返回数据
+message StartGameRet{
+  CmdCode cmd_code = 1;//表示请求是否成功  
+  //角色的所有属性信息，角色有很多类型，主角、其他玩家、NPC、怪物等 
+  MainRoleInfo main_role_info = 2;//主角信息
+}
+//角色基础信息 
+message RoleBaseInfo{
+  int32 role_id = 1;
+  string nickname = 2;
+}
+//主角信息
+message MainRoleInfo{
+  RoleBaseInfo base_info = 1;
+  int32 account_id = 2;//账号id 
+  string scene_name = 7;//所处场景名称
+  int32 server_id = 8;//所处服务器id
+  // 背包物品字典
+  map<int32, DriverDiskInfo> driver_disk_map = 9;
+  map<int32, MaterialInfo> material_map = 10;
+}
+message DriverDiskInfo{
+  int32 id = 1;                 // 数据库自增 id
+  int32 driver_disk_id = 2;     // 驱动盘模板 id
+  int32 driver_disk_count = 3;  // 驱动盘数量
+  string driver_disk_name = 4;  // 驱动盘名称
+  int32 base_value = 5;          // 驱动盘的初始加成
+  float attack_per = 6;      // 加成比率
+  float defense_per = 7;
+  float health_per = 8;
+  float baoJi_per = 9;
+  int32 level = 10;
+  float cur_max_fill_value = 11;
+  float cur_fill_value = 12;
+}
+message MaterialInfo{
+  int32 material_id = 1;        // 拥有材料 id
+  int32 material_count = 2;     // 拥有材料数量
+  string material_name = 3;     // 材料名称
+}
+
+// 位置同步广播（服务端→其他客户端）
+message PositionSyncNtf{
+  int32 role_id = 1;
+  float pos_x = 2;
+  float pos_y = 3;
+  float pos_z = 4;
+  float rotation_y = 5;
+  string nike_name = 6;
+}
+
+// 玩家进入场景通知
+message PlayerEnterSceneNtf{
+  int32 role_id = 1;
+  string nickname = 2;
+  float pos_x = 3;
+  float pos_y = 4;
+  float pos_z = 5;
+  int32 scene_name = 6;
+}
+
+// 玩家离开场景通知
+message PlayerLeaveSceneNtf{
+  int32 role_id = 1;
+}
+
+// ========== 房间系统 ==========
+
+// 房间内玩家信息
+message RoomPlayerInfo{
+  int32 role_id = 1;
+  string nickname = 2;
+  bool is_master = 3;    // 是否房主
+  bool is_ready = 4;     // 是否已准备
+}
+
+// 创建房间返回
+message CreateRoomRet{
+  CmdCode cmd_code = 1;
+  int32 room_id = 2;
+  repeated RoomPlayerInfo players = 3;
+}
+
+// 加入房间返回
+message JoinRoomRet{
+  CmdCode cmd_code = 1;
+  int32 room_id = 2;
+  repeated RoomPlayerInfo players = 3;
+}
+
+// 房间信息变更通知（广播给房间内所有人）
+message RoomInfoNtf{
+  int32 room_id = 1;
+  repeated RoomPlayerInfo players = 2;
+}
+
+// 房主开始游戏通知（广播：所有人都加载GameScene）
+message RoomStartGameNtf{
+  int32 room_id = 1;
+  int32 map_id = 2;
+}
+
+message SyncAniRet{
+  string animation_name = 1;
+  int32 role_id = 2;
+  int32 skill_config_index = 3;
+}
+
+message PlayerVfxNtf{
+  int32 role_id = 1;
+  int32 skill_config_index = 2;
+  int32 attack_index = 3;
+  int32 vfx_index = 4;
+}
+
+message EnemyPositionSyncRet{
+  int32 role_id = 1;
+  float pos_x = 2;
+  float pos_y = 3;
+  float pos_z = 4;
+  float rotation_y = 5;
+}
+message EnemySyncAniRet{
+  string animation_name = 1;
+  int32 role_id = 2;
+}
+
+

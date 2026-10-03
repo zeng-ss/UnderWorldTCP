@@ -1,0 +1,78 @@
+# ============================================================
+# ARPGDemo Monorepo
+#   根 = Unity 客户端 (UnderWordYoo)
+#   Server/ = C# 服务端
+#   proto/  = Protobuf 契约源（两端共享的唯一真相）
+# ============================================================
+
+# ---------- 1. Unity 引擎产物 ----------
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Ss]creenshots/
+/[Bb]uild[Ll]ogs/
+sysinfo.txt
+crashlytics-build.properties
+
+# Unity 生成的 IDE 工程文件（仅根目录，避免误伤 Server/ 下的 .csproj/.sln）
+/*.csproj
+/*.sln
+/*.unityproj
+/*.booproj
+/*.userprefs
+/*.pidb
+/*.suo
+/*.user
+/*.userosscache
+/*.sln.docstates
+
+# ---------- 2. HybridCLR / YooAsset 产物 ----------
+/HybridCLRData/
+/Bundles/
+/ServerData/
+/Assets/StreamingAssets/yoo/
+/Assets/DllBytes/
+
+# ---------- 3. IDE / 编辑器 ----------
+.vs/
+.vscode/
+.idea/
+*.DotSettings.user
+.vsconfig
+
+# ---------- 4. 工具数据 ----------
+.workbuddy/
+Server/.workbuddy/
+
+# ---------- 5. 操作系统 ----------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.tmp
+*.swp
+
+# ---------- 6. 服务端构建产物 ----------
+Server/**/bin/
+Server/**/obj/
+Server/packages/
+Server/.idea/
+Server/*.user
+Server/.vs/
+Server/**/*.pdb
+Server/**/*.cache
+
+# ---------- 7. proto 中间产物 ----------
+# out/ 是 protoc 的输出目录，生成后由脚本拷进 Server/Network/Proto/
+proto/out/
+proto/bin/protoc(1).exe
+
+# ---------- 8. 明确保留（不忽略） ----------
+# Assets/Plugins/Net/*.dll 及 .meta —— 对 Unity 而言是外部依赖库，clone 后必须能直接编译
+# Server/**/*.csproj、Server/ARPGDemo_Server.sln —— 服务端工程文件
+# proto/proto/*.proto、proto/bin/protoc.exe —— 契约源与构建工具，必须入库
