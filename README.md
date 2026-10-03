@@ -58,6 +58,40 @@ MySQL → CenterServer → LoginServer → 03_GameServer → 04_GateServer → U
 - `Assets/Plugins/Net/*.dll` 虽然来自服务端构建，但对 Unity 来说是外部依赖库，所以**入库**，保证 clone 下来能直接编译。
 - 详细的架构分析与已知问题见 `Server/项目分析说明.md`。
 
+## 推送到 GitHub
+
+### 不要用 Unity Hub 的「Use source control」来初始化
+
+Unity Hub 3.17+ 的这个功能会**在 GitHub 上新建一个远端仓库**，并且**附带写一份 `.gitignore`**。Unity 官方模板是为纯 Unity 项目设计的，它不知道 `Server/` 的存在：
+
+- 模板里 `*.csproj` / `*.sln` 是**全局匹配**（不带 `/` 前缀），会连服务端的工程文件一起匹配到；
+- 模板里**没有** `Server/packages/`、`Server/**/bin/`、`Server/**/obj/` 这些规则——实测一旦被替换，会多混入 **536 个文件**（NuGet 包 352 个 + 各工程 bin/obj）。
+
+而 Hub 在 Unity 6.3+ 上还会"顺手推送首次提交"，等发现时东西已经上去了。
+
+### 正确做法
+
+1. 在 GitHub 网页端建**空仓库**（不要勾 README / .gitignore / License）
+2. 本地执行：
+   ```bash
+   git remote add origin <你的仓库地址>
+   git branch -M main
+   git push -u origin main
+   ```
+3. 想在 Hub 项目列表里看到分支和仓库图标，用 **Add → Add from repository**（Hub 3.17+ 支持 GitHub，用 PAT 认证）。这只读取远端，不会改动本地 `.gitignore`。
+
+### 如果已经点了 Hub 的按钮
+
+```bash
+git diff .gitignore            # 看 .gitignore 是否被改
+git checkout HEAD -- .gitignore   # 被改就还原成仓库里这份
+git status --short             # 确认没有 Library/ packages/ 混进来
+```
+
+### 编辑器侧设置
+
+`ProjectSettings/VersionControlSettings.asset` 已设为 `Visible Meta Files`。这个值原本是 Unity Version Control（Plastic SCM），会让编辑器尝试加载 UVCS 集成；本项目只用 Git，改成 Visible Meta Files 即可。配套的两项也已就绪：`EditorSettings` 里序列化模式为 Force Text、meta 文件可见、新脚本行尾 LF。
+
 ## 被版本控制排除的目录
 
 以下**不含任何 C# 代码**，为控制仓库体积已排除。clone 后若场景出现资源丢失（粉色材质），从原渠道重新导入即可：
