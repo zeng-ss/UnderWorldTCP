@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class PlayerRoomItem : MonoBehaviour
 {
+    private const string DefaultHeadIcon = "Icon/icon_question";
+
     public TMP_Text playerName;
     public TMP_Text isReadyText;
     public Image playerHeadImage;
@@ -13,43 +15,37 @@ public class PlayerRoomItem : MonoBehaviour
     {
         playerName.text = playerConfig.name;
         isReadyText.text = playerConfig.isReady ? "已准备" : "未准备";
-        playerHeadImage.sprite = Resources.Load<Sprite>("Icon/icon_question");
+        SetHeadImage(playerConfig.headImageName);
     }
 
     public void UpdateRoomItem(PlayerConfig playerConfig)
     {
         playerName.text = playerConfig.name;
         isReadyText.text = playerConfig.isReady ? "已准备" : "未准备";
-        // 优先检查本地是否已有该Sprite，避免首次Resources.Load失败
-        Sprite headSprite = playerHeadImage.sprite;
-        if (headSprite == null || headSprite.name != playerConfig.headImageName)
-        {
-            try { headSprite = Resources.Load<Sprite>($"Icon/{playerConfig.headImageName}"); }
-            catch
-            {
-                //  fallback：使用默认头像
-                headSprite = Resources.Load<Sprite>("Icon/icon_question");
-            }
-            playerHeadImage.sprite = headSprite;
-        }
-        DOVirtual.DelayedCall(0.2f, () => { UpdateHeadImage(playerConfig);});
+        SetHeadImage(playerConfig.headImageName);
+        DOVirtual.DelayedCall(0.2f, () => { SetHeadImage(playerConfig.headImageName); });
     }
 
-    private void UpdateHeadImage(PlayerConfig playerConfig)
+    /// <summary>
+    /// 设置头像。加载失败时回退到默认头像。
+    /// 图片经 ResMgr 缓存，重复设置同一张图不会有额外开销。
+    /// </summary>
+    private void SetHeadImage(string headImageName)
     {
-        Sprite headSprite = playerHeadImage.sprite;
-        if (headSprite == null || headSprite.name != playerConfig.headImageName)
+        ResMgr.Instance.LoadSpriteAsync($"Icon/{headImageName}", sprite =>
         {
-            try
+            if (!playerHeadImage) return;
+
+            if (sprite != null)
             {
-                headSprite = Resources.Load<Sprite>($"Icon/{playerConfig.headImageName}");
+                playerHeadImage.sprite = sprite;
+                return;
             }
-            catch
+
+            ResMgr.Instance.LoadSpriteAsync(DefaultHeadIcon, fallback =>
             {
-                //  fallback：使用默认头像
-                headSprite = Resources.Load<Sprite>("Icon/icon_question");
-            }
-            playerHeadImage.sprite = headSprite;
-        }
+                if (playerHeadImage) playerHeadImage.sprite = fallback;
+            });
+        });
     }
 }

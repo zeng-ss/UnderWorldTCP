@@ -40,7 +40,7 @@ public class UIManager : UnitySingleTonMono<UIManager>
 
     public void OpenPanel<T>(Action<T> onLoadComplete = null) where T : BasePanel
     {
-        if (!isCanvasInitialized)
+        if (!isCanvasInitialized || currentPanel == null)
         {
             Debug.LogError("Canvas未初始化完成，无法打开面板！");
             onLoadComplete?.Invoke(null);
@@ -126,6 +126,7 @@ public class UIManager : UnitySingleTonMono<UIManager>
     private void RestorePanelTransform(Transform panelTransform, string panelName)
     {
         if (!panelOriginalTransformData.ContainsKey(panelName)) return;
+        if (currentPanel == null) return;
 
         RectTransform panelRect = panelTransform.GetComponent<RectTransform>();
         if (panelRect != null)
@@ -267,11 +268,29 @@ public class UIManager : UnitySingleTonMono<UIManager>
         isCanvasInitialized = true;
     }
 
+    /// <summary>
+    /// 销毁所有已加载面板并释放其 YooAsset 句柄。
+    /// 用于彻底清理（卸载资源包 / 退出游戏）；日常开关面板请用 ClosePanel，它会缓存实例。
+    /// </summary>
+    public void DestroyAllPanels()
+    {
+        foreach (var kv in UIPanelDict)
+        {
+            if (kv.Value != null) Destroy(kv.Value.gameObject);
+        }
+
+        UIPanelDict.Clear();
+        panelOriginalTransformData.Clear();
+
+        foreach (var handle in panelLoadHandles.Values) handle.Release();
+        panelLoadHandles.Clear();
+    }
+
     private void OnDestroy()
     {
+        DestroyAllPanels();
+
         foreach (var handle in panelAssetHandles.Values) handle.Release();
         panelAssetHandles.Clear();
-        panelLoadHandles.Clear();
-        panelOriginalTransformData.Clear();
     }
 }

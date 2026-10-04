@@ -58,7 +58,8 @@ public class DepotPanel : BasePanel
     public void UpdateDepotDes(DriverDiskDataRuntime driverDiskData)
     {
         depotName.text = driverDiskData.depotName;
-        depotIcon.sprite = Resources.Load<Sprite>($"Res/{driverDiskData.depotIconName}");
+        ResMgr.Instance.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
+            sprite => { if (depotIcon) depotIcon.sprite = sprite; });
         depotLevelText.text = driverDiskData.level.ToString();
         depotBaseTypeText.text = GetDepotType(driverDiskData.DepotDriverDiskValue.driverDiskType);
         depotBaseText.text = driverDiskData.DepotDriverDiskValue.baseValue.ToString();
@@ -91,7 +92,9 @@ public class DepotPanel : BasePanel
             GameObject obj = new GameObject("DepotObj");
             obj.transform.SetParent(item.transform);
             obj.transform.localPosition = Vector3.zero;
-            obj.AddComponent<Image>().sprite = Resources.Load<Sprite>($"Res/{driverDiskData.depotIconName}");
+            Image iconImage = obj.AddComponent<Image>();
+            ResMgr.Instance.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
+                sprite => { if (iconImage) iconImage.sprite = sprite; });
             obj.GetComponent<RectTransform>().sizeDelta = new Vector2(150f, 150f);
             depotItem.SetEquipObj(obj);
             equipedDepotList.Add(driverDiskData);

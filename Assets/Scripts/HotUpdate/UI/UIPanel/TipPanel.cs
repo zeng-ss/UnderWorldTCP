@@ -10,7 +10,7 @@ public class TipPanel : BasePanel
     [HideInInspector] public float showTime = 1f;
     private float fadeDuration = 0.6f;
 
-    public override void Awake()
+    protected override void Awake()
     {
         base.Awake();
         GetComponent<RectTransform>();

@@ -67,5 +67,9 @@ public class LoadPanel : BasePanel
         pivot.transform.localPosition = localPos;
         targetProgress = 0f;
     }
-    private void OnDestroy() { EventMgr.Instance.RemoveEventListener(GameEvent.LoadProgress, UpdateProgress); }
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        EventMgr.Instance.RemoveEventListener(GameEvent.LoadProgress, UpdateProgress);
+    }
 }

@@ -6,9 +6,12 @@ using YooAsset;
 
 public class ResMgr : UnitySingleTonMono<ResMgr>
 {
+    // 仍在加载/已加载的 AssetHandle，只有显式 Release 才会移除（用于正确释放）
     private Dictionary<string, AssetHandle> handleCache = new();
+    // 已加载资源本体，命中后直接返回，避免重复走 handle
     private Dictionary<string, object> assetCache = new();
-    private List<GameObject> instanceCache = new();
+    // 精灵图缓存：列表项 UI 会反复请求同一张图
+    private Dictionary<string, Sprite> spriteCache = new();
 
     private ResourcePackage Package => Global.Instance._YooPackage;
 
@@ -56,11 +59,58 @@ public class ResMgr : UnitySingleTonMono<ResMgr>
                 onComplete?.Invoke(null);
                 return;
             }
+
             GameObject instance = Instantiate(prefab, parent);
             instance.name = prefab.name;
-            instanceCache.Add(instance);
             onComplete?.Invoke(instance);
         });
+    }
+
+    /// <summary>
+    /// 加载精灵图。优先走 YooAsset（可热更）；资源尚未进包时回退 Resources 兜底。
+    /// 结果按地址缓存，同一张图不会重复加载。
+    /// </summary>
+    /// <param name="address">YooAsset 地址 / Resources 相对路径</param>
+    public void LoadSpriteAsync(string address, Action<Sprite> onComplete)
+    {
+        if (string.IsNullOrEmpty(address))
+        {
+            Debug.LogError("ResMgr: 精灵图加载地址不能为空！");
+            onComplete?.Invoke(null);
+            return;
+        }
+
+        if (spriteCache.TryGetValue(address, out Sprite cached) && cached != null)
+        {
+            onComplete?.Invoke(cached);
+            return;
+        }
+
+        bool inPackage = Package != null && Package.IsLocationValid(address);
+        if (inPackage)
+        {
+            LoadAssetAsync<Sprite>(address, sprite =>
+            {
+                if (sprite != null) spriteCache[address] = sprite;
+                onComplete?.Invoke(sprite);
+            });
+            return;
+        }
+
+        // 还没挪进 YooAsset 收集目录的老资源，先兜底保证不炸图
+        Sprite fallback = Resources.Load<Sprite>(address);
+        if (fallback == null)
+        {
+            Debug.LogError($"ResMgr: 精灵图加载失败 {address}（YooAsset 包与 Resources 中都没有）");
+        }
+        else
+        {
+            Debug.LogWarning($"ResMgr: {address} 不在 YooAsset 包内，已回退 Resources.Load。" +
+                             "把资源移到 Assets/Res 下被收集的目录并重新打包后即可热更。");
+            spriteCache[address] = fallback;
+        }
+
+        onComplete?.Invoke(fallback);
     }
 
     public void LoadBatchAssetsAsync<T>(List<string> addressList, Action<Dictionary<string, T>> onComplete) where T : UnityEngine.Object
@@ -96,13 +146,18 @@ public class ResMgr : UnitySingleTonMono<ResMgr>
             handle.Release();
             handleCache.Remove(address);
         }
-        if (assetCache.ContainsKey(address)) assetCache.Remove(address);
+
+        assetCache.Remove(address);
+        spriteCache.Remove(address);
     }
 
+    /// <summary>
+    /// 销毁由 LoadAndInstantiateAsync 生成的实例。
+    /// 实例不再被 ResMgr 持有，频繁创建销毁的对象请改用 PoolMgr。
+    /// </summary>
     public void ReleaseInstance(GameObject instance)
     {
         if (instance == null) return;
-        instanceCache.Remove(instance);
         Destroy(instance);
     }
 
@@ -110,12 +165,8 @@ public class ResMgr : UnitySingleTonMono<ResMgr>
     {
         foreach (var handle in handleCache.Values) handle.Release();
         handleCache.Clear();
-        foreach (var instance in instanceCache)
-        {
-            if (instance != null) Destroy(instance);
-        }
-        instanceCache.Clear();
         assetCache.Clear();
+        spriteCache.Clear();
     }
 
     #endregion
@@ -143,7 +194,7 @@ public class ResMgr : UnitySingleTonMono<ResMgr>
             Debug.LogError($"ResMgr: 加载失败 {address} - {handle.Error}");
             onComplete?.Invoke(null);
         }
-        if (handleCache.ContainsKey(address)) handleCache.Remove(address);
+        // 注意：这里不能把 handle 从 handleCache 移除，否则 ReleaseAsset 找不到句柄，资源永远释放不掉
     }
 
     protected void OnDestroy()

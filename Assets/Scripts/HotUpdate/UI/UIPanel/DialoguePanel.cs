@@ -38,7 +38,7 @@ public class DialoguePanel : BasePanel
 
     #endregion
 
-    private new void Awake() { followCamera = Camera.main; }
+    protected override void Awake() { base.Awake(); followCamera = Camera.main; }
     
     private void OnEnable()
     {

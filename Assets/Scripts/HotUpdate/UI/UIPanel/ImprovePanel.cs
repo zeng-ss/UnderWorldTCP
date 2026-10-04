@@ -55,7 +55,8 @@ public class ImprovePanel : BasePanel
     {
         _currentDriverDiskData = driverDiskData;
         depotName.text = driverDiskData.depotName;
-        depotIcon.sprite = Resources.Load<Sprite>($"Res/{driverDiskData.depotIconName}");
+        ResMgr.Instance.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
+            sprite => { if (depotIcon) depotIcon.sprite = sprite; });
         depotLevelText.text = $"等级：{driverDiskData.level.ToString()}/15";
         depotBaseTypeText.text = GetDepotType(driverDiskData.DepotDriverDiskValue.driverDiskType);
         depotBaseText.text = driverDiskData.DepotDriverDiskValue.baseValue.ToString();
@@ -108,8 +109,10 @@ public class ImprovePanel : BasePanel
             if (!_currentDriverDiskData.materialsId.Contains(item.Key)) continue;
             var obj = new GameObject("materialIcon", typeof(Image));
             obj.transform.SetParent(iconsContainer.transform);
-            obj.GetComponent<Image>().sprite = 
-                Resources.Load<Sprite>($"Res/{GameManager.Instance.materialDataRuntime[item.Key].materialIconName}");
+            string iconName = GameManager.Instance.materialDataRuntime[item.Key].materialIconName;
+            Image materialIcon = obj.GetComponent<Image>();
+            ResMgr.Instance.LoadSpriteAsync($"Res/{iconName}",
+                sprite => { if (materialIcon) materialIcon.sprite = sprite; });
             // 创建数量文本
             GameObject countTextObject = new GameObject("CountText");
             countTextObject.transform.SetParent(obj.transform);
@@ -142,5 +145,19 @@ public class ImprovePanel : BasePanel
             }
         }
     }
-    private void OnDestroy() { addExpBtn.onClick.RemoveAllListeners(); }
+    /// <summary>
+    /// 强化面板关闭时连带关闭角色属性面板，保持原有行为；
+    /// 逻辑放在这里而不是基类，避免基类反向依赖具体子类。
+    /// </summary>
+    protected override void OnCloseClicked()
+    {
+        UIManager.Instance.ClosePanel<ImprovePanel>();
+        UIManager.Instance.ClosePanel<PlayerDataPanel>();
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        addExpBtn.onClick.RemoveAllListeners();
+    }
 }

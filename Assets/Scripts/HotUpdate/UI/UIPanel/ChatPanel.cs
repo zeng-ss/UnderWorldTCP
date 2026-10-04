@@ -13,8 +13,9 @@ public class ChatPanel : BasePanel
     [HideInInspector] public TMP_InputField chatInput;
     private ScrollRect chatScrollView;
 
-    public override void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         content = GameObject.Find("DialogueItemContent").gameObject;
         chatInput = GameObject.Find("DialogueInput").GetComponent<TMP_InputField>();
         chatScrollView = transform.Find("Scroll View").GetComponent<ScrollRect>();
@@ -61,8 +62,9 @@ public class ChatPanel : BasePanel
 
     public void ClearChatItems() { for (var i = 0; i < content.transform.childCount; i++) { Destroy(content.transform.GetChild(i).gameObject); } }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         chatInput.onEndEdit.RemoveListener(OnEndEditMessage);
     }
 }

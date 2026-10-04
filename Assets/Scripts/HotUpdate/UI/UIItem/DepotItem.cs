@@ -132,7 +132,8 @@ public class DepotItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     public void UpdateData(DriverDiskDataRuntime driverDiskData)
     {
         CurrentDriverDiskData = driverDiskData;
-        depotItemImage.sprite = Resources.Load<Sprite>($"Res/{driverDiskData.depotIconName}");
+        ResMgr.Instance.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
+            sprite => { if (depotItemImage) depotItemImage.sprite = sprite; });
     }
     
     public void OnPointerEnter(PointerEventData eventData)

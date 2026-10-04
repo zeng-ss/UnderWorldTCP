@@ -15,8 +15,9 @@ public class TaskPanel : BasePanel
     private float itemDelayInterval = 0.1f;  // 任务项逐个弹出的间隔
     private CanvasGroup taskCanvasGroup;     // 面板显隐用 CanvasGroup
 
-    private new void Awake()
+    protected override void Awake()
     {
+        base.Awake();
         taskCanvasGroup = GetComponent<CanvasGroup>();
         // 初始状态 - Y轴缩放为0（卷起状态）
         transform.localScale = new Vector3(1, 0, 1);

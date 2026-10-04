@@ -10,22 +10,32 @@ public class BasePanel : MonoBehaviour
         yield return null; // 等待一帧
         LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
     }
-    private bool isShow;
     private Button closeBtn;
-    public virtual void Awake()
+
+    protected virtual void Awake()
     {
         rootRect = transform as RectTransform;
-        closeBtn = gameObject.transform.Find("CloseBtn") ==  null ? null : gameObject.transform.Find("CloseBtn").GetComponent<Button>();
+        closeBtn = transform.Find("CloseBtn")?.GetComponent<Button>();
         if (closeBtn != null)
         {
-            closeBtn.onClick.AddListener(() =>
-            {
-                if (UIManager.Instance.GetPanel<ImprovePanel>()!=null&& UIManager.Instance.GetPanel<ImprovePanel>().gameObject.activeSelf)
-                {
-                    UIManager.Instance.ClosePanel<ImprovePanel>();
-                }
-                UIManager.Instance.ClosePanel<PlayerDataPanel>();
-            });
+            closeBtn.onClick.AddListener(OnCloseClicked);
+        }
+    }
+
+    /// <summary>
+    /// 关闭按钮点击回调。默认只隐藏自身。
+    /// 需要连带关闭其他面板时由子类重写（见 ImprovePanel）。
+    /// </summary>
+    protected virtual void OnCloseClicked()
+    {
+        Hide();
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (closeBtn != null)
+        {
+            closeBtn.onClick.RemoveListener(OnCloseClicked);
         }
     }
 
