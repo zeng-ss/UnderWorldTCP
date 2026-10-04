@@ -19,14 +19,15 @@ public class LoadPanel : BasePanel
     private void OnEnable() { ResetProgress(); }
     private void Start()
     {
-        EventCenter.Instance.AddEventListener<float>(GameEvent.进度条加载, UpdateProgress);
+        EventMgr.Instance.AddEventListener(GameEvent.LoadProgress, UpdateProgress);
         // 初始化
         loadingBar.fillAmount = 0f;
         UpdateProgressText(0f);
         UpdatePivotPosition(0f);
     }
-    private void UpdateProgress(float progress)
+    private void UpdateProgress(EventArgs args)
     {
+        float progress = ((LoadProgressArgs)args).Progress;
         targetProgress = Mathf.Clamp01(progress);
         // 终止正在进行的动画
         // 进度条动画
@@ -66,5 +67,5 @@ public class LoadPanel : BasePanel
         pivot.transform.localPosition = localPos;
         targetProgress = 0f;
     }
-    private void OnDestroy() { EventCenter.Instance.RemoveEventListener<float>(GameEvent.进度条加载, UpdateProgress); }
+    private void OnDestroy() { EventMgr.Instance.RemoveEventListener(GameEvent.LoadProgress, UpdateProgress); }
 }

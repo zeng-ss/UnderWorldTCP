@@ -99,7 +99,7 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.OpenPanel<ExitPanel>();
             if (SceneManager.GetActiveScene().name == "GameScene")
             {
-                EventCenter.Instance.EventTrigger(GameEvent.光标出现);
+                EventMgr.Instance.EventTrigger(GameEvent.CursorShow);
             }
         }
     }

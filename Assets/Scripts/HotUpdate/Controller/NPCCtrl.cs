@@ -15,7 +15,7 @@ public class NPCCtrl : MonoBehaviour
         camera = Camera.main;
         tipText = GetComponentInChildren<TMP_Text>();
         tipText.gameObject.SetActive(false);
-        EventCenter.Instance.AddEventListener<int>(GameEvent.对话结束, GetTask);
+        EventMgr.Instance.AddEventListener(GameEvent.DialogueEnd, GetTask);
     }
 
     private void Update()
@@ -34,7 +34,7 @@ public class NPCCtrl : MonoBehaviour
                 return;
             }
 
-            EventCenter.Instance.EventTrigger(GameEvent.光标出现);
+            EventMgr.Instance.EventTrigger(GameEvent.CursorShow);
             DialogueManager.Instance.StartDialogue(dialogueDatas[GameManager.Instance.dialogueId]);
         }
     }
@@ -42,9 +42,10 @@ public class NPCCtrl : MonoBehaviour
     /// <summary>
     /// 对话结束获取任务
     /// </summary>
-    /// <param name="dialogueId">对话的 id</param>
-    private void GetTask(int dialogueId)
+    /// <param name="args">事件参数，实际类型为 DialogueEndArgs</param>
+    private void GetTask(EventArgs args)
     {
+        int dialogueId = ((DialogueEndArgs)args).DialogueId;
         foreach (var task in GameManager.Instance.curTasksData.Where(task =>
                      dialogueDatas[GameManager.Instance.dialogueId].taskIds.Contains(task.taskId)))
         {
@@ -84,6 +85,6 @@ public class NPCCtrl : MonoBehaviour
 
     private void OnDestroy()
     {
-        EventCenter.Instance.RemoveEventListener<int>(GameEvent.对话结束, GetTask);
+        EventMgr.Instance.RemoveEventListener(GameEvent.DialogueEnd, GetTask);
     }
 }

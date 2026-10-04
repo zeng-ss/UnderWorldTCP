@@ -228,7 +228,7 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
                 isWaitingClickForEnd = false;
                 waitForClickCoroutine = null;
                 // 触发事件
-                EventCenter.Instance.EventTrigger(GameEvent.对话结束, currentDialogue.id);
+                EventMgr.Instance.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(currentDialogue.id));
                 EndDialogue();
                 yield break;
             }
@@ -303,7 +303,7 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
             if (option.isTriggerEvent)
             {
                 // 触发事件
-                EventCenter.Instance.EventTrigger(GameEvent.对话结束, currentDialogue.id);
+                EventMgr.Instance.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(currentDialogue.id));
             }
 
             EndDialogue();
@@ -365,7 +365,7 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
         dialogueQueue.Clear();
         isTyping = false;
         isWaitingClickForEnd = false;
-        EventCenter.Instance.EventTrigger(GameEvent.光标消失);
+        EventMgr.Instance.EventTrigger(GameEvent.CursorHide);
     }
 
     /// <summary>

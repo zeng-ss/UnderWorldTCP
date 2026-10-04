@@ -6,12 +6,12 @@ public class GameController : MonoBehaviour
 
     private void Start()
     {
-        EventCenter.Instance.AddEventListener(GameEvent.光标出现, NoLock);
-        EventCenter.Instance.AddEventListener(GameEvent.光标消失, Lock);
+        EventMgr.Instance.AddEventListener(GameEvent.CursorShow, NoLock);
+        EventMgr.Instance.AddEventListener(GameEvent.CursorHide, Lock);
     }
 
-    private void NoLock() { isLockMouse = false; }
-    private void Lock() { isLockMouse = true; }
+    private void NoLock(EventArgs args) { isLockMouse = false; }
+    private void Lock(EventArgs args) { isLockMouse = true; }
 
     private bool noLock;
 
@@ -46,7 +46,7 @@ public class GameController : MonoBehaviour
 
     private void OnDestroy()
     {
-        EventCenter.Instance.RemoveEventListener(GameEvent.光标出现, NoLock);
-        EventCenter.Instance.RemoveEventListener(GameEvent.光标消失, Lock);
+        EventMgr.Instance.RemoveEventListener(GameEvent.CursorShow, NoLock);
+        EventMgr.Instance.RemoveEventListener(GameEvent.CursorHide, Lock);
     }
 }

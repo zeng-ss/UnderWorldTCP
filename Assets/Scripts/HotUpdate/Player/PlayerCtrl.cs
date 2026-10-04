@@ -547,9 +547,4 @@ public class PlayerCtrl : MonoBehaviour, IState_MachineOwner, ISkillOwner, IHurt
         maxHealth = newPlayerData.maxHealthValue;
         health = Mathf.Clamp(health, 0, maxHealth);
     }
-
-    private void OnDestroy()
-    {
-        EventCenter.Instance.RemoveEventListener(GameEvent.游戏开始, Init);
-    }
 }

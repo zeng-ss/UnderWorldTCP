@@ -201,12 +201,12 @@ public class UIManager : UnitySingleTonMono<UIManager>
             if (panel == null || !panel.gameObject.activeInHierarchy)
             {
                 OpenPanel<T>();
-                EventCenter.Instance.EventTrigger(GameEvent.光标出现);
+                EventMgr.Instance.EventTrigger(GameEvent.CursorShow);
             }
             else
             {
                 ClosePanel<T>();
-                EventCenter.Instance.EventTrigger(GameEvent.光标消失);
+                EventMgr.Instance.EventTrigger(GameEvent.CursorHide);
             }
         }
     }

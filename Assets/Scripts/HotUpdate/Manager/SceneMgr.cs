@@ -48,7 +48,7 @@ public class SceneMgr : MonoBehaviour
             realProgress = asyncOperation.Progress / 0.9f;
             float timeProgress = Mathf.Clamp01(elapsedTime / minLoadTime);
             displayProgress = Mathf.Min(realProgress, timeProgress);
-            EventCenter.Instance.EventTrigger(GameEvent.进度条加载, displayProgress);
+            EventMgr.Instance.EventTrigger(GameEvent.LoadProgress, new LoadProgressArgs(displayProgress));
             yield return null;
         }
 
@@ -62,11 +62,11 @@ public class SceneMgr : MonoBehaviour
             float t = Mathf.Clamp01(smoothElapsed / smoothDuration);
             float easeT = t * (2 - t);
             displayProgress = Mathf.Lerp(startProgress, 1f, easeT);
-            EventCenter.Instance.EventTrigger(GameEvent.进度条加载, displayProgress);
+            EventMgr.Instance.EventTrigger(GameEvent.LoadProgress, new LoadProgressArgs(displayProgress));
             yield return null;
         }
 
-        EventCenter.Instance.EventTrigger(GameEvent.进度条加载, 1f);
+        EventMgr.Instance.EventTrigger(GameEvent.LoadProgress, new LoadProgressArgs(1f));
         yield return new WaitForSeconds(0.3f);
         asyncOperation.AllowSceneActivation();
         yield return asyncOperation;
@@ -88,7 +88,7 @@ public class SceneMgr : MonoBehaviour
                 ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/Prefab/Character");
                 ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/Prefab/NPC");
                 ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/Prefab/GameController");
-                EventCenter.Instance.EventTrigger(GameEvent.游戏开始);
+                EventMgr.Instance.EventTrigger(GameEvent.GameStart);
                 break;
         }
 
