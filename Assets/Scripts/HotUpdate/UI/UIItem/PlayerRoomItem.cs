@@ -13,17 +13,17 @@ public class PlayerRoomItem : MonoBehaviour
 
     public void Init(PlayerConfig playerConfig)
     {
-        playerName.text = playerConfig.name;
-        isReadyText.text = playerConfig.isReady ? "已准备" : "未准备";
-        SetHeadImage(playerConfig.headImageName);
+        playerName.text = playerConfig.Name;
+        isReadyText.text = playerConfig.IsReady ? "已准备" : "未准备";
+        SetHeadImage(playerConfig.HeadImageName);
     }
 
     public void UpdateRoomItem(PlayerConfig playerConfig)
     {
-        playerName.text = playerConfig.name;
-        isReadyText.text = playerConfig.isReady ? "已准备" : "未准备";
-        SetHeadImage(playerConfig.headImageName);
-        DOVirtual.DelayedCall(0.2f, () => { SetHeadImage(playerConfig.headImageName); });
+        playerName.text = playerConfig.Name;
+        isReadyText.text = playerConfig.IsReady ? "已准备" : "未准备";
+        SetHeadImage(playerConfig.HeadImageName);
+        DOVirtual.DelayedCall(0.2f, () => { SetHeadImage(playerConfig.HeadImageName); });
     }
 
     /// <summary>

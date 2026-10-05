@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
+[PanelPath("Assets/Res/UI/UIPanel/LoadPanel")]
 public class LoadPanel : BasePanel
 {
     public Image pivot;           // 进度指示器（滑块/箭头/特效）
@@ -19,7 +20,7 @@ public class LoadPanel : BasePanel
     private void OnEnable() { ResetProgress(); }
     private void Start()
     {
-        EventMgr.Instance.AddEventListener(GameEvent.LoadProgress, UpdateProgress);
+        AppContext.Events.AddEventListener(GameEvent.LoadProgress, UpdateProgress);
         // 初始化
         loadingBar.fillAmount = 0f;
         UpdateProgressText(0f);
@@ -70,6 +71,6 @@ public class LoadPanel : BasePanel
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        EventMgr.Instance.RemoveEventListener(GameEvent.LoadProgress, UpdateProgress);
+        AppContext.Events.RemoveEventListener(GameEvent.LoadProgress, UpdateProgress);
     }
 }

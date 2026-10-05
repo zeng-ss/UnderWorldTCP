@@ -4,9 +4,9 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+[PanelPath("Assets/Res/UI/UIPanel/ChatPanel")]
 public class ChatPanel : BasePanel
 {
-    private GameController gameController;
     private GameObject content;
     
     // UI组件
@@ -20,21 +20,41 @@ public class ChatPanel : BasePanel
         chatInput = GameObject.Find("DialogueInput").GetComponent<TMP_InputField>();
         chatScrollView = transform.Find("Scroll View").GetComponent<ScrollRect>();
     }
-    public void Start()
+    private void Start()
     {
         chatInput.onEndEdit.AddListener(OnEndEditMessage);
-        gameController = FindObjectOfType<GameController>();
+    }
+
+    private void OnEnable()
+    {
+        InputManager.Instance.RegisterKeyDown(KeyCode.Return, OnEnterPressed);
+        InputManager.Instance.RegisterKeyDown(KeyCode.KeypadEnter, OnEnterPressed);
+        AppContext.Events.AddEventListener(GameEvent.ChatMessageReceived, OnChatMessageReceived);
+
+        // 补上打开面板前就已经收到的消息
+        foreach (var message in AppContext.Chat.Messages) AddChatItem(message, false);
+    }
+
+    private void OnDisable()
+    {
+        InputManager.Instance.UnregisterKeyDown(KeyCode.Return, OnEnterPressed);
+        InputManager.Instance.UnregisterKeyDown(KeyCode.KeypadEnter, OnEnterPressed);
+        AppContext.Events.RemoveEventListener(GameEvent.ChatMessageReceived, OnChatMessageReceived);
+    }
+
+    private void OnChatMessageReceived(EventArgs args)
+    {
+        var message = ((ChatMessageArgs)args).Message;
+        bool isSelf = message != null && message.SenderClientId == 0;
+        AddChatItem(message, isSelf);
     }
     
-    private void Update()
+    /// <summary>回车激活输入框。注册到 InputManager，不再每帧轮询。</summary>
+    private void OnEnterPressed()
     {
-        // 按回车激活输入框
-        if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-        {
-            if (chatInput.isFocused) return;
-            chatInput.ActivateInputField();
-            chatInput.Select();
-        }
+        if (chatInput == null || chatInput.isFocused) return;
+        chatInput.ActivateInputField();
+        chatInput.Select();
     }
 
     private void OnEndEditMessage(string inputMes)
@@ -42,7 +62,7 @@ public class ChatPanel : BasePanel
         if (string.IsNullOrEmpty(inputMes)) return;
         chatInput.text = "";
         DateTime now = DateTime.Now;
-        GameManager.Instance.SendMes(inputMes, now.ToString("HH:mm:ss"));
+        AppContext.Chat.SendLocal(inputMes, now.ToString("HH:mm:ss"));
     }
 
     public void AddChatItem(MessageData messageData, bool isLocal)

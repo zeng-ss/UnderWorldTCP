@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
 
+[PanelPath("Assets/Res/UI/UIPanel/TaskPanel")]
 public class TaskPanel : BasePanel
 {
     [Header("任务面板UI组件")]
@@ -37,6 +39,20 @@ public class TaskPanel : BasePanel
         Sequence sequence = DOTween.Sequence();
         sequence.Join(transform.DOScaleY(1, panelShowDuration).SetEase(panelEase));
         sequence.Join(taskCanvasGroup.DOFade(1, panelShowDuration).SetEase(panelEase));
+
+        // Model → View：数据一变自己刷新，不需要 Controller 反过来调面板
+        AppContext.Events.AddEventListener(GameEvent.TaskChanged, OnTaskChanged);
+        RefreshTaskUI(AppContext.Task.Tasks);
+    }
+
+    private void OnDisable()
+    {
+        AppContext.Events.RemoveEventListener(GameEvent.TaskChanged, OnTaskChanged);
+    }
+
+    private void OnTaskChanged(EventArgs args)
+    {
+        RefreshTaskUI(AppContext.Task.Tasks);
     }
 
     public void ClosePanel()
@@ -86,8 +102,16 @@ public class TaskPanel : BasePanel
                 return;
             }
             itemObj.name = "TaskItem_" + task.taskId;
-            itemObj.GetComponent<TaskItem>().UpdateData(task);
+            TaskItem taskItem = itemObj.GetComponent<TaskItem>();
+            taskItem.OnFinishRequested += RaiseTaskFinishRequested;
+            taskItem.UpdateData(task);
         }));
+    }
+
+    /// <summary>只上报意图，能不能完成、发什么奖励由 Controller 判定</summary>
+    private void RaiseTaskFinishRequested(TaskDataRuntime task)
+    {
+        AppContext.TaskUI.RequestFinish(task);
     }
 
     /// <summary>

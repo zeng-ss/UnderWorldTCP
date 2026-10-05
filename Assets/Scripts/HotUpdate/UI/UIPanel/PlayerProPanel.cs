@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+[PanelPath("Assets/Res/UI/UIPanel/PlayerProPanel")]
 public class PlayerProPanel : BasePanel
 {
     public Image healthFill;

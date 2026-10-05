@@ -47,7 +47,7 @@ public class RemotePlayerManager : UnitySingleTonMono<RemotePlayerManager>
             if (pc != null)
             {
                 pc.IsLocalPlayer = false;
-                pc.characterController.enabled = false;
+                pc.CharacterController.enabled = false;
             }
 
             var rp = obj.AddComponent<RemotePlayer>();

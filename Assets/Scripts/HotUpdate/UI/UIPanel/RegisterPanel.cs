@@ -1,5 +1,11 @@
 using UnityEngine.UI;
 
+/// <summary>
+/// 注册面板（纯 View）。校验与网络请求移到了 RegisterController。
+///
+/// 依赖方向单向：本面板 new 并持有 Controller，Controller 不认识本面板。
+/// </summary>
+[PanelPath("Assets/Res/UI/UIPanel/RegisterPanel")]
 public class RegisterPanel : BasePanel
 {
     public Text account;
@@ -8,58 +14,31 @@ public class RegisterPanel : BasePanel
     public Button registerBtn;
     public Button loginBtn;
 
-    private void Start()
+    /// <summary>本面板的控制器，由面板自己 new 并持有</summary>
+    private RegisterController _controller;
+
+    protected override void Awake()
     {
-        registerBtn.onClick.AddListener(RegisterCheck);
-        loginBtn.onClick.AddListener(() =>
-        {
-            UIManager.Instance.OpenPanel<LoginPanel>();
-            UIManager.Instance.ClosePanel<RegisterPanel>();
-        });
+        base.Awake();
+        _controller = new RegisterController();
+        registerBtn.onClick.AddListener(RaiseRegisterClicked);
+        loginBtn.onClick.AddListener(RaiseBackToLoginClicked);
     }
 
-    private void RegisterCheck()
+    private void RaiseRegisterClicked()
     {
-        string userName = account.text.Trim();
-        string pwd = password.text.Trim();
-        string pwdConfirm = pwsCheck.text.Trim();
-
-        if (string.IsNullOrEmpty(userName) || string.IsNullOrEmpty(pwd))
-        {
-            UIManager.Instance.OpenPanel<TipPanel>(panel => { panel.ShowTip("账号和密码不能为空"); });
-            return;
-        }
-
-        if (pwd != pwdConfirm)
-        {
-            UIManager.Instance.OpenPanel<TipPanel>(panel => { panel.ShowTip("密码输入不一致，请重新输入"); });
-            return;
-        }
-
-        if (pwd.Length is < 4 or > 16)
-        {
-            UIManager.Instance.OpenPanel<TipPanel>(panel => { panel.ShowTip("密码长度需要4~16位"); });
-            return;
-        }
-
-        ProtoHandler.Instance.RequestRegist(userName, "", pwd, OnRegistResult);
+        _controller.Register(account.text.Trim(), password.text.Trim(), pwsCheck.text.Trim());
     }
 
-    private void OnRegistResult(RegistRet ret)
+    private void RaiseBackToLoginClicked()
     {
-        switch (ret.CmdCode)
-        {
-            case CmdCode.Succeed:
-                UIManager.Instance.OpenPanel<TipPanel>(panel => { panel.ShowTip("注册成功"); });
-                UIManager.Instance.ClosePanel<RegisterPanel>();
-                UIManager.Instance.OpenPanel<LoginPanel>();
-                break;
-            case CmdCode.AcctExist:
-                UIManager.Instance.OpenPanel<TipPanel>(panel => { panel.ShowTip("用户名已存在"); });
-                break;
-            default:
-                UIManager.Instance.OpenPanel<TipPanel>(panel => { panel.ShowTip("注册失败，服务器错误"); });
-                break;
-        }
+        _controller.BackToLogin();
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+        registerBtn.onClick.RemoveAllListeners();
+        loginBtn.onClick.RemoveAllListeners();
     }
 }

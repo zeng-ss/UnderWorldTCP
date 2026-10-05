@@ -13,7 +13,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
     /// </summary>
     public static Dictionary<int, EnemyCtrl> Instances = new();
 
-    public bool IsLocalEnemy => GameManager.Instance.roleId == roleId;
+    public bool IsLocalEnemy => AppContext.Session.RoleId == roleId;
 
     public int roleId;
 
@@ -32,7 +32,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
     {
         get
         {
-            if (_playerRef == null || _playerRef.currentState == PlayerStateType.Dead)
+            if (_playerRef == null || _playerRef.CurrentState == PlayerStateType.Dead)
                 _playerRef = FindNearestPlayer();
             return _playerRef;
         }
@@ -88,7 +88,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
         fillImage.fillAmount = networkHealth / maxHealthValue;
         healthText.text = $"{networkHealth}/{maxHealthValue}";
 
-        ProtoHandler.Instance.StartEPositionSync(transform, GameManager.Instance.roleId, enemyModel.transform);
+        ProtoHandler.Instance.StartEPositionSync(transform, AppContext.Session.RoleId, enemyModel.transform);
     }
 
     private void Update()
@@ -163,7 +163,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
     public void PlayAnimation(string animationName, float fixedTransitionTime = 0.1f)
     {
         enemyModel.Animator.CrossFadeInFixedTime(animationName, fixedTransitionTime, 0, 0f);
-        ProtoHandler.Instance.RequestSyncEnemyAni(GameManager.Instance.roleId, animationName,
+        ProtoHandler.Instance.RequestSyncEnemyAni(AppContext.Session.RoleId, animationName,
             ret => { RemotePlayerManager.Instance.OnSyncAni(ret); });
     }
 
@@ -190,7 +190,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
         float minDist = Mathf.Infinity;
         foreach (PlayerCtrl p in allPlayers)
         {
-            if (p.currentState == PlayerStateType.Dead) continue;
+            if (p.CurrentState == PlayerStateType.Dead) continue;
             float dis = Vector3.Distance(transform.position, p.transform.position);
             if (dis < minDist)
             {
@@ -310,7 +310,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
     private void OnEnemyDead()
     {
         Instances.Remove(serverInstanceId);
-        TaskManager.Instance.UpdateTaskProgress(TaskType.击败第一个敌人);
+        AppContext.Task.UpdateProgress(TaskType.击败第一个敌人);
         capsuleCollider.enabled = false;
         tag = "Untagged";
         ChangeState(EnemyStateType.Dead);

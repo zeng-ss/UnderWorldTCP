@@ -2,11 +2,15 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
+[PanelPath("Assets/Res/UI/UIPanel/ExitPanel")]
 public class ExitPanel : BasePanel
 {
     public Button yesBtn;
     public Button noBtn;
     private Vector3 startPos = new(0, 840, 0);
+
+    /// <summary>退出确认弹出时应锁住角色操作</summary>
+    public override bool BlocksGameplayInput => true;
 
     private void OnEnable()
     {

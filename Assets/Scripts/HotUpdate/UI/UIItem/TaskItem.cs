@@ -1,3 +1,4 @@
+using System;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -5,6 +6,11 @@ using UnityEngine.UI;
 
 public class TaskItem : MonoBehaviour
 {
+    /// <summary>
+    /// 「该任务已达到完成条件」的用户意图。由 TaskPanel 转发给 Controller，
+    /// View 本身不认识任何 Manager / Service。
+    /// </summary>
+    public event Action<TaskDataRuntime> OnFinishRequested;
     public Image img_Fill;
     public Image img_Finish;
     public TMP_Text txt_Desc;
@@ -32,7 +38,8 @@ public class TaskItem : MonoBehaviour
     public void UpdateData(TaskDataRuntime task)
     {
         currentTask = task;
-        TaskManager.Instance.CheckTaskFinish(task); // 实现第一次完成效果之后就不会再出现
+        // 达成条件时通知外部去走「完成 + 发奖励」流程，View 只管上报意图
+        OnFinishRequested?.Invoke(task);
         txt_Desc.text = task.taskDesc;
         // 进度文本
         txt_Progress.text = $"{task.currentCount}/{task.targetCount}";

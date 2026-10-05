@@ -13,32 +13,32 @@ public class TaskReward
     public string AddMaterialNum()
     {
         string des = "";
-        // 收集需要修改的 Key（避免遍历中修改字典）
-        List<int> needUpdateKeys = (from item in GameManager.Instance.materialNumDict
-            where materialsId.Contains(item.Key)
-            select item.Key).ToList();
-        // 遍历收集的 Key，统一更新字典（此时已退出原字典的枚举）
-        foreach (var key in needUpdateKeys.Where(key => GameManager.Instance.materialNumDict.ContainsKey(key)))
+        var materialService = AppContext.Material;
+
+        // 先快照要处理的 key，Add 会触发 MaterialNumChanged 事件，避免边遍历边改
+        List<int> needUpdateKeys = materialsId.Where(id => materialService.Counts.ContainsKey(id)).ToList();
+        foreach (var key in needUpdateKeys)
         {
             int addNum = key == 1 ? Random.Range(400, 1000) : Random.Range(10, 30);
-            GameManager.Instance.materialNumDict[key] += addNum;
-            des += $"{GameManager.Instance.materialDataRuntime[key].name}×{addNum}\n";
+            materialService.Add(key, addNum);
+
+            var runtime = materialService.GetRuntime(key);
+            des += $"{runtime?.name ?? key.ToString()}×{addNum}\n";
         }
         return des;
     }
     public string AddDepotNum(bool isToFinishTask = false)
     {
         string des = "";
-        foreach (var runtime in GameManager.Instance.depotConfig.depots)
+        var depotService = AppContext.Depot;
+        if (depotService.Config == null || depotService.Config.depots == null) return des;
+
+        foreach (var template in depotService.Config.depots)
         {
-            if (!depotIds.Contains(runtime.depotId)) continue;
+            if (!depotIds.Contains(template.depotId)) continue;
             int addNum = isToFinishTask ? 1 : Random.Range(1, 3);
-            for (int i = 0; i < addNum; i++)
-            {
-                var newItem = new DriverDiskDataRuntime(runtime);
-                GameManager.Instance.haveDepotList.Add(newItem);
-            }
-            des += $"{runtime.depotName}×{addNum}\n";
+            depotService.AddByTemplate(template, addNum);
+            des += $"{template.depotName}×{addNum}\n";
         }
         return des;
     }

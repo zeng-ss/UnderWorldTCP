@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+[PanelPath("Assets/Res/UI/UIPanel/TipPanel")]
 public class TipPanel : BasePanel
 {
     public TMP_Text tipText;

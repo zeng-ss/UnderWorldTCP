@@ -139,8 +139,8 @@ public class ProtoHandler : UnitySingleTonMono<ProtoHandler>
     /// </summary>
     public void StartPositionSync(Transform positionTarget, int roleId, Transform rotationTarget = null)
     {
-        MainRoleInfo info = GameManager.Instance.mainRoleInfo;
-        string nickname = info != null ? info.BaseInfo.Nickname : GameManager.Instance.curPlayerName;
+        MainRoleInfo info = AppContext.Session.MainRoleInfo;
+        string nickname = info != null ? info.BaseInfo.Nickname : AppContext.Session.PlayerName;
         if (string.IsNullOrEmpty(nickname)) nickname = "Player" + roleId;
 
         _syncTarget = positionTarget;
@@ -290,7 +290,7 @@ public class ProtoHandler : UnitySingleTonMono<ProtoHandler>
     public void RequestGetReward(int rewardType, Action<GetRewardRet> callback)
     {
         _getRewardCallback = callback;
-        GetRewardReq req = new GetRewardReq { RoleId = GameManager.Instance.roleId, RewardType = rewardType };
+        GetRewardReq req = new GetRewardReq { RoleId = AppContext.Session.RoleId, RewardType = rewardType };
         NetClientMgr.Instance.Send(NetDefine.CMD_GetRewardCode, req.ToByteString());
     }
 
@@ -431,7 +431,7 @@ public class ProtoHandler : UnitySingleTonMono<ProtoHandler>
             $"ProtoHandler: 攻击结果 attacker={ret.AttackerRoleId} enemy={ret.EnemyInstanceId} damage={ret.DamageDealt} isDead={ret.IsDead}");
 
         // 判断是不是自己的攻击（回包的 attacker_role_id = 本地 roleId，且请求中有匹配的回调）
-        if (ret.AttackerRoleId == GameManager.Instance.roleId)
+        if (ret.AttackerRoleId == AppContext.Session.RoleId)
         {
             // 遍历字典找到匹配的回调（sequence_id 无法回传因为请求中没带）
             // 取字典中最旧的未处理回调

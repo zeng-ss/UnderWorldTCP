@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class DialogueManager : UnitySingleTonMono<DialogueManager>
 {
+    public override void Awake()
+    {
+        base.Awake();
+        RegisterDialogueInput();
+    }
+
     // 当前对话状态
     private bool isTyping;
     private int currentLineIndex;
@@ -228,7 +234,7 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
                 isWaitingClickForEnd = false;
                 waitForClickCoroutine = null;
                 // 触发事件
-                EventMgr.Instance.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(currentDialogue.id));
+                AppContext.Events.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(currentDialogue.id));
                 EndDialogue();
                 yield break;
             }
@@ -303,7 +309,7 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
             if (option.isTriggerEvent)
             {
                 // 触发事件
-                EventMgr.Instance.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(currentDialogue.id));
+                AppContext.Events.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(currentDialogue.id));
             }
 
             EndDialogue();
@@ -365,7 +371,7 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
         dialogueQueue.Clear();
         isTyping = false;
         isWaitingClickForEnd = false;
-        EventMgr.Instance.EventTrigger(GameEvent.CursorHide);
+        AppContext.Events.EventTrigger(GameEvent.CursorHide);
     }
 
     /// <summary>
@@ -387,23 +393,36 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
         }
     }
 
-    private void Update()
+    /// <summary>
+    /// 对话期间的按键。注册到 InputManager，不再自己开 Update 轮询。
+    /// </summary>
+    private void RegisterDialogueInput()
     {
-        // 提前返回，避免不必要的检查
-        if (!IsDialogueActive()) return;
-        // 空格键继续（只在非等待结束且无选项时）
-        if (Input.GetKeyDown(KeyCode.Space) && !isWaitingClickForEnd && !currentPanel.HasOptions() &&
-            Time.time - lastSpacePressTime >= SPACE_COOLDOWN)
-        {
-            lastSpacePressTime = Time.time;
-            DisplayNextLine();
-        }
+        InputManager.Instance.RegisterKeyDown(KeyCode.Space, OnSpacePressed);
+        InputManager.Instance.RegisterKeyDown(KeyCode.Escape, OnEscapePressed);
+    }
 
-        // ESC键跳过（只在非等待结束且无选项时）
-        if (Input.GetKeyDown(KeyCode.Escape) && !isWaitingClickForEnd && !currentPanel.HasOptions())
-        {
-            SkipCurrentDialogue();
-        }
+    private void UnregisterDialogueInput()
+    {
+        InputManager.Instance.UnregisterKeyDown(KeyCode.Space, OnSpacePressed);
+        InputManager.Instance.UnregisterKeyDown(KeyCode.Escape, OnEscapePressed);
+    }
+
+    private void OnSpacePressed()
+    {
+        if (!IsDialogueActive()) return;
+        if (isWaitingClickForEnd || currentPanel.HasOptions()) return;
+        if (Time.time - lastSpacePressTime < SPACE_COOLDOWN) return;
+
+        lastSpacePressTime = Time.time;
+        DisplayNextLine();
+    }
+
+    private void OnEscapePressed()
+    {
+        if (!IsDialogueActive()) return;
+        if (isWaitingClickForEnd || currentPanel.HasOptions()) return;
+        SkipCurrentDialogue();
     }
 
     /// <summary>
@@ -411,6 +430,7 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     /// </summary>
     protected void OnDestroy()
     {
+        UnregisterDialogueInput();
         EndDialogue();
     }
 }

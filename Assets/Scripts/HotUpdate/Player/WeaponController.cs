@@ -38,7 +38,7 @@ public class WeaponController : MonoBehaviour
             if (enemyList.Contains(target)) return;
             player.OnHit(target, other.ClosestPoint(transform.position));
             enemyList.Add(target);
-            if (player.currentState == PlayerStateType.EX) return;
+            if (player.CurrentState == PlayerStateType.EX) return;
             // 仅在非顿帧时触发顿帧
             var attackState = (PlayerAttackState)player.StateMachine.CurrentState;
             if (attackState == null) return;

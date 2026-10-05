@@ -27,7 +27,7 @@ public class PlayerAttackState : Player_State
     public override void Enter()
     {
         if (!_player.IsLocalPlayer) return;
-        if (GameManager.Instance.IsPointerOverSpecificUILayer(LayerMask.GetMask("LockInput")))
+        if (InputManager.IsPointerOverBlockingUI())
         {
             _player.ChangeState(PlayerStateType.Idle);
             return;
@@ -35,7 +35,7 @@ public class PlayerAttackState : Player_State
         _player.playerModel.SetRootMotionAction(OnRootMotion);
         //_player.CurAttackIndex = 0;
         playingAttackIndex = _player.CurAttackIndex; // 初始化播放下标
-        cacheSkillConfig = _player.curSkillConfig;
+        cacheSkillConfig = _player.CurSkillConfig;
         // 初始化攻击目标参数
         targetEnemy = FindNearestEnemyByTag();
         isDistanceLocked = false;
@@ -48,7 +48,9 @@ public class PlayerAttackState : Player_State
     public override void Update()
     {
         if (!_player.IsLocalPlayer) return;
-        if (GameManager.Instance.IsPointerOverSpecificUILayer(LayerMask.GetMask("LockInput")))
+        // 任何独占型面板打开时都锁住玩法输入，状态内部不再需要各自判断
+        if (!InputManager.Instance.IsGameplayInputEnabled) return;
+        if (InputManager.IsPointerOverBlockingUI())
         {
             _player.ChangeState(PlayerStateType.Idle);
             return;
@@ -112,7 +114,7 @@ public class PlayerAttackState : Player_State
         if (_player.CanSwitchSkill 
             && Input.GetKeyDown(KeyCode.Mouse2)
             && currentAttackAnim == "Attack03"
-            && cacheSkillConfig == _player.skillConfigList[0])
+            && cacheSkillConfig == _player.SkillConfigList[0])
         {
             // 直接切到最后一个重击
             _player.CurAttackIndex = cacheSkillConfig.skillConfigs.Count - 1;
@@ -128,7 +130,7 @@ public class PlayerAttackState : Player_State
         {
             // 切换到 skillConfigList 中的重击配置表
             _player.CurAttackIndex ++; // 重击配置表第一段
-            cacheSkillConfig = _player.skillConfigList[2];
+            cacheSkillConfig = _player.SkillConfigList[2];
             playingAttackIndex = _player.CurAttackIndex;
             isDistanceLocked = false; 
             Attack();
@@ -136,7 +138,7 @@ public class PlayerAttackState : Player_State
         }
         
         // 左键正常连招逻辑（跳过重击回到第一个）
-        if (_player.CanSwitchSkill && Input.GetKeyDown(KeyCode.Mouse0) && _player.curSkillConfig != _player.skillConfigList[2])
+        if (_player.CanSwitchSkill && Input.GetKeyDown(KeyCode.Mouse0) && _player.CurSkillConfig != _player.SkillConfigList[2])
         {
             // 判断是否到了倒数第二个攻击（重击的前一个）
             if (currentAttackAnim == "Attack04")
@@ -150,7 +152,7 @@ public class PlayerAttackState : Player_State
                 _player.CurAttackIndex++;
             }
             playingAttackIndex = _player.CurAttackIndex;
-            cacheSkillConfig = _player.curSkillConfig;
+            cacheSkillConfig = _player.CurSkillConfig;
             isDistanceLocked = false; 
             CheckRushAttack(); 
             Attack();
@@ -186,7 +188,7 @@ public class PlayerAttackState : Player_State
     public void EnterHitStop(float duration = 0f, float timeScale = 0f)
     {
         // 避免重复触发顿帧
-        if (isInHitStop || !cacheSkillConfig.skillConfigs[playingAttackIndex].VFXDataList[_player.CurVFXIndex].isInHitStop)
+        if (isInHitStop || !cacheSkillConfig.skillConfigs[playingAttackIndex].vfxDataList[_player.CurVFXIndex].isInHitStop)
             return;
         // 1. 记录原始状态（用于恢复）
         originalTimeScale = Time.timeScale;
@@ -228,14 +230,14 @@ public class PlayerAttackState : Player_State
     {
         isPlayingEndAni = false;
         if (_player.CurAttackIndex == -1) _player.CurAttackIndex = 0;
-        _player.StartSkill(_player.curSkillConfig.skillConfigs[_player.CurAttackIndex]);
+        _player.StartSkill(_player.CurSkillConfig.skillConfigs[_player.CurAttackIndex]);
     }
 
     private void HandRotate(float h, float v, bool hasInput)
     {
-        if (_player.CurVFXIndex >= cacheSkillConfig.skillConfigs[playingAttackIndex].VFXDataList.Count) return;
+        if (_player.CurVFXIndex >= cacheSkillConfig.skillConfigs[playingAttackIndex].vfxDataList.Count) return;
         if (!isDistanceLocked && !targetEnemy
-                              && cacheSkillConfig.skillConfigs[playingAttackIndex].VFXDataList[_player.CurVFXIndex].canRotate)
+                              && cacheSkillConfig.skillConfigs[playingAttackIndex].vfxDataList[_player.CurVFXIndex].canRotate)
         {
             if (!hasInput) return;
             Vector3 input = new Vector3(h, 0, v);
@@ -262,7 +264,7 @@ public class PlayerAttackState : Player_State
         if (targetEnemy == null)
         {
             rootMotion.y = 0; 
-            _player.characterController.Move(rootMotion);
+            _player.CharacterController.Move(rootMotion);
             // 仅保留XZ轴旋转，清空Y轴旋转（防止角色倾斜/震动）
             Quaternion rot = rootRot;
             rot.x = 0;
@@ -284,12 +286,12 @@ public class PlayerAttackState : Player_State
 
         // 未到范围：执行原生根运动  强制面向敌人
         rootMotion.y = 0;
-        _player.characterController.Move(rootMotion);
+        _player.CharacterController.Move(rootMotion);
         FaceToEnemy();
     }
     private void OnRootMotionNormal(Vector3 rootMotion, Quaternion rootRot)
     {
-        _player.characterController.Move(rootMotion);
+        _player.CharacterController.Move(rootMotion);
     }
 
     #endregion
@@ -321,7 +323,7 @@ public class PlayerAttackState : Player_State
         {
             Vector3 dir = (targetEnemy.position - _player.transform.position).normalized;
             dir.y = 0;
-            _player.characterController.Move(dir * (rushMoveSpeed * Time.deltaTime));
+            _player.CharacterController.Move(dir * (rushMoveSpeed * Time.deltaTime));
             FaceToEnemy(); // 冲刺中始终面向敌人
             yield return null;
         }
@@ -332,7 +334,7 @@ public class PlayerAttackState : Player_State
     private bool CheckRushOrPowerAttack()
     {
         return playingAttackIndex == 0
-               && cacheSkillConfig == _player.skillConfigList[1] && cacheSkillConfig.skillConfigs[0].attackAnimationName == "AttackRush";
+               && cacheSkillConfig == _player.SkillConfigList[1] && cacheSkillConfig.skillConfigs[0].attackAnimationName == "AttackRush";
     }
 
     #endregion

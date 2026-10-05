@@ -9,7 +9,7 @@ public class PlayerHurtState : Player_State
         _player.PlayAnimation("Hurt");
     }
 
-    private void OnRootMotion(Vector3 arg1, Quaternion arg2) { _player.characterController.Move(arg1); }
+    private void OnRootMotion(Vector3 arg1, Quaternion arg2) { _player.CharacterController.Move(arg1); }
     public override void Update()
     {
         if (!_player.IsLocalPlayer) return;

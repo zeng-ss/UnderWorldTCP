@@ -15,28 +15,34 @@ public class NPCCtrl : MonoBehaviour
         camera = Camera.main;
         tipText = GetComponentInChildren<TMP_Text>();
         tipText.gameObject.SetActive(false);
-        EventMgr.Instance.AddEventListener(GameEvent.DialogueEnd, GetTask);
+        AppContext.Events.AddEventListener(GameEvent.DialogueEnd, GetTask);
+        InputManager.Instance.RegisterGameplayKeyDown(KeyCode.F, OnInteractPressed);
     }
 
     private void Update()
     {
+        // 提示文字始终朝向相机（每帧的视觉更新，不涉及输入）
         if (tipText.gameObject.activeSelf)
         {
             tipText.transform.LookAt(camera.transform.position);
             tipText.transform.Rotate(0, 180, 0);
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.F) && isEnter)
+    /// <summary>按 F 与 NPC 对话。注册到 InputManager，不再在 Update 里轮询。</summary>
+    private void OnInteractPressed()
+    {
+        if (!isEnter) return;
+
+        int index = AppContext.Story.DialogueIndex;
+        if (index < 0 || index >= dialogueDatas.Count)
         {
-            if (GameManager.Instance.dialogueId >= dialogueDatas.Count || GameManager.Instance.dialogueId < 0)
-            {
-                print("大概率是超出下标范围");
-                return;
-            }
-
-            EventMgr.Instance.EventTrigger(GameEvent.CursorShow);
-            DialogueManager.Instance.StartDialogue(dialogueDatas[GameManager.Instance.dialogueId]);
+            Debug.LogWarning($"对话下标越界：{index}，共 {dialogueDatas.Count} 段");
+            return;
         }
+
+        AppContext.Events.EventTrigger(GameEvent.CursorShow);
+        DialogueManager.Instance.StartDialogue(dialogueDatas[index]);
     }
 
     /// <summary>
@@ -46,8 +52,8 @@ public class NPCCtrl : MonoBehaviour
     private void GetTask(EventArgs args)
     {
         int dialogueId = ((DialogueEndArgs)args).DialogueId;
-        foreach (var task in GameManager.Instance.curTasksData.Where(task =>
-                     dialogueDatas[GameManager.Instance.dialogueId].taskIds.Contains(task.taskId)))
+        foreach (var task in AppContext.Task.Tasks.Where(task =>
+                     dialogueDatas[AppContext.Story.DialogueIndex].taskIds.Contains(task.taskId)))
         {
             task.isUnlock = true; // 解锁对应任务
         }
@@ -57,12 +63,12 @@ public class NPCCtrl : MonoBehaviour
             // 对话结束生成敌人
             //GameManager.Instance.SpawnEnemy();
             Vector3 pos = new Vector3(17, -1.6f, -30);
-            ProtoHandler.Instance.RequestSpawnEnemy(GameManager.Instance.roleId, 1, 20000, pos,
+            ProtoHandler.Instance.RequestSpawnEnemy(AppContext.Session.RoleId, 1, 20000, pos,
                 RemotePlayerManager.Instance.SpawnEnemy);
         }
 
         UIManager.Instance.OpenPanel<TipPanel>(panel => { panel.ShowTip("有新任务了，快去完成吧~"); });
-        UIManager.Instance.OpenPanel<TaskPanel>((panel => { panel.RefreshTaskUI(GameManager.Instance.curTasksData); }));
+        UIManager.Instance.OpenPanel<TaskPanel>((panel => { panel.RefreshTaskUI(AppContext.Task.Tasks); }));
     }
 
     private void OnTriggerEnter(Collider other)
@@ -85,6 +91,7 @@ public class NPCCtrl : MonoBehaviour
 
     private void OnDestroy()
     {
-        EventMgr.Instance.RemoveEventListener(GameEvent.DialogueEnd, GetTask);
+        AppContext.Events.RemoveEventListener(GameEvent.DialogueEnd, GetTask);
+        InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.F, OnInteractPressed);
     }
 }

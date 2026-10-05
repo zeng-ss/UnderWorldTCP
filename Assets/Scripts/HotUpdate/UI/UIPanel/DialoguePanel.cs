@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+[PanelPath("Assets/Res/UI/UIPanel/DialoguePanel")]
 public class DialoguePanel : BasePanel
 {
     #region 数据

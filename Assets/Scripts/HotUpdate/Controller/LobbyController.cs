@@ -47,17 +47,17 @@ public class LobbyController : MonoBehaviour
         ProtoHandler.Instance.OnRoomStartGame += OnRoomStartGame;
 
         // 初始化本地玩家
-        MainRoleInfo info = GameManager.Instance.mainRoleInfo;
-        string playerName = info != null ? info.BaseInfo.Nickname : GameManager.Instance.curPlayerName;
+        MainRoleInfo info = AppContext.Session.MainRoleInfo;
+        string playerName = info != null ? info.BaseInfo.Nickname : AppContext.Session.PlayerName;
 
         PlayerConfig playerConfig = new PlayerConfig
         {
-            id = (ulong)GameManager.Instance.roleId,
-            name = playerName,
-            isReady = false,
-            headImageName = "icon_question"
+            ID = (ulong)AppContext.Session.RoleId,
+            Name = playerName,
+            IsReady = false,
+            HeadImageName = "icon_question"
         };
-        playerConfigDict.TryAdd(playerConfig.id, playerConfig);
+        playerConfigDict.TryAdd(playerConfig.ID, playerConfig);
 
         startBtn.gameObject.SetActive(false);
         readyTipText.gameObject.SetActive(true);
@@ -87,9 +87,9 @@ public class LobbyController : MonoBehaviour
     private void OnCreateRoom()
     {
         string roomName = roomNameInput.text.Trim();
-        if (string.IsNullOrEmpty(roomName)) roomName = GameManager.Instance.curPlayerName + "的房间";
+        if (string.IsNullOrEmpty(roomName)) roomName = AppContext.Session.PlayerName + "的房间";
 
-        ProtoHandler.Instance.RequestCreateRoom(GameManager.Instance.roleId, roomName, GameManager.Instance.curPlayerName,
+        ProtoHandler.Instance.RequestCreateRoom(AppContext.Session.RoleId, roomName, AppContext.Session.PlayerName,
             ret =>
             {
                 if (ret.CmdCode == CmdCode.Succeed)
@@ -109,8 +109,8 @@ public class LobbyController : MonoBehaviour
         if (!int.TryParse(roomIdInput.text.Trim(), out int roomId)) return;
 
         ProtoHandler.Instance.RequestJoinRoom(
-            GameManager.Instance.roleId, roomId,
-            GameManager.Instance.curPlayerName,
+            AppContext.Session.RoleId, roomId,
+            AppContext.Session.PlayerName,
             ret =>
             {
                 if (ret.CmdCode == CmdCode.Succeed)
@@ -127,7 +127,7 @@ public class LobbyController : MonoBehaviour
 
     private void OnLeaveRoom()
     {
-        ProtoHandler.Instance.RequestLeaveRoom(GameManager.Instance.roleId);
+        ProtoHandler.Instance.RequestLeaveRoom(AppContext.Session.RoleId);
         _currentRoomId = 0;
         _isMaster = false;
         roomTitleTxt.text = "";
@@ -152,7 +152,7 @@ public class LobbyController : MonoBehaviour
         _isMaster = false;
         foreach (var p in ntf.Players)
         {
-            if (p.RoleId == GameManager.Instance.roleId && p.IsMaster) _isMaster = true;
+            if (p.RoleId == AppContext.Session.RoleId && p.IsMaster) _isMaster = true;
         }
         RefreshRoomUI(ntf.Players);
     }
@@ -206,10 +206,10 @@ public class LobbyController : MonoBehaviour
 
             var cfg = new PlayerConfig
             {
-                id = id,
-                name = name + (isMaster ? "(房主)" : ""),
-                isReady = isReady,
-                headImageName = "icon_question"
+                ID = id,
+                Name = name + (isMaster ? "(房主)" : ""),
+                IsReady = isReady,
+                HeadImageName = "icon_question"
             };
             item.Init(cfg);
 
@@ -242,7 +242,7 @@ public class LobbyController : MonoBehaviour
         if (_currentRoomId <= 0) return;
 
         // 发送到服务器，服务端广播 RoomInfoNtf 后由 OnRoomInfoChanged 统一刷新 UI
-        ProtoHandler.Instance.RequestPlayerReady(GameManager.Instance.roleId, isOn);
+        ProtoHandler.Instance.RequestPlayerReady(AppContext.Session.RoleId, isOn);
     }
 
     private void OnStartGame()
@@ -250,7 +250,7 @@ public class LobbyController : MonoBehaviour
         if (!_isMaster || _currentRoomId <= 0) return;
 
         Debug.Log("[LobbyController] 房主开始游戏");
-        ProtoHandler.Instance.RequestRoomStartGame(GameManager.Instance.roleId);
+        ProtoHandler.Instance.RequestRoomStartGame(AppContext.Session.RoleId);
     }
 
     #endregion

@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 
 /// <summary>
-/// 全局事件管理器。纯 C# 单例，不占用场景 GameObject。
+/// 事件总线。普通类，由 AppContext 统一创建，不再自己当单例。
 /// 用法：
-///   监听  EventMgr.Instance.AddEventListener(GameEvent.DialogueEnd, OnDialogueEnd);
-///   触发  EventMgr.Instance.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(id));
-///   移除  EventMgr.Instance.RemoveEventListener(GameEvent.DialogueEnd, OnDialogueEnd);
+///   监听  AppContext.Events.AddEventListener(GameEvent.DialogueEnd, OnDialogueEnd);
+///   触发  AppContext.Events.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(id));
+///   移除  AppContext.Events.RemoveEventListener(GameEvent.DialogueEnd, OnDialogueEnd);
 /// 注意：移除时请传方法组（如上），不要传匿名 lambda —— lambda 每次 new 出来的委托不相等，移除不掉。
 /// </summary>
-public class EventMgr : SingleTon<EventMgr>
+public class EventMgr
 {
     private readonly Dictionary<GameEvent, Action<EventArgs>> _dic = new Dictionary<GameEvent, Action<EventArgs>>();
 

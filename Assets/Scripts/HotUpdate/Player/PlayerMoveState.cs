@@ -13,9 +13,10 @@ public class PlayerMoveState : Player_State
         TurnBack    // 转身
     }
     
-    private MoveState currentMoveState;
-    private bool hasMovementInput;
-    private float inputMagnitude;
+    private MoveState _currentMoveState;
+    private bool _hasMovementInput;
+    private float _inputMagnitude;
+    private Vector3 _currentMoveDir;
     private Vector3 _lastMoveDirection;
     
     public override void Enter()
@@ -23,19 +24,21 @@ public class PlayerMoveState : Player_State
         if (!_player.IsLocalPlayer) return;
         _lastMoveDirection = Vector3.zero;
         CheckInput();
-        if (hasMovementInput)
+        if (_hasMovementInput)
         {
             TransitionToState(MoveState.RunStart);
         }
         _player.playerModel.SetRootMotionAction(OnRootMation);
     }
 
-    private void OnRootMation(Vector3 arg1, Quaternion arg2) { _player.characterController.Move(arg1); }
+    private void OnRootMation(Vector3 arg1, Quaternion arg2) { _player.CharacterController.Move(arg1); }
 
     public override void Update()
     {
         if (!_player.IsLocalPlayer) return;
-        if (GameManager.Instance.IsPointerOverSpecificUILayer(LayerMask.GetMask("LockInput")))
+        // 任何独占型面板打开时都锁住玩法输入，状态内部不再需要各自判断
+        if (!InputManager.Instance.IsGameplayInputEnabled) return;
+        if (InputManager.IsPointerOverBlockingUI())
         {
             _player.ChangeState(PlayerStateType.Idle);
             return;
@@ -43,7 +46,7 @@ public class PlayerMoveState : Player_State
         CheckInput();
         HandleMovementTransitions();
         if (Input.GetKeyDown(KeyCode.Mouse0) || 
-            (Input.GetKeyDown(KeyCode.Mouse1) && _player.curSkillConfig == _player.skillConfigList[2]))
+            (Input.GetKeyDown(KeyCode.Mouse1) && _player.CurSkillConfig == _player.SkillConfigList[2]))
         {
             _player.ChangeState(PlayerStateType.Attack);
         }
@@ -54,22 +57,22 @@ public class PlayerMoveState : Player_State
         var horizontal = Input.GetAxisRaw("Horizontal");
         var vertical = Input.GetAxisRaw("Vertical");
         
-        inputMagnitude = new Vector2(horizontal, vertical).magnitude;
-        hasMovementInput = inputMagnitude > 0.1f;
+        _inputMagnitude = new Vector2(horizontal, vertical).magnitude;
+        _hasMovementInput = _inputMagnitude > 0.1f;
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
             _player.ChangeState(PlayerStateType.Evade);
             return;
         }
         // 计算当前移动方向并处理旋转（所有状态都旋转）
-        _player.currentMoveDir = HandleRotation(horizontal, vertical);
+        _currentMoveDir = HandleRotation(horizontal, vertical);
         
         // 转身检测 - 只在奔跑状态进行，起步状态不检测转身
-        if (currentMoveState == MoveState.Run && 
-            hasMovementInput && 
+        if (_currentMoveState == MoveState.Run && 
+            _hasMovementInput && 
             _lastMoveDirection.magnitude > 0.1f)
         {
-            float angle = Vector3.Angle(_lastMoveDirection, _player.currentMoveDir);
+            float angle = Vector3.Angle(_lastMoveDirection, _currentMoveDir);
             if (angle > 120f)
             {
                 TransitionToState(MoveState.TurnBack);
@@ -77,17 +80,16 @@ public class PlayerMoveState : Player_State
         }
         
         // 更新上一帧的移动方向
-        if (_player.currentMoveDir.magnitude > 0.1f)
+        if (_currentMoveDir.magnitude > 0.1f)
         {
-            _lastMoveDirection = new Vector3(_player.currentMoveDir.x, 0, _player.currentMoveDir.z).normalized;
+            _lastMoveDirection = new Vector3(_currentMoveDir.x, 0, _currentMoveDir.z).normalized;
         }
     }
     
     // 处理旋转 - 所有状态都使用平滑旋转
     private Vector3 HandleRotation(float h, float v) 
     {
-        if (!_player.cameraTransform) _player.cameraTransform = Camera.main?.transform;
-        Transform camTransform = _player.cameraTransform?.transform;
+        Transform camTransform = _player.CameraTransform?.transform;
         Vector3 camForward = camTransform.forward;
         Vector3 camRight = camTransform.right;
         camForward.y = 0;
@@ -102,7 +104,7 @@ public class PlayerMoveState : Player_State
             Quaternion targetRotation = Quaternion.LookRotation(moveDir);
             
             // 转身状态直接瞬间转向，其他状态平滑旋转
-            if (currentMoveState == MoveState.TurnBack)
+            if (_currentMoveState == MoveState.TurnBack)
             {
                 _player.playerModel.transform.rotation = targetRotation;
             }
@@ -121,10 +123,10 @@ public class PlayerMoveState : Player_State
     
     private void HandleMovementTransitions()
     {
-        switch (currentMoveState)
+        switch (_currentMoveState)
         {
             case MoveState.RunStart:
-                if (!hasMovementInput)
+                if (!_hasMovementInput)
                 {
                     TransitionToState(MoveState.RunStartEnd);
                 }
@@ -136,7 +138,7 @@ public class PlayerMoveState : Player_State
                 break;
                 
             case MoveState.Run:
-                if (!hasMovementInput)
+                if (!_hasMovementInput)
                 {
                     TransitionToState(MoveState.RunEnd);
                 }
@@ -147,7 +149,7 @@ public class PlayerMoveState : Player_State
                 {
                     _player.ChangeState(PlayerStateType.Idle);
                 }
-                if (hasMovementInput)
+                if (_hasMovementInput)
                 {
                     TransitionToState(MoveState.RunStart);
                 }
@@ -158,14 +160,14 @@ public class PlayerMoveState : Player_State
                 {
                     _player.ChangeState(PlayerStateType.Idle);
                 }
-                if (hasMovementInput)
+                if (_hasMovementInput)
                 {
                     TransitionToState(MoveState.RunStart);
                 }
                 break;
                 
             case MoveState.TurnBack:
-                if (!hasMovementInput)
+                if (!_hasMovementInput)
                 {
                     TransitionToState(MoveState.RunEnd);
                 }
@@ -182,7 +184,7 @@ public class PlayerMoveState : Player_State
     
     private void TransitionToState(MoveState newState)
     {
-        currentMoveState = newState;
+        _currentMoveState = newState;
         
         switch (newState)
         {

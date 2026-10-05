@@ -89,7 +89,7 @@ public class DriverDiskDataRuntime
         while (curLevelFillValue >= curLevelMaxFill)
         {
             level++;
-            if (level == 2) TaskManager.Instance.UpdateTaskProgress(TaskType.给每一个驱动盘都升一级);
+            if (level == 2) AppContext.Task.UpdateProgress(TaskType.给每一个驱动盘都升一级);
             curLevelFillValue -= curLevelMaxFill;
             curLevelMaxFill = (int)Random.Range(curLevelMaxFill + 200, curLevelMaxFill + 500);
             // 升级时提升属性
@@ -98,30 +98,19 @@ public class DriverDiskDataRuntime
     }
 
     /// <summary>
-    /// 检测材料数量是否足够可以增加经验值
+    /// 检测材料数量是否足够增加经验值。
+    /// 这里只做判定，不再自己弹提示面板 —— 展示层的事交给 Controller 处理。
     /// </summary>
-    public bool CheckCanAddExp()
+    /// <param name="shortageTip">不足的材料名称列表，用于 UI 展示</param>
+    public bool CheckCanAddExp(out string shortageTip)
     {
+        shortageTip = "";
         bool canAddExp = true;
-        string tip = "";
         foreach (var materialId in materialsId)
         {
-            // 遍历保存的已拥有的材料数量
-            if (GameManager.Instance.materialNumDict.TryGetValue(materialId, out var haveNum))
-            {
-                int needNum = materialId == 1 ? 10 : 1;
-                if (haveNum >= needNum) continue;
-                tip += $"{GameManager.Instance.materialDataRuntime[materialId].name}\n";
-                canAddExp = false;
-            }
-        }
-
-        if (!canAddExp)
-        {
-            UIManager.Instance.OpenPanel<TipPanel>(panel =>
-            {
-                panel.ShowTip($"{tip}不足");
-            });
+            if (AppContext.Material.HasEnough(materialId)) continue;
+            shortageTip += $"{AppContext.Material.GetRuntime(materialId)?.name ?? materialId.ToString()}\n";
+            canAddExp = false;
         }
 
         return canAddExp;

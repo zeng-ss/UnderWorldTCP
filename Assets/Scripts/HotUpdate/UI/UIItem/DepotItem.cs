@@ -6,7 +6,12 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-// 仓库的磁盘
+/// <summary>
+/// 仓库里的单个驱动盘（纯 View）。
+///
+/// 只负责显示与上报用户意图（装备 / 卸下 / 强化 / 悬停查看详情），
+/// 不再自己去找 DepotPanel、PlayerDataPanel 或者去改玩家属性。
+/// </summary>
 public class DepotItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // UI组件
@@ -19,135 +24,128 @@ public class DepotItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     public Button equipBtn;
     [Header("提示框")]
     public Image tipKuangImage;
-    // 数据
-    private DepotPanel depotPanel;
-    [NonSerialized]
-    public DriverDiskDataRuntime CurrentDriverDiskData;
-    private GameObject equippedObj; 
-    private bool isHover;
-    private PlayerDataPanel playerDataPanel;
+
+    /// <summary>点击「装备」</summary>
+    public event Action<DriverDiskDataRuntime> OnEquipClicked;
+    /// <summary>点击「卸下」</summary>
+    public event Action<DriverDiskDataRuntime> OnUnequipClicked;
+    /// <summary>点击「强化」</summary>
+    public event Action<DriverDiskDataRuntime> OnImproveClicked;
+    /// <summary>鼠标悬停，请求展示详情</summary>
+    public event Action<DriverDiskDataRuntime> OnHover;
+
+    [NonSerialized] public DriverDiskDataRuntime CurrentDriverDiskData;
+
+    private bool _isHover;
+    private bool _isEquipped;
 
     private void Start()
     {
-        depotPanel = FindObjectOfType<DepotPanel>();
-        equipBtn.onClick.AddListener(EquipOrUnequip);
-        improveBtn.onClick.AddListener(() =>
-        {
-            UIManager.Instance.OpenPanel<ImprovePanel>(panel => { panel.UpdateData(CurrentDriverDiskData);});
-            improveOrEquipPanel.gameObject.SetActive(false);
-        });
-        improveOrEquipPanel.GetComponent<Canvas>();
+        equipBtn.onClick.AddListener(OnEquipBtnClick);
+        improveBtn.onClick.AddListener(OnImproveBtnClick);
     }
-    
-    private void Update()
+
+    private void OnEnable()
     {
-        if (Input.GetKeyDown(KeyCode.R) && improveOrEquipPanel.activeSelf)
-        {
-            improveOrEquipPanel.gameObject.SetActive(false);
-        }
-        // 左键点击面板外区域关闭面板
-        if (Input.GetMouseButtonDown(0) && improveOrEquipPanel.activeSelf)
-        {
-            if (!IsPointerOverImprovePanel())
-            {
-                improveOrEquipPanel.gameObject.SetActive(false);
-            }
-        }
-        if (!isHover || improveOrEquipPanel.activeSelf) return;
-        if (Input.GetMouseButtonDown(1)) { OpenImproveOrEquipPanel(); }
+        // 不再用 Update 每帧轮询输入，改为在 InputManager 上一次性注册
+        InputManager.Instance.RegisterKeyDown(KeyCode.R, ClosePopup);
+        InputManager.Instance.RegisterMouseDown(0, ClosePopupIfClickedOutside);
     }
 
-    #region 装备和装备面板相关
-
-    // 右键打开 ImproveOrEquipPanel
-    private void OpenImproveOrEquipPanel()
+    private void OnDisable()
     {
-        GameObject otherImproveOrEquipPanel = GameObject.Find("improveOrEquipPanel");
-        otherImproveOrEquipPanel?.gameObject.SetActive(false);
-        RectTransform rect = improveOrEquipPanel.GetComponent<RectTransform>();
-        // 设置锚点和枢轴点为左上角
-        rect.anchorMin = new Vector2(0, 1);
-        rect.anchorMax = new Vector2(0, 1);
-        rect.pivot = new Vector2(0, 1);
-        // 将面板位置设置为鼠标位置
-        Vector2 mouseScreenPos = Input.mousePosition;
-        // 将鼠标坐标转成【item】的本地坐标（而非 Canvas）
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(GetComponent<RectTransform>(), mouseScreenPos, null, out Vector2 localPosInItem))
-        {
-            // 设置面板相对于item的本地位置，左上角对齐鼠标
-            improveOrEquipPanel.transform.localPosition = localPosInItem;
-            improveOrEquipPanel.gameObject.SetActive(true);
-        }
+        InputManager.Instance.UnregisterKeyDown(KeyCode.R, ClosePopup);
+        InputManager.Instance.UnregisterMouseDown(0, ClosePopupIfClickedOutside);
+        improveOrEquipPanel.SetActive(false);
     }
 
-    // 装备驱动盘
-    private void EquipOrUnequip()
-    {
-        if (equipBtnText.text == "装备")
-        {
-            // 装备驱动盘
-            depotPanel.EquipDepot(CurrentDriverDiskData, this);
-            equipTipImage.gameObject.SetActive(true);
-            equipBtnText.text = "卸下";
-        }
-        else
-        {
-            // 卸下驱动盘
-            depotPanel.UnequipDepot(equippedObj, CurrentDriverDiskData);
-            equipTipImage.gameObject.SetActive(false);
-            equipBtnText.text = "装备";
-        }
-        if (playerDataPanel == null)
-        {
-            playerDataPanel = FindObjectOfType<PlayerDataPanel>();
-            if (playerDataPanel == null)
-            {
-                UIManager.Instance.OpenPanel<PlayerDataPanel>(panel =>
-                {
-                    playerDataPanel = panel;
-                    playerDataPanel.UpdatePlayerData(depotPanel.equipedDepotList);
-                });
-            }
-            else playerDataPanel.UpdatePlayerData(depotPanel.equipedDepotList);
-        }
-        else playerDataPanel.UpdatePlayerData(depotPanel.equipedDepotList);
-    }
+    #region 渲染
 
-    // 设置对应的装备 obj
-    public void SetEquipObj(GameObject obj) { equippedObj = obj; }
-    
-    // 判断鼠标是否点击在面板内
-    private bool IsPointerOverImprovePanel()
-    {
-        if (!improveOrEquipPanel.activeSelf) return false;
-        PointerEventData eventData = new PointerEventData(EventSystem.current) { position = Input.mousePosition };
-        // 检测鼠标是否在面板 UI上
-        List<RaycastResult> results = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, results);
-        return results.Any(result => result.gameObject == improveOrEquipPanel);
-    }
-
-    #endregion
-    
     public void UpdateData(DriverDiskDataRuntime driverDiskData)
     {
         CurrentDriverDiskData = driverDiskData;
         ResMgr.Instance.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
             sprite => { if (depotItemImage) depotItemImage.sprite = sprite; });
     }
-    
+
+    /// <summary>由 DepotPanel 在装备状态变化时同步过来</summary>
+    public void SetEquipped(bool equipped)
+    {
+        _isEquipped = equipped;
+        if (equipBtnText != null) equipBtnText.text = equipped ? "卸下" : "装备";
+        if (equipTipImage != null) equipTipImage.gameObject.SetActive(equipped);
+    }
+
+    #endregion
+
+    #region 交互
+
+    private void OnEquipBtnClick()
+    {
+        if (CurrentDriverDiskData == null) return;
+        improveOrEquipPanel.SetActive(false);
+
+        if (_isEquipped) OnUnequipClicked?.Invoke(CurrentDriverDiskData);
+        else OnEquipClicked?.Invoke(CurrentDriverDiskData);
+    }
+
+    private void OnImproveBtnClick()
+    {
+        improveOrEquipPanel.SetActive(false);
+        if (CurrentDriverDiskData != null) OnImproveClicked?.Invoke(CurrentDriverDiskData);
+    }
+
+    /// <summary>右键呼出操作面板</summary>
+    private void OpenPopupAtMouse()
+    {
+        var rect = improveOrEquipPanel.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0, 1);
+        rect.anchorMax = new Vector2(0, 1);
+        rect.pivot = new Vector2(0, 1);
+
+        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(GetComponent<RectTransform>(),
+                Input.mousePosition, null, out Vector2 localPos))
+        {
+            improveOrEquipPanel.transform.localPosition = localPos;
+            improveOrEquipPanel.SetActive(true);
+        }
+    }
+
+    private void ClosePopup()
+    {
+        if (improveOrEquipPanel.activeSelf) improveOrEquipPanel.SetActive(false);
+    }
+
+    private void ClosePopupIfClickedOutside()
+    {
+        if (!improveOrEquipPanel.activeSelf) return;
+        if (!IsPointerOverImprovePanel()) improveOrEquipPanel.SetActive(false);
+    }
+
+    private bool IsPointerOverImprovePanel()
+    {
+        if (!improveOrEquipPanel.activeSelf) return false;
+        var eventData = new PointerEventData(EventSystem.current) { position = Input.mousePosition };
+        var results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(eventData, results);
+        return results.Any(result => result.gameObject == improveOrEquipPanel);
+    }
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         tipKuangImage.enabled = true;
-        depotPanel.UpdateDepotDes(CurrentDriverDiskData);
-        isHover = true;
+        _isHover = true;
+        if (CurrentDriverDiskData != null) OnHover?.Invoke(CurrentDriverDiskData);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         tipKuangImage.enabled = false;
-        isHover = false;
+        _isHover = false;
     }
+
+    #endregion
+
     private void OnDestroy()
     {
         equipBtn.onClick.RemoveAllListeners();

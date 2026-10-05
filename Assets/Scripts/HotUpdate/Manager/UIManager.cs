@@ -1,22 +1,18 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using YooAsset;
 
+/// <summary>
+/// UI 面板管理器：只负责 Canvas 搭建、面板层级 / 显隐 / 生命周期，以及打开面板时的输入锁。
+///
+/// 预制体的加载与释放已拆到 <see cref="UIAssetLoader"/>，
+/// 面板资源路径由 <see cref="PanelPathAttribute"/> 声明（见 PanelPathResolver）。
+/// </summary>
 public class UIManager : UnitySingleTonMono<UIManager>
 {
-    // 面板管理字典（保留实例）
-    private Dictionary<string, BasePanel> UIPanelDict = new();
-
-    private Dictionary<string, AssetHandle> panelAssetHandles = new();
-
-    // 面板原始Transform配置（保存预制体的宽高/锚点）
-    private Dictionary<string, RectTransformData> panelOriginalTransformData = new();
-
-    // 加载中面板追踪
-    private Dictionary<string, AssetHandle> panelLoadHandles = new();
+    // 已实例化的面板（按资源路径索引，保留实例以便复用）
+    private readonly Dictionary<string, BasePanel> UIPanelDict = new Dictionary<string, BasePanel>();
 
     // Canvas相关
     [HideInInspector] public RectTransform canvas;
@@ -28,15 +24,7 @@ public class UIManager : UnitySingleTonMono<UIManager>
 
     private bool isCanvasInitialized;
 
-    private struct RectTransformData
-    {
-        public Vector2 anchorMin;
-        public Vector2 anchorMax;
-        public Vector2 sizeDelta;
-        public Vector2 pivot;
-        public Vector3 anchoredPosition3D;
-        public Vector3 localScale;
-    }
+    #region 打开面板
 
     public void OpenPanel<T>(Action<T> onLoadComplete = null) where T : BasePanel
     {
@@ -47,174 +35,187 @@ public class UIManager : UnitySingleTonMono<UIManager>
             return;
         }
 
-        string panelName = GetPanelKey<T>();
+        string path = PanelPathResolver.Resolve<T>();
 
-        // 面板已存在：恢复原始Transform
-        if (UIPanelDict.ContainsKey(panelName))
+        // 面板已存在：恢复原始 Transform 后直接显示
+        if (UIPanelDict.TryGetValue(path, out var existPanel))
         {
-            T panel = UIPanelDict[panelName] as T;
-            if (panelOriginalTransformData.ContainsKey(panelName))
+            T cached = existPanel as T;
+            AppContext.UILoader.RestoreTransform(path, cached.transform, currentPanel.transform);
+            cached.Show();
+            PushInputLock(path, cached);
+            onLoadComplete?.Invoke(cached);
+            return;
+        }
+
+        AppContext.UILoader.LoadAsync(path, prefab =>
+        {
+            if (prefab == null)
             {
-                RestorePanelTransform(panel.transform, panelName);
+                onLoadComplete?.Invoke(null);
+                return;
             }
 
-            panel.Show();
-            onLoadComplete?.Invoke(panel);
-            return;
-        }
+            GameObject panelObj = Instantiate(prefab, currentPanel.transform, false);
+            panelObj.name = path;
 
-        // 面板未加载：异步加载
-        if (panelLoadHandles.ContainsKey(panelName))
-        {
-            Debug.LogWarning($"面板 {panelName} 正在加载中，请勿重复调用");
-            onLoadComplete?.Invoke(null);
-            return;
-        }
-
-        AssetHandle loadHandle = Global.Instance._YooPackage.LoadAssetAsync<GameObject>(panelName);
-        panelLoadHandles.Add(panelName, loadHandle);
-        StartCoroutine(FinishLoadPanelCoroutine(loadHandle, panelName, onLoadComplete));
-    }
-
-    private IEnumerator FinishLoadPanelCoroutine<T>(AssetHandle loadHandle, string panelName,
-        Action<T> onLoadComplete = null) where T : BasePanel
-    {
-        yield return loadHandle;
-        panelLoadHandles.Remove(panelName);
-
-        if (loadHandle.Status != EOperationStatus.Succeeded)
-        {
-            Debug.LogError($"加载面板失败: {panelName}，错误：{loadHandle.Error}");
-            onLoadComplete?.Invoke(null);
-            yield break;
-        }
-
-        panelAssetHandles[panelName] = loadHandle;
-
-        GameObject prefabObj = loadHandle.AssetObject as GameObject;
-        RectTransform prefabRect = prefabObj.GetComponent<RectTransform>();
-        if (prefabRect != null)
-        {
-            panelOriginalTransformData[panelName] = new RectTransformData
+            BasePanel panel = panelObj.GetComponent<T>();
+            if (panel == null)
             {
-                anchorMin = prefabRect.anchorMin,
-                anchorMax = prefabRect.anchorMax,
-                sizeDelta = prefabRect.sizeDelta,
-                pivot = prefabRect.pivot,
-                anchoredPosition3D = prefabRect.anchoredPosition3D,
-                localScale = prefabRect.localScale
-            };
-        }
+                Debug.LogError($"面板 {path} 上找不到 {typeof(T).Name} 组件");
+                Destroy(panelObj);
+                onLoadComplete?.Invoke(null);
+                return;
+            }
 
-        GameObject panelObj = Instantiate(prefabObj, currentPanel.transform, false);
-        panelObj.name = panelName;
-
-        BasePanel panel = panelObj.GetComponent<T>();
-        if (panel == null)
-        {
-            Debug.LogError($"面板 {panelName} 缺少BasePanel组件");
-            Destroy(panelObj);
-            onLoadComplete?.Invoke(null);
-            yield break;
-        }
-
-        UIPanelDict.Add(panelName, panel);
-        panel.Show();
-        onLoadComplete?.Invoke(panel as T);
+            UIPanelDict.Add(path, panel);
+            panel.Show();
+            PushInputLock(path, panel);
+            onLoadComplete?.Invoke(panel as T);
+        });
     }
 
-    private void RestorePanelTransform(Transform panelTransform, string panelName)
+    /// <summary>
+    /// 开 / 关一个面板。由 InputManager 触发，这里不再自己读 Input.GetKeyDown。
+    /// </summary>
+    public void TogglePanel<T>() where T : BasePanel
     {
-        if (!panelOriginalTransformData.ContainsKey(panelName)) return;
-        if (currentPanel == null) return;
-
-        RectTransform panelRect = panelTransform.GetComponent<RectTransform>();
-        if (panelRect != null)
+        T panel = GetPanel<T>();
+        if (panel == null || !panel.gameObject.activeInHierarchy)
         {
-            RectTransformData originalData = panelOriginalTransformData[panelName];
-            panelRect.SetParent(currentPanel.transform, false);
-            panelRect.anchorMin = originalData.anchorMin;
-            panelRect.anchorMax = originalData.anchorMax;
-            panelRect.sizeDelta = originalData.sizeDelta;
-            panelRect.pivot = originalData.pivot;
-            panelRect.anchoredPosition3D = originalData.anchoredPosition3D;
-            panelRect.localScale = originalData.localScale;
-            panelRect.localRotation = Quaternion.identity;
+            OpenPanel<T>();
+            AppContext.Events.EventTrigger(GameEvent.CursorShow);
         }
         else
         {
-            panelTransform.SetParent(currentPanel.transform);
-            panelTransform.localPosition = Vector3.zero;
-            panelTransform.localRotation = Quaternion.identity;
-            panelTransform.localScale = Vector3.one;
+            ClosePanel<T>();
+            AppContext.Events.EventTrigger(GameEvent.CursorHide);
         }
     }
 
+    #endregion
+
+    #region 关闭 / 销毁
+
     public void ClosePanel<T>() where T : BasePanel
     {
-        string panelName = GetPanelKey<T>();
-        if (UIPanelDict.TryGetValue(panelName, out var panel))
+        string path = PanelPathResolver.Resolve<T>();
+        if (UIPanelDict.TryGetValue(path, out var panel)) DoClosePanel(path, panel);
+    }
+
+    /// <summary>关闭指定面板实例，供 BasePanel 的关闭按钮回调使用</summary>
+    public void ClosePanel(BasePanel panel)
+    {
+        if (panel == null) return;
+        foreach (var kv in UIPanelDict)
         {
-            panel.Hide();
-            panel.transform.SetParent(canvas.transform, false);
+            if (kv.Value != panel) continue;
+            DoClosePanel(kv.Key, panel);
+            return;
         }
+
+        panel.Hide();
+    }
+
+    private void DoClosePanel(string path, BasePanel panel)
+    {
+        panel.Hide();
+        panel.transform.SetParent(canvas.transform, false);
+        PopInputLock(path);
     }
 
     public void DestroyPanel<T>() where T : BasePanel
     {
-        string panelName = GetPanelKey<T>();
-        if (UIPanelDict.TryGetValue(panelName, out var panel))
-        {
-            Destroy(panel.gameObject);
-            UIPanelDict.Remove(panelName);
+        string path = PanelPathResolver.Resolve<T>();
+        if (!UIPanelDict.TryGetValue(path, out var panel)) return;
 
-            if (panelAssetHandles.ContainsKey(panelName))
-            {
-                panelAssetHandles[panelName].Release();
-                panelAssetHandles.Remove(panelName);
-            }
-
-            if (panelOriginalTransformData.ContainsKey(panelName))
-            {
-                panelOriginalTransformData.Remove(panelName);
-            }
-        }
+        Destroy(panel.gameObject);
+        UIPanelDict.Remove(path);
+        PopInputLock(path);
+        AppContext.UILoader.Release(path);
     }
-
-    public T GetPanel<T>() where T : BasePanel
-    {
-        string panelName = GetPanelKey<T>();
-        return UIPanelDict.TryGetValue(panelName, out var panel) ? panel as T : null;
-    }
-
-    private string GetPanelKey<T>() where T : BasePanel => "Assets/Res/UI/UIPanel/" + typeof(T).Name;
 
     public void ClearAllPanel()
     {
         foreach (var kv in UIPanelDict) kv.Value.Hide();
     }
 
-    public void TogglePanel<T>(KeyCode keyCode) where T : BasePanel
+    /// <summary>
+    /// 销毁所有已加载面板并释放其资源句柄。
+    /// 用于彻底清理（卸载资源包 / 退出游戏）；日常开关面板请用 ClosePanel，它会缓存实例。
+    /// </summary>
+    public void DestroyAllPanels()
     {
-        if (Input.GetKeyDown(keyCode))
+        foreach (var kv in UIPanelDict)
         {
-            T panel = GetPanel<T>();
-            if (panel == null || !panel.gameObject.activeInHierarchy)
-            {
-                OpenPanel<T>();
-                EventMgr.Instance.EventTrigger(GameEvent.CursorShow);
-            }
-            else
-            {
-                ClosePanel<T>();
-                EventMgr.Instance.EventTrigger(GameEvent.CursorHide);
-            }
+            if (kv.Value != null) Destroy(kv.Value.gameObject);
         }
+
+        UIPanelDict.Clear();
+
+        // 面板全没了，输入锁也该全部释放，避免残留锁死玩法操作
+        panelInputLocks.Clear();
+        InputManager.Instance.PopAllInputLocks();
+
+        AppContext.UILoader.ReleaseAll();
     }
+
+    #endregion
+
+    public T GetPanel<T>() where T : BasePanel
+    {
+        string path = PanelPathResolver.Resolve<T>();
+        return UIPanelDict.TryGetValue(path, out var panel) ? panel as T : null;
+    }
+
+    #region 输入锁
+
+    /// <summary>面板路径 → 它压入的输入锁 token</summary>
+    private readonly Dictionary<string, object> panelInputLocks = new Dictionary<string, object>();
+
+    private void PushInputLock(string path, BasePanel panel)
+    {
+        if (panel == null || !panel.BlocksGameplayInput) return;
+        if (panelInputLocks.ContainsKey(path)) return;
+        panelInputLocks[path] = InputManager.Instance.PushInputLock();
+    }
+
+    private void PopInputLock(string path)
+    {
+        if (!panelInputLocks.TryGetValue(path, out var token)) return;
+        InputManager.Instance.PopInputLock(token);
+        panelInputLocks.Remove(path);
+    }
+
+    #endregion
+
+    #region Canvas 初始化
 
     public override void Awake()
     {
         base.Awake();
+        InitCanvas();
+        InitEventSystem();
+        isCanvasInitialized = true;
+    }
+
+    /// <summary>
+    /// 弹出全局提示条。任何地方想弹 TipPanel 直接调 UIManager.Instance.ShowTip(...)，
+    /// 不需要经过事件系统绕一圈。
+    /// </summary>
+    /// <param name="text">提示内容</param>
+    /// <param name="showTime">大于 0 时覆盖面板默认显示时长</param>
+    public void ShowTip(string text, float showTime = 0f)
+    {
+        OpenPanel<TipPanel>(panel =>
+        {
+            if (showTime > 0f) panel.showTime = showTime;
+            panel.ShowTip(text);
+        });
+    }
+
+    private void InitCanvas()
+    {
         GameObject canvasObj = Resources.Load<GameObject>("Canvas") ?? new GameObject("Canvas");
         if (canvasObj.name != "Canvas")
         {
@@ -247,50 +248,31 @@ public class UIManager : UnitySingleTonMono<UIManager>
         rect.localPosition = Vector3.zero;
         rect.localRotation = Quaternion.identity;
         rect.localScale = Vector3.one;
-
-        if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() == null)
-        {
-            GameObject eventSystemObj = Resources.Load<GameObject>("EventSystem") ?? new GameObject("EventSystem");
-            if (eventSystemObj.name != "EventSystem")
-            {
-                eventSystemObj.name = "EventSystem";
-                eventSystemObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
-                eventSystemObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
-            }
-            else
-            {
-                eventSystemObj = Instantiate(eventSystemObj);
-            }
-
-            DontDestroyOnLoad(eventSystemObj);
-        }
-
-        isCanvasInitialized = true;
     }
 
-    /// <summary>
-    /// 销毁所有已加载面板并释放其 YooAsset 句柄。
-    /// 用于彻底清理（卸载资源包 / 退出游戏）；日常开关面板请用 ClosePanel，它会缓存实例。
-    /// </summary>
-    public void DestroyAllPanels()
+    private void InitEventSystem()
     {
-        foreach (var kv in UIPanelDict)
+        if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() != null) return;
+
+        GameObject eventSystemObj = Resources.Load<GameObject>("EventSystem") ?? new GameObject("EventSystem");
+        if (eventSystemObj.name != "EventSystem")
         {
-            if (kv.Value != null) Destroy(kv.Value.gameObject);
+            eventSystemObj.name = "EventSystem";
+            eventSystemObj.AddComponent<UnityEngine.EventSystems.EventSystem>();
+            eventSystemObj.AddComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+        }
+        else
+        {
+            eventSystemObj = Instantiate(eventSystemObj);
         }
 
-        UIPanelDict.Clear();
-        panelOriginalTransformData.Clear();
-
-        foreach (var handle in panelLoadHandles.Values) handle.Release();
-        panelLoadHandles.Clear();
+        DontDestroyOnLoad(eventSystemObj);
     }
+
+    #endregion
 
     private void OnDestroy()
     {
         DestroyAllPanels();
-
-        foreach (var handle in panelAssetHandles.Values) handle.Release();
-        panelAssetHandles.Clear();
     }
 }

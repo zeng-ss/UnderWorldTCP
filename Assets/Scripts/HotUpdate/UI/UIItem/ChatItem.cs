@@ -11,8 +11,8 @@ public class ChatItem : MonoBehaviour
     
     public void UpdateDate(MessageData data)
     {
-        nameText.text = $"{data.name}——{data.sendTime.ToString(CultureInfo.InvariantCulture)}";
-        mesText.text = data.message;
+        nameText.text = $"{data.Name}——{data.SendTime.ToString(CultureInfo.InvariantCulture)}";
+        mesText.text = data.Message;
     }
     
 }

@@ -5,7 +5,7 @@ public class PlayerEvadeState : Player_State
     public override void Enter()
     {
         if (!_player.IsLocalPlayer) return;
-        if (GameManager.Instance.IsPointerOverSpecificUILayer(LayerMask.GetMask("LockInput")))
+        if (InputManager.IsPointerOverBlockingUI())
         {
             _player.ChangeState(PlayerStateType.Idle);
             return;
@@ -13,13 +13,14 @@ public class PlayerEvadeState : Player_State
         _player.playerModel.SetRootMotionAction(OnRootMation);
         _player.PlayAnimation("Evade");
     }
-    private void OnRootMation(Vector3 arg1, Quaternion arg2) { _player.characterController.Move(arg1); }
+    private void OnRootMation(Vector3 arg1, Quaternion arg2) { _player.CharacterController.Move(arg1); }
 
     public override void Update()
     {
         // 只允许本地玩家执行逻辑
         if (!_player.IsLocalPlayer) return;
-        if (GameManager.Instance.IsPointerOverSpecificUILayer(LayerMask.GetMask("LockInput")))
+        if (!InputManager.Instance.IsGameplayInputEnabled) return;
+        if (InputManager.IsPointerOverBlockingUI())
         {
             _player.ChangeState(PlayerStateType.Idle);
             return;

@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
+[PanelPath("Assets/Res/UI/UIPanel/ImprovePanel")]
 public class ImprovePanel : BasePanel
 {
     #region 详情界面UI组件
@@ -24,30 +25,56 @@ public class ImprovePanel : BasePanel
     public GameObject iconsContainer;
 
     #endregion
-    private DepotPanel depotPanel;
-    private PlayerDataPanel playerDataPanel;
+    /// <summary>当前正在强化的驱动盘</summary>
+    public DriverDiskDataRuntime CurrentData => _currentDriverDiskData;
+
+    /// <summary>强化面板打开时要锁住角色操作</summary>
+    public override bool BlocksGameplayInput => true;
+
     private DriverDiskDataRuntime _currentDriverDiskData;
 
     private void Start()
     {
-        depotPanel = UIManager.Instance.GetPanel<DepotPanel>();
-        UIManager.Instance.OpenPanel<PlayerDataPanel>(panel => { playerDataPanel = panel;});
-        UIManager.Instance.ClosePanel<PlayerDataPanel>();
-        addExpBtn.onClick.AddListener(CheckAddExp);
+        addExpBtn.onClick.AddListener(RaiseUpgradeRequested);
     }
-    private void CheckAddExp()
+
+    private void OnEnable()
     {
-        if (!_currentDriverDiskData.CheckCanAddExp()) return;
-        foreach (var materialId in _currentDriverDiskData.materialsId)
-        {
-            // 遍历保存的已拥有的材料数量
-            if (GameManager.Instance.materialNumDict.ContainsKey(materialId))
-            {
-                int reduceNum = materialId == 1 ? 10 : 1;
-                GameManager.Instance.materialNumDict[materialId] -= reduceNum;
-            }
-        }
-        UpdateFillBar(200);
+        AppContext.Events.AddEventListener(GameEvent.MaterialNumChanged, OnMaterialNumChanged);
+        AppContext.Events.AddEventListener(GameEvent.PlayerDataChanged, OnPlayerDataChanged);
+    }
+
+    private void OnDisable()
+    {
+        AppContext.Events.RemoveEventListener(GameEvent.MaterialNumChanged, OnMaterialNumChanged);
+        AppContext.Events.RemoveEventListener(GameEvent.PlayerDataChanged, OnPlayerDataChanged);
+    }
+
+    private void OnMaterialNumChanged(EventArgs args)
+    {
+        UpdateMaterialNum();
+    }
+
+    private void OnPlayerDataChanged(EventArgs args)
+    {
+        // 强化成功后属性会重算，借此顺带刷一次等级与经验条
+        Refresh();
+    }
+
+    /// <summary>只上报意图：够不够材料、扣多少由 Controller 决定</summary>
+    private void RaiseUpgradeRequested()
+    {
+        if (_currentDriverDiskData == null) return;
+        AppContext.DepotUI.Upgrade(_currentDriverDiskData);
+    }
+
+    /// <summary>按当前数据整体重绘（等级、经验条、材料数量）</summary>
+    public void Refresh()
+    {
+        if (_currentDriverDiskData == null) return;
+        fillImage.fillAmount = _currentDriverDiskData.GetLevelProgress();
+        fillText.text = $"{_currentDriverDiskData.curLevelFillValue}/{_currentDriverDiskData.curLevelMaxFill}";
+        depotLevelText.text = $"等级：{_currentDriverDiskData.level}/15";
         UpdateMaterialNum();
     }
     // 更新面板信息
@@ -76,26 +103,8 @@ public class ImprovePanel : BasePanel
             DriverDiskType.Health => "生命值",
             DriverDiskType.Defense => "防御力",
             DriverDiskType.BaoJi => "暴击率",
-            _ => throw new ArgumentOutOfRangeException(nameof(driverDiskType), driverDiskType, null)
+            _ => "未知"
         };
-    }
-    
-    /// <summary>
-    /// 更新进度
-    /// </summary>
-    /// <param name="increaseFill">增加的进度值</param>
-    public void UpdateFillBar(float increaseFill)
-    {
-        // 添加经验值
-        _currentDriverDiskData.AddExp(increaseFill);
-        fillImage.fillAmount = _currentDriverDiskData.GetLevelProgress();
-        fillText.text = $"{_currentDriverDiskData.curLevelFillValue}/{_currentDriverDiskData.curLevelMaxFill}";
-        depotLevelText.text = _currentDriverDiskData.level.ToString();
-        // 更新仓库信息面板
-        depotPanel.UpdateDepotDes(_currentDriverDiskData);
-        // 更新角色属性面板
-        playerDataPanel.UpdatePlayerData(depotPanel.equipedDepotList);
-        UpdateData(_currentDriverDiskData);
     }
 
     private Dictionary<int, TextMeshProUGUI> materialNumTextDict = new();
@@ -104,12 +113,12 @@ public class ImprovePanel : BasePanel
         if (_currentDriverDiskData == null) { return; }
         materialNumTextDict.Clear();
         for (int i = 0; i < iconsContainer.transform.childCount; i++) { Destroy(iconsContainer.transform.GetChild(i).gameObject); }
-        foreach (var item in GameManager.Instance.materialDataRuntime)
+        foreach (var item in AppContext.Material.RuntimeData)
         {
             if (!_currentDriverDiskData.materialsId.Contains(item.Key)) continue;
             var obj = new GameObject("materialIcon", typeof(Image));
             obj.transform.SetParent(iconsContainer.transform);
-            string iconName = GameManager.Instance.materialDataRuntime[item.Key].materialIconName;
+            string iconName = AppContext.Material.RuntimeData[item.Key].materialIconName;
             Image materialIcon = obj.GetComponent<Image>();
             ResMgr.Instance.LoadSpriteAsync($"Res/{iconName}",
                 sprite => { if (materialIcon) materialIcon.sprite = sprite; });
@@ -119,7 +128,7 @@ public class ImprovePanel : BasePanel
         
             // 添加 TextMeshPro组件显示数量
             TextMeshProUGUI countText = countTextObject.AddComponent<TextMeshProUGUI>();
-            countText.text = GameManager.Instance.materialNumDict[item.Key].ToString();
+            countText.text = AppContext.Material.GetCount(item.Key).ToString();
             countText.fontSize = 25;
             countText.enableWordWrapping = false;
             countText.color = Color.white;
@@ -139,10 +148,7 @@ public class ImprovePanel : BasePanel
     {
         foreach (var item in materialNumTextDict)
         {
-            if (GameManager.Instance.materialNumDict.ContainsKey(item.Key))
-            {
-                item.Value.text = GameManager.Instance.materialNumDict[item.Key].ToString();
-            }
+            item.Value.text = AppContext.Material.GetCount(item.Key).ToString();
         }
     }
     /// <summary>
