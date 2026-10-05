@@ -37,19 +37,19 @@ public class TaskController
     /// <summary>预先把面板实例化出来并隐藏，避免首次按 Tab 时才加载造成卡顿</summary>
     public void Preload()
     {
-        UIManager.Instance.OpenPanel<TaskPanel>(_ => UIManager.Instance.ClosePanel<TaskPanel>());
+        AppContext.Ui.OpenPanel<TaskPanel>(_ => AppContext.Ui.ClosePanel<TaskPanel>());
     }
 
     private void TogglePanel()
     {
-        var panel = UIManager.Instance.GetPanel<TaskPanel>();
+        var panel = AppContext.Ui.GetPanel<TaskPanel>();
         if (panel != null && panel.gameObject.activeInHierarchy)
         {
             panel.ClosePanel();
             return;
         }
 
-        UIManager.Instance.OpenPanel<TaskPanel>();
+        AppContext.Ui.OpenPanel<TaskPanel>();
     }
 
     /// <summary>处理面板上报的「任务已完成」</summary>
@@ -63,6 +63,6 @@ public class TaskController
     private void NotifyServer(TaskDataRuntime task, string rewardText)
     {
         int rewardId = task.taskType == TaskType.击败第一个敌人 ? 1 : 2;
-        ProtoHandler.Instance.RequestGetReward(rewardId, ret => { UIManager.Instance.ShowTip(rewardText, 4f); });
+        AppContext.Proto.RequestGetReward(rewardId, ret => { AppContext.Ui.ShowTip(rewardText, 4f); });
     }
 }

@@ -88,7 +88,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
         fillImage.fillAmount = networkHealth / maxHealthValue;
         healthText.text = $"{networkHealth}/{maxHealthValue}";
 
-        ProtoHandler.Instance.StartEPositionSync(transform, AppContext.Session.RoleId, enemyModel.transform);
+        AppContext.Proto.StartEPositionSync(transform, AppContext.Session.RoleId, enemyModel.transform);
     }
 
     private void Update()
@@ -163,8 +163,8 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
     public void PlayAnimation(string animationName, float fixedTransitionTime = 0.1f)
     {
         enemyModel.Animator.CrossFadeInFixedTime(animationName, fixedTransitionTime, 0, 0f);
-        ProtoHandler.Instance.RequestSyncEnemyAni(AppContext.Session.RoleId, animationName,
-            ret => { RemotePlayerManager.Instance.OnSyncAni(ret); });
+        AppContext.Proto.RequestSyncEnemyAni(AppContext.Session.RoleId, animationName,
+            ret => { AppContext.RemotePlayer.OnSyncAni(ret); });
     }
 
     private void EnemyAudio(AudioClip audioClip) => audioSource.PlayOneShot(audioClip);
@@ -268,7 +268,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
         GameObject obj = Instantiate(hitData.hitPrefabs[0]);
         obj.transform.position = hurtPos;
         Destroy(obj, obj.GetComponent<ParticleSystem>().main.duration);
-        SoundManager.Instance.PlaySound(hitData.hitClip, hurtPos);
+        AppContext.Sound.PlaySound(hitData.hitClip, hurtPos);
         hurt.OnHurt(hitData, this);
     }
 

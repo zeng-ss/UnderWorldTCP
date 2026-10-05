@@ -1,26 +1,30 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 管理其他玩家的创建、位置更新、销毁
-/// 通过 ProtoHandler 事件驱动，不直接依赖 SocketDispatcher
+/// 通过 ProtoHandler 事件驱动，不直接依赖网络层。
+/// 普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.RemotePlayer。
 /// </summary>
-public class RemotePlayerManager : UnitySingleTonMono<RemotePlayerManager>
+public class RemotePlayerManager
 {
     private Dictionary<int, RemotePlayer> _remotePlayers = new();
     private Dictionary<int, RemoteEnemy> _remoteEnemys = new();
 
-    public override void Awake()
+    // 场景/预制体里可能存在多个实例，只保留最早 Awake 的一个
+    private static RemotePlayerManager _live;
+
+    public void Init()
     {
-        base.Awake();
-        ProtoHandler.Instance.OnPlayerEnterScene += OnPlayerEnterScene;
-        ProtoHandler.Instance.OnPositionSyncReceived += OnPositionSync;
-        ProtoHandler.Instance.OnPlayerLeaveScene += OnPlayerLeaveScene;
-        ProtoHandler.Instance.OnPlayerAttackBroadcast += OnPlayerAttackBroadcast;
-        ProtoHandler.Instance.OnSyncAniReceived += OnSyncAni;
-        ProtoHandler.Instance.OnPlayerVfxReceived += OnPlayerVfxReceived;
-        ProtoHandler.Instance.OnEnemyPositionSyncReceived += OnEnemyPositionSync;
-        ProtoHandler.Instance.OnEnemySyncAniReceived += OnSyncEnemyAni;
+        AppContext.Proto.OnPlayerEnterScene += OnPlayerEnterScene;
+        AppContext.Proto.OnPositionSyncReceived += OnPositionSync;
+        AppContext.Proto.OnPlayerLeaveScene += OnPlayerLeaveScene;
+        AppContext.Proto.OnPlayerAttackBroadcast += OnPlayerAttackBroadcast;
+        AppContext.Proto.OnSyncAniReceived += OnSyncAni;
+        AppContext.Proto.OnPlayerVfxReceived += OnPlayerVfxReceived;
+        AppContext.Proto.OnEnemyPositionSyncReceived += OnEnemyPositionSync;
+        AppContext.Proto.OnEnemySyncAniReceived += OnSyncEnemyAni;
     }
 
     private void OnPlayerVfxReceived(PlayerVfxNtf ntf)
@@ -40,7 +44,7 @@ public class RemotePlayerManager : UnitySingleTonMono<RemotePlayerManager>
         }
 
         Vector3 pos = new Vector3(ntf.PosX, ntf.PosY, ntf.PosZ);
-        ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/Prefab/Character", null, obj =>
+        AppContext.Res.LoadAndInstantiateAsync("Assets/Res/Prefab/Character", null, obj =>
         {
             // 标记为非本地玩家，禁用 CharacterController 防止与位置插值冲突
             var pc = obj.GetComponent<PlayerCtrl>();
@@ -80,7 +84,7 @@ public class RemotePlayerManager : UnitySingleTonMono<RemotePlayerManager>
     {
         if (_remotePlayers.TryGetValue(ntf.RoleId, out RemotePlayer rp))
         {
-            Destroy(rp.gameObject);
+            GameObject.Destroy(rp.gameObject);
             _remotePlayers.Remove(ntf.RoleId);
             Debug.Log($"[RemotePlayerManager] 玩家离开: roleId={ntf.RoleId}");
         }
@@ -101,7 +105,7 @@ public class RemotePlayerManager : UnitySingleTonMono<RemotePlayerManager>
     {
         foreach (var kv in _remotePlayers)
         {
-            if (kv.Value != null) Destroy(kv.Value.gameObject);
+            if (kv.Value != null) GameObject.Destroy(kv.Value.gameObject);
         }
 
         _remotePlayers.Clear();
@@ -117,7 +121,7 @@ public class RemotePlayerManager : UnitySingleTonMono<RemotePlayerManager>
         }
 
         Vector3 spawnPos = new Vector3(ret.PosX, ret.PosY, ret.PosZ);
-        ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/Prefab/enemy", null, enemy =>
+        AppContext.Res.LoadAndInstantiateAsync("Assets/Res/Prefab/enemy", null, enemy =>
         {
             enemy.transform.position = spawnPos;
             EnemyCtrl ctrl = enemy.GetComponent<EnemyCtrl>();
@@ -128,7 +132,7 @@ public class RemotePlayerManager : UnitySingleTonMono<RemotePlayerManager>
                 ctrl.roleId = ret.RoleId;
                 ctrl.maxHealthValue = ret.MaxHp;
                 ctrl.networkHealth = ret.CurrHp;
-                ctrl.PlayerRef = FindObjectOfType<PlayerCtrl>();
+                ctrl.PlayerRef = Object.FindAnyObjectByType<PlayerCtrl>();
                 ctrl.fillImage.fillAmount = ret.CurrHp / ret.MaxHp;
                 ctrl.healthText.text = $"{ret.CurrHp}/{ret.MaxHp}";
                 EnemyCtrl.Instances[ret.EnemyInstanceId] = ctrl;
@@ -144,8 +148,8 @@ public class RemotePlayerManager : UnitySingleTonMono<RemotePlayerManager>
     {
         if (_remoteEnemys.TryGetValue(ret.RoleId, out RemoteEnemy re))
         {
-            re.TargetPos = new Vector3(ret.PosX, ret.PosY, ret.PosZ);
-            re.TargetRotation = Quaternion.Euler(0, ret.RotationY, 0);
+            re.targetPos = new Vector3(ret.PosX, ret.PosY, ret.PosZ);
+            re.targetRotation = Quaternion.Euler(0, ret.RotationY, 0);
         }
     }
 
@@ -158,19 +162,19 @@ public class RemotePlayerManager : UnitySingleTonMono<RemotePlayerManager>
     }
 
 
-    private void OnDestroy()
+    public void Clear()
     {
-        if (ProtoHandler.Instance != null)
-        {
-            ProtoHandler.Instance.OnPlayerEnterScene -= OnPlayerEnterScene;
-            ProtoHandler.Instance.OnPositionSyncReceived -= OnPositionSync;
-            ProtoHandler.Instance.OnPlayerLeaveScene -= OnPlayerLeaveScene;
-            ProtoHandler.Instance.OnPlayerAttackBroadcast -= OnPlayerAttackBroadcast;
-            ProtoHandler.Instance.OnSyncAniReceived -= OnSyncAni;
-            ProtoHandler.Instance.OnPlayerVfxReceived -= OnPlayerVfxReceived;
-            ProtoHandler.Instance.OnEnemyPositionSyncReceived -= OnEnemyPositionSync;
-            ProtoHandler.Instance.OnEnemySyncAniReceived -= OnSyncEnemyAni;
-        }
+        // AppContext 可能已先一步 Dispose（退出流程）
+        if (!AppContext.IsAlive) return;
+
+        AppContext.Proto.OnPlayerEnterScene -= OnPlayerEnterScene;
+        AppContext.Proto.OnPositionSyncReceived -= OnPositionSync;
+        AppContext.Proto.OnPlayerLeaveScene -= OnPlayerLeaveScene;
+        AppContext.Proto.OnPlayerAttackBroadcast -= OnPlayerAttackBroadcast;
+        AppContext.Proto.OnSyncAniReceived -= OnSyncAni;
+        AppContext.Proto.OnPlayerVfxReceived -= OnPlayerVfxReceived;
+        AppContext.Proto.OnEnemyPositionSyncReceived -= OnEnemyPositionSync;
+        AppContext.Proto.OnEnemySyncAniReceived -= OnSyncEnemyAni;
     }
 }
 
@@ -213,20 +217,17 @@ public class RemotePlayer : MonoBehaviour
 public class RemoteEnemy : MonoBehaviour
 {
     public int RoleId { get; private set; }
-    public int ServerInstanceId { get; private set; }
-    public Vector3 TargetPos;
-    public Quaternion TargetRotation;
+    public Vector3 targetPos;
+    public Quaternion targetRotation;
     public float smoothSpeed = 10f;
     private Transform _modelTransform;
-    public EnemyCtrl Ctrl { get; private set; }
 
     public void Init(int roleId, int serverInstanceId, Vector3 pos)
     {
         RoleId = roleId;
-        ServerInstanceId = serverInstanceId;
-        TargetPos = pos;
-        TargetRotation = Quaternion.identity;
-        Ctrl = GetComponent<EnemyCtrl>();
+        targetPos = pos;
+        targetRotation = Quaternion.identity;
+        GetComponent<EnemyCtrl>();
 
         // 找模型子节点（Character 预制体的 root/playerModel）
         _modelTransform = GetComponentInChildren<EnemyModel>().transform;
@@ -234,8 +235,8 @@ public class RemoteEnemy : MonoBehaviour
 
     private void Update()
     {
-        transform.position = Vector3.Lerp(transform.position, TargetPos, smoothSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed * Time.deltaTime);
         Transform rotTarget = _modelTransform ? _modelTransform : transform;
-        rotTarget.rotation = Quaternion.Slerp(rotTarget.rotation, TargetRotation, smoothSpeed * Time.deltaTime);
+        rotTarget.rotation = Quaternion.Slerp(rotTarget.rotation, targetRotation, smoothSpeed * Time.deltaTime);
     }
 }

@@ -64,7 +64,7 @@ public class TaskPanel : BasePanel
         sequence.Join(taskCanvasGroup.DOFade(0, panelShowDuration).SetEase(panelEase));
         sequence.OnComplete(() =>
         {
-            UIManager.Instance.ClosePanel<TaskPanel>();
+            AppContext.Ui.ClosePanel<TaskPanel>();
         });
     }
 
@@ -94,7 +94,7 @@ public class TaskPanel : BasePanel
     /// </summary>
     private void CreateTaskItem(TaskDataRuntime task)
     {
-        ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/TaskItem", taskContent,(itemObj =>
+        AppContext.Res.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/TaskItem", taskContent,(itemObj =>
         {
             if (itemObj == null)
             {

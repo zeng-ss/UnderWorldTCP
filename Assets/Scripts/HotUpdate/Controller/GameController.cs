@@ -72,21 +72,21 @@ public class GameController : MonoBehaviour
 
     private void ToggleChatPanel()
     {
-        UIManager.Instance.TogglePanel<ChatPanel>();
+        AppContext.Ui.TogglePanel<ChatPanel>();
     }
 
     private void ToggleDepotPanel()
     {
-        UIManager.Instance.TogglePanel<DepotPanel>();
+        AppContext.Ui.TogglePanel<DepotPanel>();
     }
 
     private void TogglePlayerDataPanel()
     {
-        var panel = UIManager.Instance.GetPanel<PlayerDataPanel>();
+        var panel = AppContext.Ui.GetPanel<PlayerDataPanel>();
         if (panel != null && panel.isAnimating) return;
 
-        if (panel == null || !panel.gameObject.activeInHierarchy) UIManager.Instance.OpenPanel<PlayerDataPanel>();
-        else UIManager.Instance.ClosePanel<PlayerDataPanel>();
+        if (panel == null || !panel.gameObject.activeInHierarchy) AppContext.Ui.OpenPanel<PlayerDataPanel>();
+        else AppContext.Ui.ClosePanel<PlayerDataPanel>();
     }
 
     /// <summary>调试快捷键：给当前强化中的驱动盘加经验</summary>

@@ -33,7 +33,7 @@ public class EnemyAttackState : Enemy_State
         if (curAttackState != AttackState.Attack05Start)
         {
             enemy.isStartPinTip.gameObject.SetActive(true);
-            SoundManager.Instance.PlaySound(SoundManager.Instance.startPinSound, enemy.transform.position);
+            AppContext.Sound.PlaySound(AppContext.Sound.startPinSound, enemy.transform.position);
         }
     }
     private void OnRootMotion(Vector3 arg1, Quaternion arg2)

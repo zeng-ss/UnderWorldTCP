@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SoundManager : UnitySingleTonMono<SoundManager>
+public class SoundManager
 {
     #region 音频数据
 
@@ -18,11 +18,10 @@ public class SoundManager : UnitySingleTonMono<SoundManager>
     private string poolName = "AudioPrefab";
     private GameObject pool;
 
-    public override void Awake()
+    public void Init()
     {
-        base.Awake();
         pool = new GameObject("ActiveAudio");
-        PoolMgr.Instance.Preload("Assets/Res/Prefab/AudioPrefab", poolName, 30);
+        AppContext.Pool.Preload("Assets/Res/Prefab/AudioPrefab", poolName, 30);
     }
 
 
@@ -37,7 +36,7 @@ public class SoundManager : UnitySingleTonMono<SoundManager>
     {
         if (!clip) return;
         // 从对象池获取播放器
-        PoolMgr.Instance.GetObj(poolName, audioPlayer =>
+        AppContext.Pool.GetObj(poolName, audioPlayer =>
         {
             audioPlayer.transform.position = position;
             audioPlayer.transform.SetParent(pool.transform);
@@ -51,7 +50,7 @@ public class SoundManager : UnitySingleTonMono<SoundManager>
 
             // 播放完毕后自动回收
             float clipLength = clip.length;
-            PoolMgr.Instance.ReturnAfter(audioPlayer, clipLength);
+            AppContext.Pool.ReturnAfter(audioPlayer, clipLength);
         }, "AudioPrefab");
     }
 }

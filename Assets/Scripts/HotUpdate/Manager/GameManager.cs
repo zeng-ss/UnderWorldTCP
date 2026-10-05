@@ -9,11 +9,12 @@ public class GameManager : UnitySingleTonMono<GameManager>
     [SerializeField] private DepotConfig depotConfig;
     [Header("当前解锁的任务列表")] [SerializeField] private TaskDataConfigSO taskConfigSo;
     private PlayerValueData _basePlayerValueData;
+    private AppContext _appContext;
 
     public override void Awake()
     {
         base.Awake();
-        AppContext.Create();
+        _appContext = AppContext.Create();
         BootstrapServices();
         RegisterGlobalHotkeys();
         AppContext.Events.AddEventListener(GameEvent.EquippedChanged, OnEquippedChanged);
@@ -28,6 +29,10 @@ public class GameManager : UnitySingleTonMono<GameManager>
         AppContext.PlayerData.Init(_basePlayerValueData ?? new PlayerValueData());
         // 用当前装备先算一次，保证 Current 一开始就有值而不是全 0
         AppContext.PlayerData.ApplyEquipped(AppContext.Depot.Equipped);
+        AppContext.Ui.Init();
+        AppContext.Sound.Init();
+        AppContext.Proto.Init();
+        AppContext.RemotePlayer.Init();
     }
 
     private void OnEquippedChanged(EventArgs args)
@@ -46,7 +51,7 @@ public class GameManager : UnitySingleTonMono<GameManager>
 
     private void OnEscapePressed()
     {
-        UIManager.Instance.OpenPanel<ExitPanel>();
+        AppContext.Ui.OpenPanel<ExitPanel>();
         AppContext.Events.EventTrigger(GameEvent.CursorShow);
     }
 
@@ -54,11 +59,12 @@ public class GameManager : UnitySingleTonMono<GameManager>
     {
         AppContext.Events.RemoveEventListener(GameEvent.EquippedChanged, OnEquippedChanged);
         InputManager.Instance.UnregisterKeyDown(KeyCode.Escape, OnEscapePressed);
+        _appContext.Dispose();
     }
 
     private void OnApplicationQuit()
     {
         AppContext.Chat.Clear();
-        ProtoHandler.Instance.RequestLeaveRoom(AppContext.Session.RoleId);
+        AppContext.Proto.RequestLeaveRoom(AppContext.Session.RoleId);
     }
 }

@@ -32,7 +32,7 @@ public class PlayerRoomItem : MonoBehaviour
     /// </summary>
     private void SetHeadImage(string headImageName)
     {
-        ResMgr.Instance.LoadSpriteAsync($"Icon/{headImageName}", sprite =>
+        AppContext.Res.LoadSpriteAsync($"Icon/{headImageName}", sprite =>
         {
             if (!playerHeadImage) return;
 
@@ -42,7 +42,7 @@ public class PlayerRoomItem : MonoBehaviour
                 return;
             }
 
-            ResMgr.Instance.LoadSpriteAsync(DefaultHeadIcon, fallback =>
+            AppContext.Res.LoadSpriteAsync(DefaultHeadIcon, fallback =>
             {
                 if (playerHeadImage) playerHeadImage.sprite = fallback;
             });

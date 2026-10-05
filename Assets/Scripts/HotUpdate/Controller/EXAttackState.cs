@@ -22,8 +22,8 @@ public class ExAttackState : Player_State
         if (!_player.IsLocalPlayer) return;
         _targetEnemy = FindNearestEnemyByTag();
         // 播放音效
-        SoundManager.Instance.PlaySound
-        (SoundManager.Instance.exSounds[Random.Range(0, SoundManager.Instance.exSounds.Count)],
+        AppContext.Sound.PlaySound
+        (AppContext.Sound.exSounds[Random.Range(0, AppContext.Sound.exSounds.Count)],
             _player.transform.position);
         // 进入开始状态
         TransitionAttackState(ExState.Start);

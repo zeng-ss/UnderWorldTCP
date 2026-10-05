@@ -225,7 +225,7 @@ public class DialoguePanel : BasePanel
                 .SetEase(Ease.InBack))
             .OnComplete(() =>
             {
-                UIManager.Instance.ClosePanel<DialoguePanel>();
+                AppContext.Ui.ClosePanel<DialoguePanel>();
             })
             .Play();
     }

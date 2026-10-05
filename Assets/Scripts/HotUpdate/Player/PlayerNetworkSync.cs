@@ -4,13 +4,13 @@ public class PlayerNetworkSync
 {
     public void SyncAnimation(string animationName, int skillIndex)
     {
-        ProtoHandler.Instance.RequestSyncAni(AppContext.Session.RoleId, animationName, skillIndex,
-            ret => { RemotePlayerManager.Instance.OnSyncAni(ret); });
+        AppContext.Proto.RequestSyncAni(AppContext.Session.RoleId, animationName, skillIndex,
+            ret => { AppContext.RemotePlayer.OnSyncAni(ret); });
     }
 
     public void SyncVfx(int roleId, int skillConfigIndex, int attackIndex, int vfxIndex)
     {
-        ProtoHandler.Instance.RequestSyncVfx(new PlayerVfxNtf
+        AppContext.Proto.RequestSyncVfx(new PlayerVfxNtf
         {
             RoleId = roleId,
             SkillConfigIndex = skillConfigIndex,
@@ -22,7 +22,7 @@ public class PlayerNetworkSync
     /// <summary>攻击验伤请求（原 OnHit 的联网段，服务端权威）</summary>
     public void RequestAttack(EnemyCtrl enemy, float baseDamage, float baoJi, bool isExAttack)
     {
-        ProtoHandler.Instance.RequestPlayerAttack(
+        AppContext.Proto.RequestPlayerAttack(
             AppContext.Session.RoleId,
             enemy.serverInstanceId,
             baseDamage,
@@ -35,11 +35,11 @@ public class PlayerNetworkSync
     /// <summary>position 走 root transform，rotation 走 model transform</summary>
     public void StartPositionSync(Transform rootTransform, Transform modelTransform)
     {
-        ProtoHandler.Instance.StartPositionSync(rootTransform, AppContext.Session.RoleId, modelTransform);
+        AppContext.Proto.StartPositionSync(rootTransform, AppContext.Session.RoleId, modelTransform);
     }
 
     public void StopPositionSync()
     {
-        ProtoHandler.Instance.StopPositionSync();
+        AppContext.Proto.StopPositionSync();
     }
 }

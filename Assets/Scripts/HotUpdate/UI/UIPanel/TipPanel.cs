@@ -31,7 +31,7 @@ public class TipPanel : BasePanel
             .OnComplete(() =>
             {
                 showTime = 1;
-                UIManager.Instance.ClosePanel<TipPanel>();
+                AppContext.Ui.ClosePanel<TipPanel>();
             });
     }
 }

@@ -100,7 +100,7 @@ public class PlayerPresentation : MonoBehaviour
                 .OnComplete(() => { _chromaticAberration.intensity.value = 0; });
         }
 
-        SoundManager.Instance.PlaySound(hitData.hitClip, worldPos);
+        AppContext.Sound.PlaySound(hitData.hitClip, worldPos);
     }
 
     public void PlayHurtFeedback(float damageValue, float vignetteValue, float screenImpulseValue)

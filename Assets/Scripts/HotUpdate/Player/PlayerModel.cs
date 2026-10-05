@@ -29,25 +29,25 @@ public class PlayerModel : MonoBehaviour
     private void PlayFootSound()
     {
         if (!player.IsLocalPlayer) return; 
-        audioSource.PlayOneShot(SoundManager.Instance.footSound);
+        audioSource.PlayOneShot(AppContext.Sound.footSound);
     }
     // 收脚的步声
     private void PlayFootBackSound()
     {
         if (!player.IsLocalPlayer) return;
-        audioSource.PlayOneShot(SoundManager.Instance.footBackSound);
+        audioSource.PlayOneShot(AppContext.Sound.footBackSound);
     }
     // 收剑
     public void PlayWeaponBackSound() 
     {
         if (!player.IsLocalPlayer) return; 
-        audioSource.PlayOneShot(SoundManager.Instance.weaponBackSound);
+        audioSource.PlayOneShot(AppContext.Sound.weaponBackSound);
     }
     // 结束收剑
     public void PlayWeaponEndSound()
     {
         if (!player.IsLocalPlayer) return; 
-        audioSource.PlayOneShot(SoundManager.Instance.weaponEndSound);
+        audioSource.PlayOneShot(AppContext.Sound.weaponEndSound);
     }
 
     #endregion
@@ -95,8 +95,8 @@ public class PlayerModel : MonoBehaviour
             weapons[weaponIndex].StartSkillHit();
         }
         if (!(Random.value >= 0.5f) || Time.time - lastTime <= 1f) return;
-        int speakIndex = Random.Range(0, SoundManager.Instance.playerAttackSpeaks.Count);
-        audioSource.PlayOneShot(SoundManager.Instance.playerAttackSpeaks[speakIndex]);
+        int speakIndex = Random.Range(0, AppContext.Sound.playerAttackSpeaks.Count);
+        audioSource.PlayOneShot(AppContext.Sound.playerAttackSpeaks[speakIndex]);
         lastTime = Time.time;
     }
 

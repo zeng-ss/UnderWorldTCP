@@ -39,7 +39,7 @@ public class NetSocketMgr : Singleton<NetSocketMgr>
         _synchronizationContext.Post(_ =>
         {
             //派发事件 
-            SocketDispatcher.Instance.DispatcherEvent(protoCode, data);
+            AppContext.Events.DispatchNet(protoCode, data);
         }, null);
     }
 

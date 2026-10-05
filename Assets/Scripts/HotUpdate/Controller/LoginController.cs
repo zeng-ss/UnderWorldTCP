@@ -41,13 +41,13 @@ public class LoginController
         }
 
         _pendingAccount = account;
-        ProtoHandler.Instance.RequestLogin(account, password, OnLoginResult);
+        AppContext.Proto.RequestLogin(account, password, OnLoginResult);
     }
 
     public void RequestRegister()
     {
-        UIManager.Instance.OpenPanel<RegisterPanel>();
-        UIManager.Instance.ClosePanel<LoginPanel>();
+        AppContext.Ui.OpenPanel<RegisterPanel>();
+        AppContext.Ui.ClosePanel<LoginPanel>();
     }
 
     #endregion
@@ -56,7 +56,7 @@ public class LoginController
 
     private void RefreshServerList()
     {
-        ProtoHandler.Instance.RequestServerList(OnServerListResult);
+        AppContext.Proto.RequestServerList(OnServerListResult);
     }
 
     private void OnServerListResult(GetServerListRet ret)
@@ -105,7 +105,7 @@ public class LoginController
                 AppContext.Session.PlayerName = _pendingAccount;
                 AppContext.Session.AccountId = ret.AccountId;
                 AppContext.Session.ServerId = _selectedServer.ServerId;
-                ProtoHandler.Instance.RequestLoginGameServer(ret.AccountId, _selectedServer.ServerId,
+                AppContext.Proto.RequestLoginGameServer(ret.AccountId, _selectedServer.ServerId,
                     OnLoginGameServerResult);
                 break;
             case CmdCode.AcctNotExist:
@@ -135,16 +135,16 @@ public class LoginController
         if (hasRole) AppContext.Session.RoleId = ret.CreateRoleInfo.RoleId;
         else CreateRole();
 
-        UIManager.Instance.ClosePanel<LoginPanel>();
+        AppContext.Ui.ClosePanel<LoginPanel>();
         ShowTip("登录成功");
-        UIManager.Instance.OpenPanel<StartPanel>();
+        AppContext.Ui.OpenPanel<StartPanel>();
     }
 
     private void CreateRole()
     {
         string nickname = AppContext.Session.PlayerName;
         Debug.Log($"创建新角色: {nickname} jobId={DefaultJobId}");
-        ProtoHandler.Instance.RequestCreateRole(
+        AppContext.Proto.RequestCreateRole(
             AppContext.Session.AccountId,
             AppContext.Session.ServerId,
             nickname,
@@ -166,5 +166,5 @@ public class LoginController
 
     #endregion
 
-    private void ShowTip(string message) => UIManager.Instance.ShowTip(message);
+    private void ShowTip(string message) => AppContext.Ui.ShowTip(message);
 }

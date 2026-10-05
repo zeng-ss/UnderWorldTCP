@@ -29,13 +29,13 @@ public class RegisterController
             return;
         }
 
-        ProtoHandler.Instance.RequestRegist(account, "", password, OnRegisterResult);
+        AppContext.Proto.RequestRegist(account, "", password, OnRegisterResult);
     }
 
     public void BackToLogin()
     {
-        UIManager.Instance.OpenPanel<LoginPanel>();
-        UIManager.Instance.ClosePanel<RegisterPanel>();
+        AppContext.Ui.OpenPanel<LoginPanel>();
+        AppContext.Ui.ClosePanel<RegisterPanel>();
     }
 
     #endregion
@@ -46,8 +46,8 @@ public class RegisterController
         {
             case CmdCode.Succeed:
                 ShowTip("注册成功");
-                UIManager.Instance.ClosePanel<RegisterPanel>();
-                UIManager.Instance.OpenPanel<LoginPanel>();
+                AppContext.Ui.ClosePanel<RegisterPanel>();
+                AppContext.Ui.OpenPanel<LoginPanel>();
                 break;
             case CmdCode.AcctExist:
                 ShowTip("用户名已存在");
@@ -60,6 +60,6 @@ public class RegisterController
 
     private void ShowTip(string message)
     {
-        UIManager.Instance.ShowTip(message);
+        AppContext.Ui.ShowTip(message);
     }
 }

@@ -3,49 +3,32 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using SceneHandle = YooAsset.SceneHandle;
 
-public class SceneMgr : MonoBehaviour
+public class SceneMgr
 {
     private bool _isLoading;
-    private static SceneMgr _instance;
-    public static SceneMgr Instance => _instance;
-
-    public void Awake()
-    {
-        if (_instance == null)
-        {
-            _instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else if (_instance != this)
-        {
-            Destroy(gameObject);
-        }
-    }
-
-    public void LoadScene(string scenename)
+    public void LoadScene(string sceneName)
     {
         _isLoading = true;
-        UIManager.Instance.OpenPanel<LoadPanel>(_ =>
+        AppContext.Ui.OpenPanel<LoadPanel>(_ =>
         {
-            Debug.Log("Starting LoadScene: " + scenename);
-            StartCoroutine(TrackLoadingProgress(scenename));
+            Debug.Log("Starting LoadScene: " + sceneName);
+            MonoManager.Instance.StartCoroutine(TrackLoadingProgress(sceneName));
         });
     }
 
-    private IEnumerator TrackLoadingProgress(string scenename)
+    private IEnumerator TrackLoadingProgress(string sceneName)
     {
-        string path = "Assets/Scenes/" + scenename;
+        string path = "Assets/Scenes/" + sceneName;
         SceneHandle asyncOperation =
             Global.Instance._YooPackage.LoadSceneAsync(path, LoadSceneMode.Single, LocalPhysicsMode.None, false);
         float displayProgress = 0f;
-        float realProgress;
         float minLoadTime = 1.5f;
         float elapsedTime = 0f;
 
         while (asyncOperation.Progress < 0.9f)
         {
             elapsedTime += Time.deltaTime;
-            realProgress = asyncOperation.Progress / 0.9f;
+            var realProgress = asyncOperation.Progress / 0.9f;
             float timeProgress = Mathf.Clamp01(elapsedTime / minLoadTime);
             displayProgress = Mathf.Min(realProgress, timeProgress);
             AppContext.Events.EventTrigger(GameEvent.LoadProgress, new LoadProgressArgs(displayProgress));
@@ -75,29 +58,24 @@ public class SceneMgr : MonoBehaviour
         OnSceneLoaded(SceneManager.GetActiveScene().name);
     }
 
-    private void OnSceneLoaded(string scenename)
+    private void OnSceneLoaded(string sceneName)
     {
-        switch (scenename)
+        switch (sceneName)
         {
             case "LobbyScene":
-                ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/Prefab/LobbyController");
+                AppContext.Res.LoadAndInstantiateAsync("Assets/Res/Prefab/LobbyController");
                 break;
             case "GameScene":
                 // 首次访问 Instance 会自动创建并注册位置同步网络事件；同时清理上一局残留
-                RemotePlayerManager.Instance.ResetForNewScene();
-                ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/Prefab/Character");
-                ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/Prefab/NPC");
-                ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/Prefab/GameController");
+                AppContext.RemotePlayer.ResetForNewScene();
+                AppContext.Res.LoadAndInstantiateAsync("Assets/Res/Prefab/Character");
+                AppContext.Res.LoadAndInstantiateAsync("Assets/Res/Prefab/NPC");
+                AppContext.Res.LoadAndInstantiateAsync("Assets/Res/Prefab/GameController");
                 AppContext.Events.EventTrigger(GameEvent.GameStart);
                 break;
         }
 
         _isLoading = false;
-        UIManager.Instance.ClosePanel<LoadPanel>();
-    }
-
-    public void OnDestroy()
-    {
-        if (_instance == this) _instance = null;
+        AppContext.Ui.ClosePanel<LoadPanel>();
     }
 }

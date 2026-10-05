@@ -42,7 +42,7 @@ public class NPCCtrl : MonoBehaviour
         }
 
         AppContext.Events.EventTrigger(GameEvent.CursorShow);
-        DialogueManager.Instance.StartDialogue(dialogueDatas[index]);
+        AppContext.Dialogue.StartDialogue(dialogueDatas[index]);
     }
 
     /// <summary>
@@ -63,12 +63,12 @@ public class NPCCtrl : MonoBehaviour
             // 对话结束生成敌人
             //GameManager.Instance.SpawnEnemy();
             Vector3 pos = new Vector3(17, -1.6f, -30);
-            ProtoHandler.Instance.RequestSpawnEnemy(AppContext.Session.RoleId, 1, 20000, pos,
-                RemotePlayerManager.Instance.SpawnEnemy);
+            AppContext.Proto.RequestSpawnEnemy(AppContext.Session.RoleId, 1, 20000, pos,
+                AppContext.RemotePlayer.SpawnEnemy);
         }
 
-        UIManager.Instance.OpenPanel<TipPanel>(panel => { panel.ShowTip("有新任务了，快去完成吧~"); });
-        UIManager.Instance.OpenPanel<TaskPanel>((panel => { panel.RefreshTaskUI(AppContext.Task.Tasks); }));
+        AppContext.Ui.OpenPanel<TipPanel>(panel => { panel.ShowTip("有新任务了，快去完成吧~"); });
+        AppContext.Ui.OpenPanel<TaskPanel>((panel => { panel.RefreshTaskUI(AppContext.Task.Tasks); }));
     }
 
     private void OnTriggerEnter(Collider other)

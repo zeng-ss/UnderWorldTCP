@@ -31,6 +31,12 @@ public class InputManager : UnitySingleTonMono<InputManager>
     /// <summary>当前是否允许玩法输入（没有任何输入锁）</summary>
     public bool IsGameplayInputEnabled => _lockTokens.Count == 0;
 
+    public override void Awake()
+    {
+        base.Awake();
+        _blockingUILayerMask = LayerMask.GetMask("LockInput");
+    }
+
     #region 注册 / 注销
 
     /// <summary>注册一个任何时候都生效的按键回调（UI 类快捷键）</summary>
@@ -143,9 +149,9 @@ public class InputManager : UnitySingleTonMono<InputManager>
 
     #region UI 命中判定
 
-    private static readonly int BlockingUILayerMask = LayerMask.GetMask("LockInput");
+    private static int _blockingUILayerMask;
     private static readonly List<RaycastResult> RaycastBuffer = new();
-    private static PointerEventData PointerBuffer;
+    private static PointerEventData _pointerBuffer;
 
     /// <summary>
     /// 鼠标是否正悬停在会屏蔽玩法输入的 UI 上
@@ -155,16 +161,16 @@ public class InputManager : UnitySingleTonMono<InputManager>
         var eventSystem = EventSystem.current;
         if (eventSystem == null) return false;
 
-        PointerBuffer ??= new PointerEventData(eventSystem);
-        PointerBuffer.position = Input.mousePosition;
+        _pointerBuffer ??= new PointerEventData(eventSystem);
+        _pointerBuffer.position = Input.mousePosition;
 
         RaycastBuffer.Clear();
-        eventSystem.RaycastAll(PointerBuffer, RaycastBuffer);
+        eventSystem.RaycastAll(_pointerBuffer, RaycastBuffer);
 
         foreach (var result in RaycastBuffer)
         {
             if (result.gameObject == null) continue;
-            if (((1 << result.gameObject.layer) & BlockingUILayerMask) != 0) return true;
+            if (((1 << result.gameObject.layer) & _blockingUILayerMask) != 0) return true;
         }
 
         return false;

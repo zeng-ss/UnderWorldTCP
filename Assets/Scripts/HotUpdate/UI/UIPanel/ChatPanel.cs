@@ -67,7 +67,7 @@ public class ChatPanel : BasePanel
 
     public void AddChatItem(MessageData messageData, bool isLocal)
     {
-        ResMgr.Instance.LoadAndInstantiateAsync(isLocal ? "Assets/Res/UI/UIItem/ChatRootRight" : "Assets/Res/UI/UIItem/ChatRootLeft", content.transform,chatItem =>
+        AppContext.Res.LoadAndInstantiateAsync(isLocal ? "Assets/Res/UI/UIItem/ChatRootRight" : "Assets/Res/UI/UIItem/ChatRootLeft", content.transform,chatItem =>
         {
             chatItem.GetComponent<ChatItem>().UpdateDate(messageData); 
             // 直接 DOTween 滚动

@@ -82,7 +82,7 @@ public class ImprovePanel : BasePanel
     {
         _currentDriverDiskData = driverDiskData;
         depotName.text = driverDiskData.depotName;
-        ResMgr.Instance.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
+        AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
             sprite => { if (depotIcon) depotIcon.sprite = sprite; });
         depotLevelText.text = $"等级：{driverDiskData.level.ToString()}/15";
         depotBaseTypeText.text = GetDepotType(driverDiskData.DepotDriverDiskValue.driverDiskType);
@@ -120,7 +120,7 @@ public class ImprovePanel : BasePanel
             obj.transform.SetParent(iconsContainer.transform);
             string iconName = AppContext.Material.RuntimeData[item.Key].materialIconName;
             Image materialIcon = obj.GetComponent<Image>();
-            ResMgr.Instance.LoadSpriteAsync($"Res/{iconName}",
+            AppContext.Res.LoadSpriteAsync($"Res/{iconName}",
                 sprite => { if (materialIcon) materialIcon.sprite = sprite; });
             // 创建数量文本
             GameObject countTextObject = new GameObject("CountText");
@@ -157,8 +157,8 @@ public class ImprovePanel : BasePanel
     /// </summary>
     protected override void OnCloseClicked()
     {
-        UIManager.Instance.ClosePanel<ImprovePanel>();
-        UIManager.Instance.ClosePanel<PlayerDataPanel>();
+        AppContext.Ui.ClosePanel<ImprovePanel>();
+        AppContext.Ui.ClosePanel<PlayerDataPanel>();
     }
 
     protected override void OnDestroy()

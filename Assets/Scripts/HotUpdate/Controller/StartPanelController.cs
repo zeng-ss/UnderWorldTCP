@@ -15,7 +15,7 @@ public class StartPanelController
     {
         int roleId = AppContext.Session.RoleId;
         Debug.Log($"从数据库加载角色数据 roleId={roleId}");
-        ProtoHandler.Instance.RequestStartGame(roleId, OnStartGameResult);
+        AppContext.Proto.RequestStartGame(roleId, OnStartGameResult);
     }
 
     public void ExitGame()
@@ -37,7 +37,7 @@ public class StartPanelController
         AppContext.Session.PlayerName = info.BaseInfo.Nickname;
         Debug.Log($"角色数据加载成功: {info.BaseInfo.Nickname}");
 
-        ProtoHandler.Instance.RequestChangeScene(info.BaseInfo.RoleId, LobbySceneName, sceneRet =>
+        AppContext.Proto.RequestChangeScene(info.BaseInfo.RoleId, LobbySceneName, sceneRet =>
         {
             if (sceneRet.CmdCode != CmdCode.Succeed)
             {
@@ -45,13 +45,13 @@ public class StartPanelController
                 return;
             }
 
-            UIManager.Instance.ClosePanel<StartPanel>();
-            SceneMgr.Instance.LoadScene(LobbySceneName);
+            AppContext.Ui.ClosePanel<StartPanel>();
+            AppContext.Scene.LoadScene(LobbySceneName);
         });
     }
 
     private void ShowTip(string message)
     {
-        UIManager.Instance.ShowTip(message);
+        AppContext.Ui.ShowTip(message);
     }
 }

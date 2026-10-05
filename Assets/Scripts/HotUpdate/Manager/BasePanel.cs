@@ -35,7 +35,7 @@ public class BasePanel : MonoBehaviour
     /// </summary>
     protected virtual void OnCloseClicked()
     {
-        UIManager.Instance.ClosePanel(this);
+        AppContext.Ui.ClosePanel(this);
     }
 
     protected virtual void OnDestroy()

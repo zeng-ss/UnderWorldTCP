@@ -43,8 +43,8 @@ public class LobbyController : MonoBehaviour
         readyToggle.onValueChanged.AddListener(OnToggleReady);
 
         // 房间事件
-        ProtoHandler.Instance.OnRoomInfoChanged += OnRoomInfoChanged;
-        ProtoHandler.Instance.OnRoomStartGame += OnRoomStartGame;
+        AppContext.Proto.OnRoomInfoChanged += OnRoomInfoChanged;
+        AppContext.Proto.OnRoomStartGame += OnRoomStartGame;
 
         // 初始化本地玩家
         MainRoleInfo info = AppContext.Session.MainRoleInfo;
@@ -89,7 +89,7 @@ public class LobbyController : MonoBehaviour
         string roomName = roomNameInput.text.Trim();
         if (string.IsNullOrEmpty(roomName)) roomName = AppContext.Session.PlayerName + "的房间";
 
-        ProtoHandler.Instance.RequestCreateRoom(AppContext.Session.RoleId, roomName, AppContext.Session.PlayerName,
+        AppContext.Proto.RequestCreateRoom(AppContext.Session.RoleId, roomName, AppContext.Session.PlayerName,
             ret =>
             {
                 if (ret.CmdCode == CmdCode.Succeed)
@@ -98,7 +98,7 @@ public class LobbyController : MonoBehaviour
                     _isMaster = true;
                     RefreshRoomUI(ret.Players);
                     // 打开聊天面板
-                    UIManager.Instance.OpenPanel<ChatPanel>();
+                    AppContext.Ui.OpenPanel<ChatPanel>();
                     panel.SetActive(false);
                 }
             });
@@ -108,7 +108,7 @@ public class LobbyController : MonoBehaviour
     {
         if (!int.TryParse(roomIdInput.text.Trim(), out int roomId)) return;
 
-        ProtoHandler.Instance.RequestJoinRoom(
+        AppContext.Proto.RequestJoinRoom(
             AppContext.Session.RoleId, roomId,
             AppContext.Session.PlayerName,
             ret =>
@@ -120,14 +120,14 @@ public class LobbyController : MonoBehaviour
                     RefreshRoomUI(ret.Players);
                     panel.SetActive(false);
                     // 打开聊天面板
-                    UIManager.Instance.OpenPanel<ChatPanel>();
+                    AppContext.Ui.OpenPanel<ChatPanel>();
                 }
             });
     }
 
     private void OnLeaveRoom()
     {
-        ProtoHandler.Instance.RequestLeaveRoom(AppContext.Session.RoleId);
+        AppContext.Proto.RequestLeaveRoom(AppContext.Session.RoleId);
         _currentRoomId = 0;
         _isMaster = false;
         roomTitleTxt.text = "";
@@ -159,9 +159,9 @@ public class LobbyController : MonoBehaviour
 
     private void OnRoomStartGame(RoomStartGameNtf ntf)
     {
-        UIManager.Instance.ClosePanel<LoadPanel>();
+        AppContext.Ui.ClosePanel<LoadPanel>();
         Debug.Log("[LobbyController] 房主开始游戏，加载 GameScene");
-        SceneMgr.Instance.LoadScene("GameScene");
+        AppContext.Scene.LoadScene("GameScene");
     }
 
     private void RefreshRoomUI(IList<RoomPlayerInfo> players)
@@ -199,7 +199,7 @@ public class LobbyController : MonoBehaviour
 
     private void SpawnPlayerItem(ulong id, string name, bool isReady, bool isMaster)
     {
-        ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/PlayerRoomItem", playerListRoot, obj =>
+        AppContext.Res.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/PlayerRoomItem", playerListRoot, obj =>
         {
             PlayerRoomItem item = obj.GetComponent<PlayerRoomItem>();
             if (item == null) { Destroy(obj); return; }
@@ -242,7 +242,7 @@ public class LobbyController : MonoBehaviour
         if (_currentRoomId <= 0) return;
 
         // 发送到服务器，服务端广播 RoomInfoNtf 后由 OnRoomInfoChanged 统一刷新 UI
-        ProtoHandler.Instance.RequestPlayerReady(AppContext.Session.RoleId, isOn);
+        AppContext.Proto.RequestPlayerReady(AppContext.Session.RoleId, isOn);
     }
 
     private void OnStartGame()
@@ -250,15 +250,15 @@ public class LobbyController : MonoBehaviour
         if (!_isMaster || _currentRoomId <= 0) return;
 
         Debug.Log("[LobbyController] 房主开始游戏");
-        ProtoHandler.Instance.RequestRoomStartGame(AppContext.Session.RoleId);
+        AppContext.Proto.RequestRoomStartGame(AppContext.Session.RoleId);
     }
 
     #endregion
 
     private void OnDestroy()
     {
-        ProtoHandler.Instance.OnRoomInfoChanged -= OnRoomInfoChanged;
-        ProtoHandler.Instance.OnRoomStartGame -= OnRoomStartGame;
+        AppContext.Proto.OnRoomInfoChanged -= OnRoomInfoChanged;
+        AppContext.Proto.OnRoomStartGame -= OnRoomStartGame;
 
         if (createRoomBtn) createRoomBtn.onClick.RemoveAllListeners();
         if (joinRoomBtn) joinRoomBtn.onClick.RemoveAllListeners();

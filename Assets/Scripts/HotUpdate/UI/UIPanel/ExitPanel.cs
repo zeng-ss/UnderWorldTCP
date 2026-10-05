@@ -24,7 +24,7 @@ public class ExitPanel : BasePanel
         noBtn.onClick.AddListener(() =>
         {
             transform.DOLocalMove(startPos, 0.5f)
-                .OnComplete(() => { UIManager.Instance.ClosePanel<ExitPanel>(); });
+                .OnComplete(() => { AppContext.Ui.ClosePanel<ExitPanel>(); });
         });
     }
     

@@ -2,31 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DialogueManager : UnitySingleTonMono<DialogueManager>
+public class DialogueManager : MonoBehaviour
 {
-    public override void Awake()
+    private void Awake()
     {
-        base.Awake();
         RegisterDialogueInput();
     }
 
     // 当前对话状态
-    private bool isTyping;
-    private int currentLineIndex;
-    private bool isWaitingClickForEnd;
-    private DialogueData currentDialogue;
+    private bool _isTyping;
+    private int _currentLineIndex;
+    private bool _isWaitingClickForEnd;
+    private DialogueData _currentDialogue;
 
-    private DialoguePanel currentPanel;
-    private Queue<DialogueLine> dialogueQueue = new();
+    private DialoguePanel _currentPanel;
+    private Queue<DialogueLine> _dialogueQueue = new();
 
     // 协程引用管理
-    private Coroutine typingCoroutine;
-    private Coroutine waitForClickCoroutine;
+    private Coroutine _typingCoroutine;
+    private Coroutine _waitForClickCoroutine;
 
     // 输入冷却
-    private float lastSpacePressTime;
-    private const float SPACE_COOLDOWN = 0.6f;
-    private const float TYPING_SPEED = 0.05f; // 每个字符的显示时间
+    private float _lastSpacePressTime;
+    private const float SpaceCooldown = 0.6f;
+    private const float TypingSpeed = 0.05f; // 每个字符的显示时间
 
     /// <summary>
     /// 开始对话
@@ -45,20 +44,20 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
             EndDialogue();
         }
 
-        currentDialogue = dialogueData;
-        currentLineIndex = 0;
-        dialogueQueue.Clear();
+        _currentDialogue = dialogueData;
+        _currentLineIndex = 0;
+        _dialogueQueue.Clear();
         // 将所有对话行加入队列
         foreach (var line in dialogueData.lines)
         {
-            dialogueQueue.Enqueue(line);
+            _dialogueQueue.Enqueue(line);
         }
 
         // 打开对话面板
-        UIManager.Instance.OpenPanel<DialoguePanel>(panel =>
+        AppContext.Ui.OpenPanel<DialoguePanel>(panel =>
         {
-            currentPanel = panel;
-            if (currentPanel == null)
+            _currentPanel = panel;
+            if (_currentPanel == null)
             {
                 Debug.LogError("无法打开对话面板！");
                 return;
@@ -75,47 +74,47 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     public void DisplayNextLine()
     {
         // 安全检查
-        if (currentPanel == null)
+        if (_currentPanel == null)
         {
             EndDialogue();
             return;
         }
 
         // 如果正在打字，完成当前打字效果
-        if (isTyping)
+        if (_isTyping)
         {
             CompleteTyping();
             return;
         }
 
         // 清理UI状态
-        currentPanel.ClearOptions();
-        currentPanel.HideContinueHint();
+        _currentPanel.ClearOptions();
+        _currentPanel.HideContinueHint();
         CancelInvoke(nameof(DisplayNextLine));
 
         // 检查队列是否为空
-        if (dialogueQueue.Count == 0)
+        if (_dialogueQueue.Count == 0)
         {
             EndDialogue();
             return;
         }
 
-        DialogueLine line = dialogueQueue.Dequeue();
-        currentLineIndex++;
+        DialogueLine line = _dialogueQueue.Dequeue();
+        _currentLineIndex++;
         // 判断说话者类型
         bool isPlayer = line.speakerName == "玩家";
         // 设置说话者和对应侧边
-        currentPanel.SetSpeaker(line.speakerName, line.speakerPortrait, isPlayer);
+        _currentPanel.SetSpeaker(line.speakerName, line.speakerPortrait, isPlayer);
         // 开始打字机效果
-        isTyping = true;
-        currentPanel.ShowDialogue(line.content, line.voiceClip);
+        _isTyping = true;
+        _currentPanel.ShowDialogue(line.content, line.voiceClip);
         // 启动打字完成协程
-        if (typingCoroutine != null)
+        if (_typingCoroutine != null)
         {
-            StopCoroutine(typingCoroutine);
+            StopCoroutine(_typingCoroutine);
         }
 
-        typingCoroutine = StartCoroutine(WaitForTypingComplete(line));
+        _typingCoroutine = StartCoroutine(WaitForTypingComplete(line));
     }
 
     /// <summary>
@@ -123,18 +122,18 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     /// </summary>
     private void CompleteTyping()
     {
-        if (currentPanel != null)
+        if (_currentPanel != null)
         {
-            currentPanel.CompleteCurrentTyping();
+            _currentPanel.CompleteCurrentTyping();
         }
 
-        DialogueLine line = currentDialogue.lines[currentLineIndex - 1];
-        isTyping = false;
+        DialogueLine line = _currentDialogue.lines[_currentLineIndex - 1];
+        _isTyping = false;
         // 停止打字协程
-        if (typingCoroutine != null)
+        if (_typingCoroutine != null)
         {
-            StopCoroutine(typingCoroutine);
-            typingCoroutine = null;
+            StopCoroutine(_typingCoroutine);
+            _typingCoroutine = null;
         }
 
         // 处理选项
@@ -152,12 +151,12 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
             else
             {
                 // 显示继续提示
-                if (currentPanel == null || !currentPanel.gameObject.activeInHierarchy) return;
-                currentPanel.ShowContinueHint();
+                if (_currentPanel == null || !_currentPanel.gameObject.activeInHierarchy) return;
+                _currentPanel.ShowContinueHint();
                 // 自动前进
-                if (currentDialogue != null && currentDialogue.autoAdvance)
+                if (_currentDialogue != null && _currentDialogue.autoAdvance)
                 {
-                    Invoke(nameof(DisplayNextLine), currentDialogue.autoAdvanceDelay);
+                    Invoke(nameof(DisplayNextLine), _currentDialogue.autoAdvanceDelay);
                 }
             }
         }
@@ -170,15 +169,15 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     {
         if (line == null || string.IsNullOrEmpty(line.content))
         {
-            isTyping = false;
+            _isTyping = false;
             yield break;
         }
 
         // 等待打字完成
-        float typingDuration = line.content.Length * TYPING_SPEED;
+        float typingDuration = line.content.Length * TypingSpeed;
         yield return new WaitForSeconds(typingDuration);
-        isTyping = false;
-        typingCoroutine = null;
+        _isTyping = false;
+        _typingCoroutine = null;
         // 处理选项
         if (line.options != null && line.options.Count > 0)
         {
@@ -194,12 +193,12 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
             else
             {
                 // 显示继续提示
-                if (currentPanel == null || !currentPanel.gameObject.activeInHierarchy) yield break;
-                currentPanel.ShowContinueHint();
+                if (_currentPanel == null || !_currentPanel.gameObject.activeInHierarchy) yield break;
+                _currentPanel.ShowContinueHint();
                 // 自动前进
-                if (currentDialogue != null && currentDialogue.autoAdvance)
+                if (_currentDialogue != null && _currentDialogue.autoAdvance)
                 {
-                    Invoke(nameof(DisplayNextLine), currentDialogue.autoAdvanceDelay);
+                    Invoke(nameof(DisplayNextLine), _currentDialogue.autoAdvanceDelay);
                 }
             }
         }
@@ -210,16 +209,16 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     /// </summary>
     private void HandleDialogueEnd()
     {
-        if (currentPanel == null) return;
-        currentPanel.ShowEndHint();
-        isWaitingClickForEnd = true;
+        if (_currentPanel == null) return;
+        _currentPanel.ShowEndHint();
+        _isWaitingClickForEnd = true;
         // 停止之前的等待协程
-        if (waitForClickCoroutine != null)
+        if (_waitForClickCoroutine != null)
         {
-            StopCoroutine(waitForClickCoroutine);
+            StopCoroutine(_waitForClickCoroutine);
         }
 
-        waitForClickCoroutine = StartCoroutine(WaitForEndClick());
+        _waitForClickCoroutine = StartCoroutine(WaitForEndClick());
     }
 
     /// <summary>
@@ -227,14 +226,14 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     /// </summary>
     private IEnumerator WaitForEndClick()
     {
-        while (isWaitingClickForEnd)
+        while (_isWaitingClickForEnd)
         {
             if (Input.GetMouseButtonDown(0))
             {
-                isWaitingClickForEnd = false;
-                waitForClickCoroutine = null;
+                _isWaitingClickForEnd = false;
+                _waitForClickCoroutine = null;
                 // 触发事件
-                AppContext.Events.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(currentDialogue.id));
+                AppContext.Events.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(_currentDialogue.id));
                 EndDialogue();
                 yield break;
             }
@@ -248,13 +247,13 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     /// </summary>
     private void ShowOptions(List<DialogueOption> options)
     {
-        if (currentPanel == null || options == null || options.Count == 0)
+        if (_currentPanel == null || options == null || options.Count == 0)
         {
             return;
         }
 
         // 获取当前说话者的选项面板
-        Transform optionsPanel = currentPanel.GetCurrentOptionsPanel();
+        Transform optionsPanel = _currentPanel.GetCurrentOptionsPanel();
         if (optionsPanel == null)
         {
             Debug.LogError("无法获取选项面板！");
@@ -262,13 +261,13 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
         }
 
         // 清空现有选项
-        currentPanel.ClearOptions();
+        _currentPanel.ClearOptions();
         // 加载并创建选项按钮
         for (int i = 0; i < options.Count; i++)
         {
             var option = options[i];
             option.index = i;
-            ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/DialogueOptionItem", optionsPanel,
+            AppContext.Res.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/DialogueOptionItem", optionsPanel,
                 optionObj =>
                 {
                     if (optionObj == null)
@@ -302,14 +301,14 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
         }
 
         // 清空当前队列
-        dialogueQueue.Clear();
+        _dialogueQueue.Clear();
         // 检查特殊值：-1 表示结束对话
         if (option.nextLineIndex == -1)
         {
             if (option.isTriggerEvent)
             {
                 // 触发事件
-                AppContext.Events.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(currentDialogue.id));
+                AppContext.Events.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(_currentDialogue.id));
             }
 
             EndDialogue();
@@ -317,16 +316,17 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
         }
 
         // 跳转到指定行
-        if (currentDialogue != null && option.nextLineIndex >= 0 && option.nextLineIndex < currentDialogue.lines.Count)
+        if (_currentDialogue != null && option.nextLineIndex >= 0 &&
+            option.nextLineIndex < _currentDialogue.lines.Count)
         {
             // 从指定行开始重新填充队列
-            for (int i = option.nextLineIndex; i < currentDialogue.lines.Count; i++)
+            for (int i = option.nextLineIndex; i < _currentDialogue.lines.Count; i++)
             {
-                dialogueQueue.Enqueue(currentDialogue.lines[i]);
+                _dialogueQueue.Enqueue(_currentDialogue.lines[i]);
             }
 
-            currentLineIndex = option.nextLineIndex;
-            isTyping = false;
+            _currentLineIndex = option.nextLineIndex;
+            _isTyping = false;
             // 立即显示下一句
             CancelInvoke(nameof(DisplayNextLine));
             DisplayNextLine();
@@ -344,33 +344,33 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     private void EndDialogue()
     {
         // 停止所有协程
-        if (typingCoroutine != null)
+        if (_typingCoroutine != null)
         {
-            StopCoroutine(typingCoroutine);
-            typingCoroutine = null;
+            StopCoroutine(_typingCoroutine);
+            _typingCoroutine = null;
         }
 
-        if (waitForClickCoroutine != null)
+        if (_waitForClickCoroutine != null)
         {
-            StopCoroutine(waitForClickCoroutine);
-            waitForClickCoroutine = null;
+            StopCoroutine(_waitForClickCoroutine);
+            _waitForClickCoroutine = null;
         }
 
         // 取消所有 Invoke
         CancelInvoke();
         // 关闭面板
-        if (currentPanel != null)
+        if (_currentPanel != null)
         {
-            currentPanel.ClosePanel();
-            currentPanel = null;
+            _currentPanel.ClosePanel();
+            _currentPanel = null;
         }
 
         // 重置状态
-        currentDialogue = null;
-        currentLineIndex = 0;
-        dialogueQueue.Clear();
-        isTyping = false;
-        isWaitingClickForEnd = false;
+        _currentDialogue = null;
+        _currentLineIndex = 0;
+        _dialogueQueue.Clear();
+        _isTyping = false;
+        _isWaitingClickForEnd = false;
         AppContext.Events.EventTrigger(GameEvent.CursorHide);
     }
 
@@ -379,7 +379,7 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     /// </summary>
     private bool IsDialogueActive()
     {
-        return currentPanel != null && currentPanel.gameObject.activeInHierarchy;
+        return _currentPanel != null && _currentPanel.gameObject.activeInHierarchy;
     }
 
     /// <summary>
@@ -387,7 +387,7 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     /// </summary>
     private void SkipCurrentDialogue()
     {
-        if (currentDialogue != null && currentDialogue.canSkip)
+        if (_currentDialogue != null && _currentDialogue.canSkip)
         {
             EndDialogue();
         }
@@ -411,17 +411,17 @@ public class DialogueManager : UnitySingleTonMono<DialogueManager>
     private void OnSpacePressed()
     {
         if (!IsDialogueActive()) return;
-        if (isWaitingClickForEnd || currentPanel.HasOptions()) return;
-        if (Time.time - lastSpacePressTime < SPACE_COOLDOWN) return;
+        if (_isWaitingClickForEnd || _currentPanel.HasOptions()) return;
+        if (Time.time - _lastSpacePressTime < SpaceCooldown) return;
 
-        lastSpacePressTime = Time.time;
+        _lastSpacePressTime = Time.time;
         DisplayNextLine();
     }
 
     private void OnEscapePressed()
     {
         if (!IsDialogueActive()) return;
-        if (isWaitingClickForEnd || currentPanel.HasOptions()) return;
+        if (_isWaitingClickForEnd || _currentPanel.HasOptions()) return;
         SkipCurrentDialogue();
     }
 

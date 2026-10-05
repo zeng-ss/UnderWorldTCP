@@ -24,13 +24,13 @@ public class EnemyModel : MonoBehaviour
     #region 音效相关
 
     // 脚步声
-    private void PlayFootSound() { if (!enemy.IsServer) return; audioSource.PlayOneShot(SoundManager.Instance.footSound); }
+    private void PlayFootSound() { if (!enemy.IsServer) return; audioSource.PlayOneShot(AppContext.Sound.footSound); }
     // 收脚的步声
-    private void PlayFootBackSound() { if (!enemy.IsServer) return; audioSource.PlayOneShot(SoundManager.Instance.footBackSound); }
+    private void PlayFootBackSound() { if (!enemy.IsServer) return; audioSource.PlayOneShot(AppContext.Sound.footBackSound); }
     // 收剑
-    public void PlayWeaponBackSound() { if (!enemy.IsServer) return; audioSource.PlayOneShot(SoundManager.Instance.weaponBackSound); }
+    public void PlayWeaponBackSound() { if (!enemy.IsServer) return; audioSource.PlayOneShot(AppContext.Sound.weaponBackSound); }
     // 结束收剑
-    public void PlayWeaponEndSound() { if (!enemy.IsServer) return; audioSource.PlayOneShot(SoundManager.Instance.weaponEndSound); }
+    public void PlayWeaponEndSound() { if (!enemy.IsServer) return; audioSource.PlayOneShot(AppContext.Sound.weaponEndSound); }
 
     #endregion
     #region 根运动

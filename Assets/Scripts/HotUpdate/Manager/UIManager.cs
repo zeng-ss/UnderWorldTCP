@@ -9,26 +9,26 @@ using UnityEngine.UI;
 /// 预制体的加载与释放已拆到 <see cref="UIAssetLoader"/>，
 /// 面板资源路径由 <see cref="PanelPathAttribute"/> 声明（见 PanelPathResolver）。
 /// </summary>
-public class UIManager : UnitySingleTonMono<UIManager>
+public class UIManager
 {
     // 已实例化的面板（按资源路径索引，保留实例以便复用）
-    private readonly Dictionary<string, BasePanel> UIPanelDict = new Dictionary<string, BasePanel>();
+    private readonly Dictionary<string, BasePanel> _uiPanelDict = new Dictionary<string, BasePanel>();
 
     // Canvas相关
     [HideInInspector] public RectTransform canvas;
-    private Canvas canvasComponent;
-    private CanvasScaler canvasScaler;
+    private Canvas _canvasComponent;
+    private CanvasScaler _canvasScaler;
 
     // 面板容器
-    private GameObject currentPanel;
+    private GameObject _currentPanel;
 
-    private bool isCanvasInitialized;
+    private bool _isCanvasInitialized;
 
     #region 打开面板
 
     public void OpenPanel<T>(Action<T> onLoadComplete = null) where T : BasePanel
     {
-        if (!isCanvasInitialized || currentPanel == null)
+        if (!_isCanvasInitialized || _currentPanel == null)
         {
             Debug.LogError("Canvas未初始化完成，无法打开面板！");
             onLoadComplete?.Invoke(null);
@@ -38,10 +38,10 @@ public class UIManager : UnitySingleTonMono<UIManager>
         string path = PanelPathResolver.Resolve<T>();
 
         // 面板已存在：恢复原始 Transform 后直接显示
-        if (UIPanelDict.TryGetValue(path, out var existPanel))
+        if (_uiPanelDict.TryGetValue(path, out var existPanel))
         {
             T cached = existPanel as T;
-            AppContext.UILoader.RestoreTransform(path, cached.transform, currentPanel.transform);
+            AppContext.UILoader.RestoreTransform(path, cached.transform, _currentPanel.transform);
             cached.Show();
             PushInputLock(path, cached);
             onLoadComplete?.Invoke(cached);
@@ -56,19 +56,19 @@ public class UIManager : UnitySingleTonMono<UIManager>
                 return;
             }
 
-            GameObject panelObj = Instantiate(prefab, currentPanel.transform, false);
+            GameObject panelObj = GameObject.Instantiate(prefab, _currentPanel.transform, false);
             panelObj.name = path;
 
             BasePanel panel = panelObj.GetComponent<T>();
             if (panel == null)
             {
                 Debug.LogError($"面板 {path} 上找不到 {typeof(T).Name} 组件");
-                Destroy(panelObj);
+                GameObject.Destroy(panelObj);
                 onLoadComplete?.Invoke(null);
                 return;
             }
 
-            UIPanelDict.Add(path, panel);
+            _uiPanelDict.Add(path, panel);
             panel.Show();
             PushInputLock(path, panel);
             onLoadComplete?.Invoke(panel as T);
@@ -100,14 +100,14 @@ public class UIManager : UnitySingleTonMono<UIManager>
     public void ClosePanel<T>() where T : BasePanel
     {
         string path = PanelPathResolver.Resolve<T>();
-        if (UIPanelDict.TryGetValue(path, out var panel)) DoClosePanel(path, panel);
+        if (_uiPanelDict.TryGetValue(path, out var panel)) DoClosePanel(path, panel);
     }
 
     /// <summary>关闭指定面板实例，供 BasePanel 的关闭按钮回调使用</summary>
     public void ClosePanel(BasePanel panel)
     {
         if (panel == null) return;
-        foreach (var kv in UIPanelDict)
+        foreach (var kv in _uiPanelDict)
         {
             if (kv.Value != panel) continue;
             DoClosePanel(kv.Key, panel);
@@ -127,17 +127,17 @@ public class UIManager : UnitySingleTonMono<UIManager>
     public void DestroyPanel<T>() where T : BasePanel
     {
         string path = PanelPathResolver.Resolve<T>();
-        if (!UIPanelDict.TryGetValue(path, out var panel)) return;
+        if (!_uiPanelDict.TryGetValue(path, out var panel)) return;
 
-        Destroy(panel.gameObject);
-        UIPanelDict.Remove(path);
+        GameObject.Destroy(panel.gameObject);
+        _uiPanelDict.Remove(path);
         PopInputLock(path);
         AppContext.UILoader.Release(path);
     }
 
     public void ClearAllPanel()
     {
-        foreach (var kv in UIPanelDict) kv.Value.Hide();
+        foreach (var kv in _uiPanelDict) kv.Value.Hide();
     }
 
     /// <summary>
@@ -146,15 +146,15 @@ public class UIManager : UnitySingleTonMono<UIManager>
     /// </summary>
     public void DestroyAllPanels()
     {
-        foreach (var kv in UIPanelDict)
+        foreach (var kv in _uiPanelDict)
         {
-            if (kv.Value != null) Destroy(kv.Value.gameObject);
+            if (kv.Value != null) GameObject.Destroy(kv.Value.gameObject);
         }
 
-        UIPanelDict.Clear();
+        _uiPanelDict.Clear();
 
         // 面板全没了，输入锁也该全部释放，避免残留锁死玩法操作
-        panelInputLocks.Clear();
+        _panelInputLocks.Clear();
         InputManager.Instance.PopAllInputLocks();
 
         AppContext.UILoader.ReleaseAll();
@@ -165,42 +165,41 @@ public class UIManager : UnitySingleTonMono<UIManager>
     public T GetPanel<T>() where T : BasePanel
     {
         string path = PanelPathResolver.Resolve<T>();
-        return UIPanelDict.TryGetValue(path, out var panel) ? panel as T : null;
+        return _uiPanelDict.TryGetValue(path, out var panel) ? panel as T : null;
     }
 
     #region 输入锁
 
     /// <summary>面板路径 → 它压入的输入锁 token</summary>
-    private readonly Dictionary<string, object> panelInputLocks = new Dictionary<string, object>();
+    private readonly Dictionary<string, object> _panelInputLocks = new();
 
     private void PushInputLock(string path, BasePanel panel)
     {
         if (panel == null || !panel.BlocksGameplayInput) return;
-        if (panelInputLocks.ContainsKey(path)) return;
-        panelInputLocks[path] = InputManager.Instance.PushInputLock();
+        if (_panelInputLocks.ContainsKey(path)) return;
+        _panelInputLocks[path] = InputManager.Instance.PushInputLock();
     }
 
     private void PopInputLock(string path)
     {
-        if (!panelInputLocks.TryGetValue(path, out var token)) return;
+        if (!_panelInputLocks.TryGetValue(path, out var token)) return;
         InputManager.Instance.PopInputLock(token);
-        panelInputLocks.Remove(path);
+        _panelInputLocks.Remove(path);
     }
 
     #endregion
 
     #region Canvas 初始化
 
-    public override void Awake()
+    public void Init()
     {
-        base.Awake();
         InitCanvas();
         InitEventSystem();
-        isCanvasInitialized = true;
+        _isCanvasInitialized = true;
     }
 
     /// <summary>
-    /// 弹出全局提示条。任何地方想弹 TipPanel 直接调 UIManager.Instance.ShowTip(...)，
+    /// 弹出全局提示条。任何地方想弹 TipPanel 直接调 AppContext.Ui.ShowTip(...)，
     /// 不需要经过事件系统绕一圈。
     /// </summary>
     /// <param name="text">提示内容</param>
@@ -220,26 +219,26 @@ public class UIManager : UnitySingleTonMono<UIManager>
         if (canvasObj.name != "Canvas")
         {
             canvasObj.name = "Canvas";
-            canvasComponent = canvasObj.AddComponent<Canvas>();
-            canvasScaler = canvasObj.AddComponent<CanvasScaler>();
+            _canvasComponent = canvasObj.AddComponent<Canvas>();
+            _canvasScaler = canvasObj.AddComponent<CanvasScaler>();
             canvasObj.AddComponent<GraphicRaycaster>();
-            canvasComponent.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvasScaler.referenceResolution = new Vector2(1920, 1080);
+            _canvasComponent.renderMode = RenderMode.ScreenSpaceOverlay;
+            _canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            _canvasScaler.referenceResolution = new Vector2(1920, 1080);
         }
         else
         {
-            canvasObj = Instantiate(canvasObj);
+            canvasObj = GameObject.Instantiate(canvasObj);
             canvasObj.name = "Canvas";
-            canvasComponent = canvasObj.GetComponent<Canvas>();
-            canvasScaler = canvasObj.GetComponent<CanvasScaler>();
+            _canvasComponent = canvasObj.GetComponent<Canvas>();
+            _canvasScaler = canvasObj.GetComponent<CanvasScaler>();
         }
 
         canvas = canvasObj.transform as RectTransform;
-        DontDestroyOnLoad(canvasObj);
+        GameObject.DontDestroyOnLoad(canvasObj);
 
-        currentPanel = new GameObject("currentShowPanel");
-        RectTransform rect = currentPanel.AddComponent<RectTransform>();
+        _currentPanel = new GameObject("currentShowPanel");
+        RectTransform rect = _currentPanel.AddComponent<RectTransform>();
         rect.SetParent(canvas, false);
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
@@ -252,7 +251,7 @@ public class UIManager : UnitySingleTonMono<UIManager>
 
     private void InitEventSystem()
     {
-        if (FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() != null) return;
+        if (GameObject.FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() != null) return;
 
         GameObject eventSystemObj = Resources.Load<GameObject>("EventSystem") ?? new GameObject("EventSystem");
         if (eventSystemObj.name != "EventSystem")
@@ -263,16 +262,11 @@ public class UIManager : UnitySingleTonMono<UIManager>
         }
         else
         {
-            eventSystemObj = Instantiate(eventSystemObj);
+            eventSystemObj = GameObject.Instantiate(eventSystemObj);
         }
 
-        DontDestroyOnLoad(eventSystemObj);
+        GameObject.DontDestroyOnLoad(eventSystemObj);
     }
 
     #endregion
-
-    private void OnDestroy()
-    {
-        DestroyAllPanels();
-    }
 }

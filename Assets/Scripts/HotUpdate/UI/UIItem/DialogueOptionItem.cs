@@ -61,7 +61,7 @@ public class DialogueOptionItem : MonoBehaviour,IPointerEnterHandler,IPointerExi
             .OnComplete(() =>
             {
                 // 通知对话管理器选项被选择
-                DialogueManager.Instance.OnOptionSelected(optionData);
+                AppContext.Dialogue.OnOptionSelected(optionData);
                 // 按钮消失动画
                 if (canvasGroup != null)
                 {

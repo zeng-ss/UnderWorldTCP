@@ -38,7 +38,7 @@ public class DepotController
     {
         if (item == null) return;
 
-        UIManager.Instance.OpenPanel<ImprovePanel>(panel => panel.UpdateData(item));
+        AppContext.Ui.OpenPanel<ImprovePanel>(panel => panel.UpdateData(item));
     }
 
     /// <summary>强化：校验材料 → 扣除 → 加经验 → 触发属性重算</summary>
@@ -66,7 +66,7 @@ public class DepotController
     /// <summary>调试用：直接加经验，不消耗材料（对应 GameController 里的 Alpha5）</summary>
     public void DebugFill(float amount)
     {
-        var item = UIManager.Instance.GetPanel<ImprovePanel>()?.CurrentData;
+        var item = AppContext.Ui.GetPanel<ImprovePanel>()?.CurrentData;
         if (item == null) return;
 
         item.AddExp(amount);
@@ -78,6 +78,6 @@ public class DepotController
     /// <summary>提示条是全局 UI，直接调 UIManager 弹出</summary>
     private void ShowTip(string text)
     {
-        UIManager.Instance.ShowTip(text);
+        AppContext.Ui.ShowTip(text);
     }
 }

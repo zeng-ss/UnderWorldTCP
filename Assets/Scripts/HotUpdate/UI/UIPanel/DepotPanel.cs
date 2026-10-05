@@ -84,7 +84,7 @@ public class DepotPanel : BasePanel
         foreach (var item in AppContext.Depot.Owned)
         {
             var data = item;
-            ResMgr.Instance.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/DepotItem", content.transform, obj =>
+            AppContext.Res.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/DepotItem", content.transform, obj =>
             {
                 if (obj == null) return;
                 var depotItem = obj.GetComponent<DepotItem>();
@@ -151,7 +151,7 @@ public class DepotPanel : BasePanel
             rect.sizeDelta = new Vector2(150f, 150f);
 
             var image = obj.GetComponent<Image>();
-            ResMgr.Instance.LoadSpriteAsync($"Res/{data.depotIconName}",
+            AppContext.Res.LoadSpriteAsync($"Res/{data.depotIconName}",
                 sprite => { if (image) image.sprite = sprite; });
 
             // 右键卸下
@@ -184,7 +184,7 @@ public class DepotPanel : BasePanel
         depotDefenseText.text = $"{driverDiskData.DepotDriverDiskValue.defensePercent}%";
         depotBaoJiText.text = $"{driverDiskData.DepotDriverDiskValue.baoJiPercent}%";
 
-        ResMgr.Instance.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
+        AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
             sprite => { if (depotIcon) depotIcon.sprite = sprite; });
     }
 

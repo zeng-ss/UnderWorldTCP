@@ -4,10 +4,10 @@ using Google.Protobuf;
 using UnityEngine;
 
 /// <summary>
-/// 协议处理层：统一管理请求发送、响应处理、事件广播
-/// 挂载在持久化GameObject上，全局单例
+/// 协议处理层：统一管理请求发送、响应处理、事件广播。
+/// 普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.Proto。
 /// </summary>
-public class ProtoHandler : UnitySingleTonMono<ProtoHandler>
+public class ProtoHandler
 {
     #region 位置同步状态 => 玩家
 
@@ -62,37 +62,39 @@ public class ProtoHandler : UnitySingleTonMono<ProtoHandler>
 
     #region 初始化
 
-    public override void Awake()
+    // 场景/预制体里可能存在多个实例，只保留最早 Awake 的一个
+    private static ProtoHandler _live;
+
+    public void Init()
     {
-        base.Awake();
         InitHandlers();
     }
 
     private void InitHandlers()
     {
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_RegistCode, OnRegistResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_LoginCode, OnLoginResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_GetServerListCode, OnGetServerListResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_LoginGameServerCode, OnLoginGameServerResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_CreateRoleCode, OnCreateRoleResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_StartGameCode, OnStartGameResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_SaveRoleCode, OnSaveRoleResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_ChangeSceneCode, OnChangeSceneResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_SpawnEnemyCode, OnSpawnEnemyResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_PlayerAttackCode, OnPlayerAttackResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_GetRewardCode, OnGetRewardResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_CreateRoomCode, OnCreateRoomResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_JoinRoomCode, OnJoinRoomResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_RoomInfoCode, OnRoomInfoNtf);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_RoomStartGameCode, OnRoomStartGameNtf);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_ErrCode, OnErrorResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_PositionSyncCode, OnPositionSync);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_PlayerEnterSceneCode, OnPlayerEnterSceneEvent);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_PlayerLeaveSceneCode, OnPlayerLeaveSceneEvent);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_SyneAniCode, OnSyncAniResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_PlayerVfxCode, OnPlayerVfxResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_EnemyPositionSyncCode, OnEnemyPosSyncResult);
-        SocketDispatcher.Instance.AddEventHandler(NetDefine.CMD_SyneEnemyAniCode, OnEnemyAniSyncResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_RegistCode, OnRegistResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_LoginCode, OnLoginResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_GetServerListCode, OnGetServerListResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_LoginGameServerCode, OnLoginGameServerResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoleCode, OnCreateRoleResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_StartGameCode, OnStartGameResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_SaveRoleCode, OnSaveRoleResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_ChangeSceneCode, OnChangeSceneResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_SpawnEnemyCode, OnSpawnEnemyResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerAttackCode, OnPlayerAttackResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_GetRewardCode, OnGetRewardResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoomCode, OnCreateRoomResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_JoinRoomCode, OnJoinRoomResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_RoomInfoCode, OnRoomInfoNtf);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_RoomStartGameCode, OnRoomStartGameNtf);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_ErrCode, OnErrorResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_PositionSyncCode, OnPositionSync);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerEnterSceneCode, OnPlayerEnterSceneEvent);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerLeaveSceneCode, OnPlayerLeaveSceneEvent);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_SyneAniCode, OnSyncAniResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerVfxCode, OnPlayerVfxResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_EnemyPositionSyncCode, OnEnemyPosSyncResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_SyneEnemyAniCode, OnEnemyAniSyncResult);
     }
 
     private void Update()
@@ -420,7 +422,7 @@ public class ProtoHandler : UnitySingleTonMono<ProtoHandler>
         else
         {
             // 服务端广播给其他人 → 直接生成敌人
-            RemotePlayerManager.Instance.SpawnEnemy(ret);
+            AppContext.RemotePlayer.SpawnEnemy(ret);
         }
     }
 
@@ -564,30 +566,33 @@ public class ProtoHandler : UnitySingleTonMono<ProtoHandler>
 
     #endregion
 
-    private void OnDestroy()
+    public void Clear()
     {
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_RegistCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_LoginCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_GetServerListCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_LoginGameServerCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_CreateRoleCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_StartGameCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_SaveRoleCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_ChangeSceneCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_SpawnEnemyCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_PlayerAttackCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_GetRewardCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_CreateRoomCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_JoinRoomCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_RoomInfoCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_RoomStartGameCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_ErrCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_PositionSyncCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_PlayerEnterSceneCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_PlayerLeaveSceneCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_SyneAniCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_PlayerVfxCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_EnemyPositionSyncCode);
-        SocketDispatcher.Instance.RemoveEventHandler(NetDefine.CMD_SyneEnemyAniCode);
+        // AppContext 可能已先一步 Dispose（退出流程），此时事件总线随它一起没了
+        if (!AppContext.IsAlive) return;
+
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_RegistCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_LoginCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_GetServerListCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_LoginGameServerCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoleCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_StartGameCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_SaveRoleCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_ChangeSceneCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_SpawnEnemyCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerAttackCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_GetRewardCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoomCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_JoinRoomCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomInfoCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomStartGameCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_ErrCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PositionSyncCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerEnterSceneCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerLeaveSceneCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_SyneAniCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerVfxCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_EnemyPositionSyncCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_SyneEnemyAniCode);
     }
 }

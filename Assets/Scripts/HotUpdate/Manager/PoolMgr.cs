@@ -28,7 +28,7 @@ public class PoolData
     {
         if (_poolList.Count == 0) return null;
 
-        var obj = _poolList[^1];          // 尾取 O(1)
+        var obj = _poolList[^1]; // 尾取 O(1)
         _poolList.RemoveAt(_poolList.Count - 1); // 尾删 O(1)
         obj.transform.parent = null;
         obj.SetActive(true);
@@ -39,9 +39,9 @@ public class PoolData
 }
 
 /// <summary>
-/// 缓存池管理器
+/// 缓存池管理器。普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.Pool。
 /// </summary>
-public class PoolMgr : UnitySingleTonMono<PoolMgr>
+public class PoolMgr
 {
     private readonly Dictionary<string, PoolData> _poolDic = new();
     private GameObject _grandFatherObj;
@@ -57,7 +57,7 @@ public class PoolMgr : UnitySingleTonMono<PoolMgr>
             return;
         }
 
-        ResMgr.Instance.LoadAndInstantiateAsync(address, null, obj =>
+        AppContext.Res.LoadAndInstantiateAsync(address, null, obj =>
         {
             if (obj == null) obj = new GameObject();
             obj.name = name;
@@ -92,11 +92,12 @@ public class PoolMgr : UnitySingleTonMono<PoolMgr>
     {
         foreach (var pool in _poolDic.Values)
         {
-            if (pool.FatherObj != null) Destroy(pool.FatherObj);
+            if (pool.FatherObj != null) GameObject.Destroy(pool.FatherObj);
         }
+
         _poolDic.Clear();
 
-        if (_grandFatherObj != null) Destroy(_grandFatherObj);
+        if (_grandFatherObj != null) GameObject.Destroy(_grandFatherObj);
         _grandFatherObj = null;
     }
 
@@ -107,7 +108,7 @@ public class PoolMgr : UnitySingleTonMono<PoolMgr>
     {
         for (var i = 0; i < count; i++)
         {
-            ResMgr.Instance.LoadAndInstantiateAsync(address, null, obj =>
+            AppContext.Res.LoadAndInstantiateAsync(address, null, obj =>
             {
                 if (obj != null)
                 {
