@@ -7,25 +7,12 @@ using Google.Protobuf;
 /// </summary>
 public delegate void OnActionHandler(ByteString data);
 
-/// <summary>
-/// 事件总线。普通类，由 AppContext 统一创建，不再自己当单例。
-/// 内部有两条独立通道：
-///   1. 游戏事件（GameEvent 枚举 + EventArgs）—— 用于系统内广播
-///   2. 网络通道（int 协议号 + ByteString）—— 由 NetSocketMgr 收到服务端数据后派发，
-///      原 SocketDispatcher 的职责已合并到这里
-/// 用法：
-///   监听  AppContext.Events.AddEventListener(GameEvent.DialogueEnd, OnDialogueEnd);
-///   触发  AppContext.Events.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(id));
-///   移除  AppContext.Events.RemoveEventListener(GameEvent.DialogueEnd, OnDialogueEnd);
-///   网络  AppContext.Events.AddNetHandler(NetDefine.CMD_LoginCode, OnLoginResult);
-/// 注意：移除时请传方法组（如上），不要传匿名 lambda —— lambda 每次 new 出来的委托不相等，移除不掉。
-/// </summary>
 public class EventMgr
 {
-    private readonly Dictionary<GameEvent, Action<EventArgs>> _dic = new Dictionary<GameEvent, Action<EventArgs>>();
+    private readonly Dictionary<GameEvent, Action<EventArgs>> _dic = new();
 
-    // 网络通道：协议号 → 处理器（每个协议号只挂一个处理器，后注册的覆盖先注册的）
-    private readonly Dictionary<int, OnActionHandler> _netDic = new Dictionary<int, OnActionHandler>();
+    // 网络通道：协议号 → 处理器
+    private readonly Dictionary<int, OnActionHandler> _netDic = new();
 
     public void AddEventListener(GameEvent gameEvent, Action<EventArgs> action)
     {
@@ -60,7 +47,7 @@ public class EventMgr
         _dic.Remove(gameEvent);
     }
 
-    #region 网络通道（原 SocketDispatcher 职责）
+    #region 网络通道
 
     /// <summary>注册某协议号的网络处理器（同协议号重复注册会被忽略）</summary>
     public void AddNetHandler(int protoCode, OnActionHandler handler)

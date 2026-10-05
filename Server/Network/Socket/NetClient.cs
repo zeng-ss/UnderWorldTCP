@@ -11,7 +11,7 @@ public class NetClient : ServerBase
     private Timer _reconnectTimer;
 
     //是否需要重连
-    private readonly bool _isNeedReconn = true;
+    public bool IsNeedReconn { get; set; }
 
     //连接服务端成功回调 
     public Action OnConnSucced;
@@ -136,7 +136,7 @@ public class NetClient : ServerBase
     /// <param name="state"></param>
     private void ReConn(object state)
     {
-        if (_isNeedReconn)
+        if (IsNeedReconn)
         {
             StartConnect();
         }

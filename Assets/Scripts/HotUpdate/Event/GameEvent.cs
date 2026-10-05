@@ -48,16 +48,16 @@ public enum GameEvent
 /// </summary>
 public class EventArgs
 {
-    protected EventArgs(int eventCode)
-    {
-        EventCode = eventCode;
-    }
-
     // 该参数对应的事件枚举值，用于断言与日志排查
     public int EventCode { get; }
 
     // 无参事件复用的空参数实例，避免每次触发都 new 一个对象
-    public static readonly EventArgs Empty = new EventArgs(0);
+    public static readonly EventArgs Empty = new(0);
+
+    protected EventArgs(int eventCode)
+    {
+        EventCode = eventCode;
+    }
 }
 
 /// <summary>加载进度事件参数</summary>
@@ -98,8 +98,8 @@ public class PlayerDataChangedArgs : EventArgs
 /// <summary>任务数据变化事件参数</summary>
 public class TaskChangedArgs : EventArgs
 {
-    public TaskChangedArgs(IReadOnlyList<TaskDataRuntime> tasks, int changedTaskId = -1)
-        : base((int)GameEvent.TaskChanged)
+    public TaskChangedArgs(IReadOnlyList<TaskDataRuntime> tasks, int changedTaskId = -1) : base(
+        (int)GameEvent.TaskChanged)
     {
         Tasks = tasks;
         ChangedTaskId = changedTaskId;
@@ -115,8 +115,7 @@ public class TaskChangedArgs : EventArgs
 /// <summary>材料数量变化事件参数</summary>
 public class MaterialNumChangedArgs : EventArgs
 {
-    public MaterialNumChangedArgs(int materialId, int totalAmount)
-        : base((int)GameEvent.MaterialNumChanged)
+    public MaterialNumChangedArgs(int materialId, int totalAmount) : base((int)GameEvent.MaterialNumChanged)
     {
         MaterialId = materialId;
         TotalAmount = totalAmount;

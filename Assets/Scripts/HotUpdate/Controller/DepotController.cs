@@ -1,16 +1,5 @@
 /// <summary>
 /// 仓库 / 强化 / 角色属性 这一组面板的 Controller。
-///
-/// 这三个面板在业务上强耦合（装备驱动盘 → 属性重算 → 强化消耗材料 → 再重算），
-/// 所以放在同一个 Controller 里编排。
-///
-/// 依赖方向：
-///   View（DepotPanel / ImprovePanel）→ Controller（本类）→ Model（各种 Service）
-///   Controller → View 不保留引用，数据变化走事件总线（DepotChanged / EquippedChanged /
-///   PlayerDataChanged / MaterialNumChanged），面板自己订阅并刷新；
-///   一次性提示直接调 UIManager.ShowTip。
-///
-/// 本类是普通类，由 AppContext 统一创建，不是 MonoBehaviour、不是单例。
 /// </summary>
 public class DepotController
 {

@@ -47,7 +47,7 @@ public class NetSocketMgr : Singleton<NetSocketMgr>
     {
         if (_client != null)
         {
-            _client._isNeedReconn = false;
+            _client.IsNeedReconn = false;
             _client.Disconnect();
             _client = null;
         }
