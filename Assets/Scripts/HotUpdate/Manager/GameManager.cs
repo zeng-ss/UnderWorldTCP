@@ -7,9 +7,16 @@ using UnityEngine.Serialization;
 public class GameManager : UnitySingleTonMono<GameManager>
 {
     private AppContext _appContext;
-    [FormerlySerializedAs("_depotConfig")] [SerializeField] private DepotConfig depotConfig;
-    [FormerlySerializedAs("_materialData")] [SerializeField] private MaterialDataSo materialData;
-    [FormerlySerializedAs("_taskConfigSo")] [SerializeField] private TaskDataConfigSo taskConfigSo;
+
+    [FormerlySerializedAs("_depotConfig")] [SerializeField]
+    private DepotConfig depotConfig;
+
+    [FormerlySerializedAs("_materialData")] [SerializeField]
+    private MaterialDataSo materialData;
+
+    [FormerlySerializedAs("_taskConfigSo")] [SerializeField]
+    private TaskDataConfigSo taskConfigSo;
+
     private PlayerValueData _basePlayerValueData;
 
     public override void Awake()

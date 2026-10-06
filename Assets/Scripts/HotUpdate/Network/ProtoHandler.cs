@@ -182,6 +182,7 @@ public class ProtoHandler
             { RoleId = roleId, AnimationName = aniName, SkillConfigIndex = skillConfigIndex };
         NetClientMgr.Instance.Send(NetDefine.CMD_SyneAniCode, req.ToByteString());
     }
+
     public void RequestSyncEnemyAni(int roleId, string aniName, Action<SyncAniRet> callback)
     {
         _syncAniCallback = callback;

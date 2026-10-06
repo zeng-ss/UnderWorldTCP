@@ -43,7 +43,12 @@ public static class Build
         {
             string dllPath = Path.Combine(aotDllDir, $"{dllName}");
             if (!File.Exists(dllPath)) dllPath = Path.Combine(hotUpdateDllDir, $"{dllName}");
-            if (!File.Exists(dllPath)) { Debug.LogWarning($"找不到DLL: {dllName}"); continue; }
+            if (!File.Exists(dllPath))
+            {
+                Debug.LogWarning($"找不到DLL: {dllName}");
+                continue;
+            }
+
             string dllBytesPath = Path.Combine(aotTextDir, $"{dllName}.bytes");
             File.Copy(dllPath, dllBytesPath, true);
             Debug.Log($"AOT: {dllName}");
@@ -54,7 +59,12 @@ public static class Build
         foreach (string dllName in dllConfig.hotUpdate)
         {
             string dllPath = Path.Combine(hotUpdateDllDir, $"{dllName}");
-            if (!File.Exists(dllPath)) { Debug.LogWarning($"找不到DLL: {dllName}"); continue; }
+            if (!File.Exists(dllPath))
+            {
+                Debug.LogWarning($"找不到DLL: {dllName}");
+                continue;
+            }
+
             string dllBytesPath = Path.Combine(hotUpdateTextDir, $"{dllName}.bytes");
             File.Copy(dllPath, dllBytesPath, true);
             Debug.Log($"HotUpdate: {dllName}");
@@ -65,7 +75,12 @@ public static class Build
         foreach (string dllName in dllConfig.priorityHotUpdate)
         {
             string dllPath = Path.Combine(hotUpdateDllDir, $"{dllName}");
-            if (!File.Exists(dllPath)) { Debug.LogWarning($"找不到DLL: {dllName}"); continue; }
+            if (!File.Exists(dllPath))
+            {
+                Debug.LogWarning($"找不到DLL: {dllName}");
+                continue;
+            }
+
             string dllBytesPath = Path.Combine(priorityHotUpdateTextDir, $"{dllName}.bytes");
             File.Copy(dllPath, dllBytesPath, true);
             Debug.Log($"PriorityHotUpdate: {dllName}");

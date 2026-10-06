@@ -4,6 +4,7 @@ public class EnemyHurtState : EnemyState
 {
     private Vector3 _hurtPos;
     private bool _isHurtFront;
+
     public override void Enter()
     {
         if (!Enemy.IsServer) return;
@@ -22,17 +23,27 @@ public class EnemyHurtState : EnemyState
         }
     }
 
-    private void OnRootMotion(Vector3 arg1, Quaternion arg2) { Enemy.characterController.Move(arg1); }
+    private void OnRootMotion(Vector3 arg1, Quaternion arg2)
+    {
+        Enemy.characterController.Move(arg1);
+    }
 
     public override void Update()
     {
         if (!Enemy.IsServer) return;
         if (Enemy.PlayerRef == null) return;
-        if (_isHurtFront && Vector3.Distance(Enemy.transform.position, Enemy.PlayerRef.transform.position) <= 1.2f) Enemy.FaceToPlayer();
-        if (IsAnimationMoreThanTime("HurtFront",0.8f) || IsAnimationMoreThanTime("HurtBack",0.8f)) { Enemy.ChangeState(EnemyStateType.Idle); }
+        if (_isHurtFront && Vector3.Distance(Enemy.transform.position, Enemy.PlayerRef.transform.position) <= 1.2f)
+            Enemy.FaceToPlayer();
+        if (IsAnimationMoreThanTime("HurtFront", 0.8f) || IsAnimationMoreThanTime("HurtBack", 0.8f))
+        {
+            Enemy.ChangeState(EnemyStateType.Idle);
+        }
     }
 
-    public void SetHurtPos(Vector3 pos) { _hurtPos = pos; }
+    public void SetHurtPos(Vector3 pos)
+    {
+        _hurtPos = pos;
+    }
 
     private void CheckHurtState()
     {

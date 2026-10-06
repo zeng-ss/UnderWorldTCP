@@ -186,7 +186,10 @@ public class RemotePlayer : MonoBehaviour
     public int RoleId { get; private set; }
     public string Nickname { get; private set; }
     [FormerlySerializedAs("TargetPos")] public Vector3 targetPos;
-    [FormerlySerializedAs("TargetRotation")] public Quaternion targetRotation;
+
+    [FormerlySerializedAs("TargetRotation")]
+    public Quaternion targetRotation;
+
     public float smoothSpeed = 10f;
     private Transform _modelTransform;
     public PlayerCtrl Ctrl { get; private set; }

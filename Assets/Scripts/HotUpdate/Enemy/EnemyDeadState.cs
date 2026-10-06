@@ -1,4 +1,3 @@
-
 public class EnemyDeadState : EnemyState
 {
     public override void Enter()

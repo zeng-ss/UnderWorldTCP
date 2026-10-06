@@ -168,6 +168,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IStateMachineOwner
     }
 
     private void EnemyAudio(AudioClip audioClip) => _audioSource.PlayOneShot(audioClip);
+
     #endregion
 
     #region 玩家相关

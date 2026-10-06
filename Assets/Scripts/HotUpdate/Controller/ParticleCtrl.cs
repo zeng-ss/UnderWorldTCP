@@ -6,7 +6,7 @@ public class ParticleCtrl : MonoBehaviour
     private PlayerCtrl _player;
     public float high;
     private HashSet<GameObject> _damagedEnemies = new(); // 记录已伤害的敌人
-    
+
     private void OnEnable()
     {
         _damagedEnemies.Clear(); // 粒子启用时清空记录

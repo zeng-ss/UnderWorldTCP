@@ -16,7 +16,6 @@ public class SlashCircle : MonoBehaviour
         SFX_SlashCircle = gameObject.GetComponent<AudioSource>();
         slashCircleTime = 1.1f;
         slashCircleRate = 0.18f;
-
     }
 
     // Update is called once per frame

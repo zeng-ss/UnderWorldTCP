@@ -40,8 +40,12 @@ public class HitData
 public class AttackData
 {
     public string attackAnimationName;
-    [FormerlySerializedAs("HitData")] [Header("攻击数据")] public HitData hitData;
-    [FormerlySerializedAs("VFXDataList")] [Header("多段伤害特效数据列表")] public List<VFXData> vfxDataList;
+
+    [FormerlySerializedAs("HitData")] [Header("攻击数据")]
+    public HitData hitData;
+
+    [FormerlySerializedAs("VFXDataList")] [Header("多段伤害特效数据列表")]
+    public List<VFXData> vfxDataList;
 }
 
 

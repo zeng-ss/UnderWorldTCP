@@ -24,24 +24,23 @@ public class Slash_Manager : MonoBehaviour
     {
         reinitializeDelay = delay;
         currentFXList = FXList_Slash;
-
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(delay > 0)
+        if (delay > 0)
         {
             delay -= Time.deltaTime;
         }
 
-        if(delay <= 0)
+        if (delay <= 0)
         {
             DoTheSlash(currentFXList[currentFXElement]);
             delay = reinitializeDelay;
         }
 
-        if(magicAttacksManager != null)
+        if (magicAttacksManager != null)
         {
             ChangeEffect();
         }
@@ -49,11 +48,10 @@ public class Slash_Manager : MonoBehaviour
         InputsFXElement();
         InputsFXType();
 
-        if(usingSlashCircle)
+        if (usingSlashCircle)
         {
             //SlashCircle();
         }
-
     }
 
     void ChangeEffect()
@@ -82,7 +80,6 @@ public class Slash_Manager : MonoBehaviour
         {
             currentFXList = FXList_Piercing;
         }
-
     }
 
 
@@ -99,7 +96,6 @@ public class Slash_Manager : MonoBehaviour
             {
                 currentFXElement = 0;
             }
-
         }
 
         if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -113,13 +109,11 @@ public class Slash_Manager : MonoBehaviour
             {
                 currentFXElement = currentFXList.Length - 1;
             }
-
         }
     }
 
     void DoTheSlash(GameObject FX)
     {
         Instantiate(FX, spawnOffset.position, spawnOffset.rotation);
-
     }
 }

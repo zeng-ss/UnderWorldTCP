@@ -18,7 +18,6 @@ public class MagicAttacks_Projectile : MonoBehaviour
         FX_Projectile = gameObject.transform.GetChild(0).GetComponent<VisualEffect>();
         FX_ProjectileTail = gameObject.transform.GetChild(1).GetComponent<VisualEffect>();
         SFX_Projectile = gameObject.GetComponent<AudioSource>();
-
     }
 
     public void Setup(Vector3 projectileDir)
@@ -36,7 +35,7 @@ public class MagicAttacks_Projectile : MonoBehaviour
     private void OnTriggerEnter(Collider col)
     {
         Instantiate(FX_Hit, col.transform.position, Quaternion.identity);
-        
+
         Destroy(FX_Projectile);
         FX_ProjectileTail.Stop();
         SFX_Projectile.Stop();

@@ -15,7 +15,9 @@ public class EnemyAttackState : EnemyState
         Attack05Run,
         Attack05Miss,
     }
+
     private AttackState _curAttackState;
+
     public override void Enter()
     {
         if (!Enemy.IsLocalEnemy) return;
@@ -28,6 +30,7 @@ public class EnemyAttackState : EnemyState
             Enemy.ChangeState(EnemyStateType.Idle);
             return;
         }
+
         TransitionAttackState(GetTargetAttackState());
         // 如果不是奔跑攻击状态才开启拼刀提示声音
         if (_curAttackState != AttackState.Attack05Start)
@@ -36,6 +39,7 @@ public class EnemyAttackState : EnemyState
             AppContext.Sound.PlaySound(AppContext.Sound.StartPinSound, Enemy.transform.position);
         }
     }
+
     private void OnRootMotion(Vector3 arg1, Quaternion arg2)
     {
         Enemy.characterController.Move(arg1);
@@ -46,16 +50,25 @@ public class EnemyAttackState : EnemyState
         // 检查玩家是否有效
         if (Enemy.PlayerRef is null)
         {
-            if (IsAnimationFinished(GetCurAniName())) { Enemy.ChangeState(EnemyStateType.Idle); return; }
+            if (IsAnimationFinished(GetCurAniName()))
+            {
+                Enemy.ChangeState(EnemyStateType.Idle);
+                return;
+            }
         }
+
         if (Enemy.currentState != EnemyStateType.Attack) return;
         HandleAttackStateTransitions();
     }
 
     private AttackState GetTargetAttackState()
     {
-        if (Enemy.disToPlayer >= 10) { return AttackState.Attack05Start; }
-        AttackState[] attacks = 
+        if (Enemy.disToPlayer >= 10)
+        {
+            return AttackState.Attack05Start;
+        }
+
+        AttackState[] attacks =
         {
             AttackState.Attack01,
             AttackState.Attack02,
@@ -84,9 +97,9 @@ public class EnemyAttackState : EnemyState
         switch (_curAttackState)
         {
             /*case AttackState.Attack01:
-                if (IsAnimationFinished("Attack01")) enemy.ChangeState(EnemyStateType.Idle); 
+                if (IsAnimationFinished("Attack01")) enemy.ChangeState(EnemyStateType.Idle);
                 break;
-            case AttackState.Attack02:  
+            case AttackState.Attack02:
                 if (IsAnimationFinished("Attack02")) enemy.ChangeState(EnemyStateType.Idle);
                 break;
             case AttackState.Attack03:

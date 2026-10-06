@@ -1,15 +1,18 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+
 public class BasePanel : MonoBehaviour
 {
     [HideInInspector] public bool isAnimating;
     private RectTransform _rootRect;
+
     protected IEnumerator DelayedLayoutUpdate()
     {
         yield return null; // 等待一帧
         LayoutRebuilder.ForceRebuildLayoutImmediate(_rootRect);
     }
+
     private Button _closeBtn;
 
     protected virtual void Awake()
@@ -46,7 +49,7 @@ public class BasePanel : MonoBehaviour
         }
     }
 
-    public virtual void Show()//虚函数 能够被重写  
+    public virtual void Show() //虚函数 能够被重写  
     {
         gameObject.SetActive(true);
     }

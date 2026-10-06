@@ -1,7 +1,7 @@
 using UnityEngine;
 
 public class PlayerEvadeState : PlayerState
-{ 
+{
     public override void Enter()
     {
         if (!Player.IsLocalPlayer) return;
@@ -10,10 +10,15 @@ public class PlayerEvadeState : PlayerState
             Player.ChangeState(PlayerStateType.Idle);
             return;
         }
+
         Player.playerModel.SetRootMotionAction(OnRootMation);
         Player.PlayAnimation("Evade");
     }
-    private void OnRootMation(Vector3 arg1, Quaternion arg2) { Player.CharacterController.Move(arg1); }
+
+    private void OnRootMation(Vector3 arg1, Quaternion arg2)
+    {
+        Player.CharacterController.Move(arg1);
+    }
 
     public override void Update()
     {
@@ -25,17 +30,18 @@ public class PlayerEvadeState : PlayerState
             Player.ChangeState(PlayerStateType.Idle);
             return;
         }
+
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
-        
+
         // 等待动画播放完成
-        if (IsAnimationMoreThanTime("Evade",0.5f))
+        if (IsAnimationMoreThanTime("Evade", 0.5f))
         {
             Player.ChangeState(PlayerStateType.Idle);
             return;
         }
 
-        if (IsAnimationMoreThanTime("Evade",0.3f))
+        if (IsAnimationMoreThanTime("Evade", 0.3f))
         {
             if (Input.GetKeyDown(KeyCode.LeftShift))
             {
@@ -47,7 +53,7 @@ public class PlayerEvadeState : PlayerState
             }
         }
     }
-    
+
     public void SetEvade(bool isShiftDoubleTap)
     {
         Player.playerModel.Animator.SetFloat("EvadeDirection", isShiftDoubleTap ? 1 : 0);

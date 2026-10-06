@@ -20,10 +20,14 @@ public class DriverDiskDataRuntime
     public List<int> MaterialsId;
     public float CurLevelMaxFill;
     public float CurLevelFillValue;
+
     [SerializeReference] // 使用 SerializeReference 支持多态
     public DriverDiskValueData DepotDriverDiskValue = new();
 
-    public DriverDiskDataRuntime() { }
+    public DriverDiskDataRuntime()
+    {
+    }
+
     public DriverDiskDataRuntime(DriverDiskData driverDiskData)
     {
         DepotName = driverDiskData.depotName;
@@ -53,6 +57,7 @@ public class DriverDiskDataRuntime
             };
         }
     }
+
     public DriverDiskDataRuntime(DriverDiskDataRuntime driverDiskData)
     {
         DepotName = driverDiskData.DepotName;
@@ -156,7 +161,10 @@ public class DriverDiskDataRuntime
     }
 
     // 获取当前等级进度（0-1）
-    public float GetLevelProgress() { return CurLevelFillValue / CurLevelMaxFill; }
+    public float GetLevelProgress()
+    {
+        return CurLevelFillValue / CurLevelMaxFill;
+    }
 }
 
 
@@ -166,12 +174,11 @@ public class DriverDiskData
     public string depotName;
     public int depotId;
     public int level;
-    [Header("图标集")]
-    public string depotIconName;
+    [Header("图标集")] public string depotIconName;
     public List<int> materialsId; // 升级所需的材料种类 id
-    [Header("当前升级的最大数值")]
-    public float curLevelMaxFill;
+    [Header("当前升级的最大数值")] public float curLevelMaxFill;
     [HideInInspector] public float curLevelFillValue;
+
     [FormerlySerializedAs("depotValue")] [SerializeReference]
     public DriverDiskValueData depotDriverDiskValue = new();
 }
@@ -194,5 +201,3 @@ public enum DriverDiskType
     Health,
     BaoJi
 }
-
-

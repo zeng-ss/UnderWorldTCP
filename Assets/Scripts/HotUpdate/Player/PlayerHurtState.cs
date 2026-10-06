@@ -9,15 +9,21 @@ public class PlayerHurtState : PlayerState
         Player.PlayAnimation("Hurt");
     }
 
-    private void OnRootMotion(Vector3 arg1, Quaternion arg2) { Player.CharacterController.Move(arg1); }
+    private void OnRootMotion(Vector3 arg1, Quaternion arg2)
+    {
+        Player.CharacterController.Move(arg1);
+    }
+
     public override void Update()
     {
         if (!Player.IsLocalPlayer) return;
-        if (IsAnimationMoreThanTime("Hurt", 0.5f)) { Player.ChangeState(PlayerStateType.Idle); }
+        if (IsAnimationMoreThanTime("Hurt", 0.5f))
+        {
+            Player.ChangeState(PlayerStateType.Idle);
+        }
     }
 
     public override void Exit()
     {
-        
     }
 }

@@ -5,6 +5,7 @@ public class EnemyModel : MonoBehaviour
 {
     // 持有玩家控制器引用（用于获取当前状态）
     [SerializeField] private EnemyCtrl enemy;
+
     //拿到动画控制器
     [SerializeField] private Animator enemyAnimator;
     public Animator Animator => enemyAnimator; //可以拿到动画控制器
@@ -12,8 +13,7 @@ public class EnemyModel : MonoBehaviour
 
     // 拿到技能拥有者 
     private ISkillOwner _skillOwner;
-    [Header("武器列表")]
-    [SerializeField] private WeaponController[] weapons;
+    [Header("武器列表")] [SerializeField] private WeaponController[] weapons;
 
     public void Init(ISkillOwner skillOwner)
     {
@@ -24,15 +24,35 @@ public class EnemyModel : MonoBehaviour
     #region 音效相关
 
     // 脚步声
-    private void PlayFootSound() { if (!enemy.IsServer) return; _audioSource.PlayOneShot(AppContext.Sound.FootSound); }
+    private void PlayFootSound()
+    {
+        if (!enemy.IsServer) return;
+        _audioSource.PlayOneShot(AppContext.Sound.FootSound);
+    }
+
     // 收脚的步声
-    private void PlayFootBackSound() { if (!enemy.IsServer) return; _audioSource.PlayOneShot(AppContext.Sound.FootBackSound); }
+    private void PlayFootBackSound()
+    {
+        if (!enemy.IsServer) return;
+        _audioSource.PlayOneShot(AppContext.Sound.FootBackSound);
+    }
+
     // 收剑
-    public void PlayWeaponBackSound() { if (!enemy.IsServer) return; _audioSource.PlayOneShot(AppContext.Sound.WeaponBackSound); }
+    public void PlayWeaponBackSound()
+    {
+        if (!enemy.IsServer) return;
+        _audioSource.PlayOneShot(AppContext.Sound.WeaponBackSound);
+    }
+
     // 结束收剑
-    public void PlayWeaponEndSound() { if (!enemy.IsServer) return; _audioSource.PlayOneShot(AppContext.Sound.WeaponEndSound); }
+    public void PlayWeaponEndSound()
+    {
+        if (!enemy.IsServer) return;
+        _audioSource.PlayOneShot(AppContext.Sound.WeaponEndSound);
+    }
 
     #endregion
+
     #region 根运动
 
     private Action<Vector3, Quaternion> _rootMotionAction;
@@ -45,6 +65,7 @@ public class EnemyModel : MonoBehaviour
     {
         this._rootMotionAction = rootMotionAction;
     }
+
     /// <summary>
     /// 清除跟运动
     /// </summary>
@@ -63,14 +84,15 @@ public class EnemyModel : MonoBehaviour
     }
 
     #endregion
+
     #region 技能相关
-    
+
     public void StartPin(int isStartPin = 0)
     {
         if (!enemy.IsServer || enemy.isPinFinished) return;
         enemy.isStartPin = isStartPin == 1;
     }
-    
+
     public void StartSkillHit(int weaponIndex = 0)
     {
         if (!enemy.IsServer) return;
@@ -90,6 +112,7 @@ public class EnemyModel : MonoBehaviour
         {
             weapons[weaponIndex].StopSkillHit();
         }
+
         enemy.isStartPin = false;
     }
 
@@ -101,5 +124,4 @@ public class EnemyModel : MonoBehaviour
     }
 
     #endregion
-    
 }

@@ -29,24 +29,23 @@ public class MagicAttacks_Manager : MonoBehaviour
         {
             slashManager.SetActive(false);
         }
-
     }
 
     void Update()
     {
-        if(delay > 0)
+        if (delay > 0)
         {
             delay -= Time.deltaTime;
         }
 
-        if(delay <= 0)
+        if (delay <= 0)
         {
             currentFX_Element = nextFX_Element;
             CastProjectile();
             delay = reinitializeDelay;
         }
-        
-        if(isCasting)
+
+        if (isCasting)
         {
             ShootProjectile();
         }
@@ -57,7 +56,6 @@ public class MagicAttacks_Manager : MonoBehaviour
         }
 
         InputsFXElement();
-
     }
 
     void ChangeEffect()
@@ -73,16 +71,15 @@ public class MagicAttacks_Manager : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.RightArrow))
         {
-            if (nextFX_Element < FXList_Cast.Length -1)
+            if (nextFX_Element < FXList_Cast.Length - 1)
             {
                 nextFX_Element += 1;
             }
 
-            else if (nextFX_Element >= FXList_Cast.Length -1)
+            else if (nextFX_Element >= FXList_Cast.Length - 1)
             {
                 nextFX_Element = 0;
             }
-
         }
 
         if (Input.GetKeyDown(KeyCode.LeftArrow))
@@ -94,9 +91,8 @@ public class MagicAttacks_Manager : MonoBehaviour
 
             else if (nextFX_Element <= 0)
             {
-                nextFX_Element = FXList_Cast.Length -1;
+                nextFX_Element = FXList_Cast.Length - 1;
             }
-
         }
     }
 
@@ -106,7 +102,6 @@ public class MagicAttacks_Manager : MonoBehaviour
         delayShootProjectile = 0.7f;
 
         isCasting = true;
-
     }
 
     void ShootProjectile()
@@ -116,7 +111,8 @@ public class MagicAttacks_Manager : MonoBehaviour
         if (delayShootProjectile <= 0)
         {
             GameObject projectileInstTransform;
-            projectileInstTransform = Instantiate(FXList_Projectile[currentFX_Element], spawnOffSet.position, Quaternion.identity);
+            projectileInstTransform = Instantiate(FXList_Projectile[currentFX_Element], spawnOffSet.position,
+                Quaternion.identity);
 
             Vector3 projectileDir = (target.position - spawnOffSet.position).normalized;
             projectileInstTransform.GetComponent<MagicAttacks_Projectile>().Setup(projectileDir);
@@ -127,9 +123,6 @@ public class MagicAttacks_Manager : MonoBehaviour
 
             isCasting = false;
             Destroy(projectileInstTransform.gameObject, 4f);
-
         }
     }
-
-  
 }

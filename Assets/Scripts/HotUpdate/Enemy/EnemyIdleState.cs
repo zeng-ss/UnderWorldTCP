@@ -4,6 +4,7 @@ public class EnemyIdleState : EnemyState
 {
     private float _randomValue;
     private float _timer;
+
     public override void Enter()
     {
         Enemy.isCanPlayHurtAni = true;
@@ -14,7 +15,12 @@ public class EnemyIdleState : EnemyState
     public override void Update()
     {
         if (Enemy.IsLocalEnemy) return;
-        if (Enemy.PlayerRef == null) { _timer = 0; return; }
+        if (Enemy.PlayerRef == null)
+        {
+            _timer = 0;
+            return;
+        }
+
         _timer += Time.deltaTime;
         if (_timer >= _randomValue)
         {
@@ -24,6 +30,8 @@ public class EnemyIdleState : EnemyState
         }
     }
 
-    public override void Exit() { _timer = 0f; }
-    
+    public override void Exit()
+    {
+        _timer = 0f;
+    }
 }

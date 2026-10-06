@@ -20,8 +20,9 @@ public class PlayerIdleState : PlayerState
         {
             Player.ChangeState(PlayerStateType.Move);
         }
+
         if (Input.GetKeyDown(KeyCode.LeftShift)) Player.ChangeState(PlayerStateType.Evade);
-        if (Input.GetKeyDown(KeyCode.Mouse0) 
+        if (Input.GetKeyDown(KeyCode.Mouse0)
             || (Input.GetKeyDown(KeyCode.Mouse1) && Player.CurSkillConfig == Player.SkillConfigList[2]))
         {
             Player.ChangeState(PlayerStateType.Attack);
@@ -30,7 +31,5 @@ public class PlayerIdleState : PlayerState
 
     public override void Exit()
     {
-        
     }
-    
 }

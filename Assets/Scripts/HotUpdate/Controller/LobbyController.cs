@@ -6,8 +6,7 @@ using UnityEngine.UI;
 
 public class LobbyController : MonoBehaviour
 {
-    [Header("房间")]
-    private TMP_InputField _roomNameInput;
+    [Header("房间")] private TMP_InputField _roomNameInput;
     private TMP_InputField _roomIdInput;
     private Button _createRoomBtn;
     private Button _joinRoomBtn;
@@ -15,12 +14,10 @@ public class LobbyController : MonoBehaviour
     private TMP_Text _roomTitleTxt;
     private GameObject _panel;
 
-    [Header("玩家列表")]
-    private Transform _playerListRoot;
+    [Header("玩家列表")] private Transform _playerListRoot;
     private GameObject _playerItemPrefab;
 
-    [Header("准备/开始")]
-    private Button _startBtn;
+    [Header("准备/开始")] private Button _startBtn;
     private Toggle _readyToggle;
     private TMP_Text _readyTipText;
 
@@ -154,6 +151,7 @@ public class LobbyController : MonoBehaviour
         {
             if (p.RoleId == AppContext.Session.RoleId && p.IsMaster) _isMaster = true;
         }
+
         RefreshRoomUI(ntf.Players);
     }
 
@@ -202,7 +200,11 @@ public class LobbyController : MonoBehaviour
         AppContext.Res.LoadAndInstantiateAsync("PlayerRoomItem", _playerListRoot, obj =>
         {
             PlayerRoomItem item = obj.GetComponent<PlayerRoomItem>();
-            if (item == null) { Destroy(obj); return; }
+            if (item == null)
+            {
+                Destroy(obj);
+                return;
+            }
 
             var cfg = new PlayerConfig
             {
