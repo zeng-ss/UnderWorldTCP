@@ -1,7 +1,5 @@
 using UnityEngine;
-/// <summary>
-/// 玩家状态基类 继承状态基类
-/// </summary>
+// 玩家状态基类 继承状态基类
 public class PlayerState : StateBase
 {
     protected PlayerCtrl Player;

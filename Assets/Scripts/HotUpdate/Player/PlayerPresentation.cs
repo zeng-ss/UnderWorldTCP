@@ -7,19 +7,14 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-/// <summary>
-/// 玩家表现层：技能特效、命中特效、音效、屏幕反馈（震屏 / 色差 / 暗角）、伤害飘字。
-///
-/// 由控制器在 Awake 里运行时 AddComponent 挂载（不需要改预制体），
-/// Init 注入数据后，控制器直调这里的公开方法 ——
-/// 发布者明确知道唯一接收者，直调即可，不走事件总线广播。
-///
-/// 本类不持有控制器：需要的数据（动画模型、飘字组件、跟随 Transform）全部由 Init 注入。
-/// 唯一的接缝是技能特效上可能挂的 ParticleCtrl 需要回调所有者发起命中判定，
-/// 通过 BindVfxOwner 注入委托完成，本类不认识具体的所有者类型。
-///
-/// 内部实现（协程、DOTween、Cinemachine、后处理）与表现行为重构前完全一致。
-/// </summary>
+// 玩家表现层：技能特效、命中特效、音效、屏幕反馈（震屏 / 色差 / 暗角）、伤害飘字。
+// 由控制器在 Awake 里运行时 AddComponent 挂载（不需要改预制体），
+// Init 注入数据后，控制器直调这里的公开方法 ——
+// 发布者明确知道唯一接收者，直调即可，不走事件总线广播。
+// 本类不持有控制器：需要的数据（动画模型、飘字组件、跟随 Transform）全部由 Init 注入。
+// 唯一的接缝是技能特效上可能挂的 ParticleCtrl 需要回调所有者发起命中判定，
+// 通过 BindVfxOwner 注入委托完成，本类不认识具体的所有者类型。
+// 内部实现（协程、DOTween、Cinemachine、后处理）与表现行为重构前完全一致。
 public class PlayerPresentation : MonoBehaviour
 {
     private PlayerModel _model;
@@ -32,7 +27,7 @@ public class PlayerPresentation : MonoBehaviour
     private Vignette _vignette;
     private Tweener _vignetteTweener;
 
-    /// <summary>特效生成后把所有者接进 ParticleCtrl 的委托（控制器装配时绑定）</summary>
+    // 特效生成后把所有者接进 ParticleCtrl 的委托（控制器装配时绑定）
     private Action<ParticleCtrl> _initVfxOwner;
 
     public void Init(PlayerModel model, DamageNumber damageNumber, Transform followTarget)
@@ -51,7 +46,7 @@ public class PlayerPresentation : MonoBehaviour
         _initVfxOwner = initVfxOwner;
     }
 
-    /// <summary>从场景里的 Volume 取出后处理组件</summary>
+    // 从场景里的 Volume 取出后处理组件
     private void ResolveVolumeEffects()
     {
         var volume = GameObject.Find("Volume")?.GetComponent<Volume>();

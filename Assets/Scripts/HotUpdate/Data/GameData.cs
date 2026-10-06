@@ -1,12 +1,30 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 [CreateAssetMenu(menuName = "Config/SkillConfig")]
 public class SkillConfig : ScriptableObject
 {
     public List<AttackData> skillConfigs;
+
+    public int Count => skillConfigs?.Count ?? 0;
+
+    public AttackData GetAttackData(int index)
+    {
+        if (skillConfigs == null || index < 0 || index >= skillConfigs.Count) return null;
+        return skillConfigs[index];
+    }
+}
+
+/// <summary>
+/// 连招配置表在 PlayerCtrl.skillConfigList 里的固定序号。
+/// </summary>
+public enum ComboSet
+{
+    Normal = 0,
+    Second = 1,
+    Heavy = 2,
+    Ex = 3
 }
 
 // 播放特效数据
@@ -41,11 +59,23 @@ public class AttackData
 {
     public string attackAnimationName;
 
-    [FormerlySerializedAs("HitData")] [Header("攻击数据")]
-    public HitData hitData;
+    [Header("连招衔接")] [Tooltip("收招动画名。留空表示这一段没有收招动画）")]
+    public string endAnimationName;
 
-    [FormerlySerializedAs("VFXDataList")] [Header("多段伤害特效数据列表")]
-    public List<VFXData> vfxDataList;
+    [Tooltip("这一段之后按左键衔接的下一段下标。-1 = 自增")] public int nextAttackIndex = -1;
+
+    [Tooltip("播到「可打断时间」之后，允许被移动输入直接打断收招")] public bool canBeInterruptedByMove;
+
+    [Tooltip("允许被移动输入打断的最早时间点（动画归一化时间）")] public float interruptibleTime = 0.5f;
+
+    [Tooltip("这一段是「中键重击」的起手段：普攻到这一段时按中键可直接跳到最后一段")]
+    public bool isHeavyEntry;
+
+    [Tooltip("这一段是否冲刺杀")] public bool isRushAttack;
+
+    [Header("攻击数据")] public HitData hitData;
+
+    [Header("多段伤害特效数据列表")] public List<VFXData> vfxDataList;
 }
 
 

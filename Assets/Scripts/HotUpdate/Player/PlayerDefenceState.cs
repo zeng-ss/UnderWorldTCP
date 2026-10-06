@@ -28,11 +28,10 @@ public class PlayerDefenceState : PlayerState
                     break;
                 case DefenceChildState.CounterAttack:
                     //_player.playerModel.transform.LookAt(((Component)_player.Enemy).transform); //面向敌人
-                    if (!Player.IsLocalPlayer) return;
+                    if (!Player.Core.IsLocalPlayer) return;
                     // 本地先更新（预测，提升手感）
-                    Player.UpdateSkillConfig(1);
-                    Player.CurAttackIndex = 1;
-                    Player.StartSkill(Player.CurSkillConfig.skillConfigs[Player.CurAttackIndex]);
+                    Player.SkillCombo.UpdateSkillConfig(ComboSet.Second);
+                    Player.SkillCombo.StartSkillByIndex(1);
                     break;
                 case DefenceChildState.Exit:
                     Player.PlayAnimation("ExitDefence");

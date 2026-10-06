@@ -2,11 +2,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-/// <summary>
-/// 管理其他玩家的创建、位置更新、销毁
-/// 通过 ProtoHandler 事件驱动，不直接依赖网络层。
-/// 普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.RemotePlayer。
-/// </summary>
+// 管理其他玩家的创建、位置更新、销毁
+// 通过 ProtoHandler 事件驱动，不直接依赖网络层。
+// 普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.RemotePlayer。
 public class RemotePlayerManager
 {
     private Dictionary<int, RemotePlayer> _remotePlayers = new();
@@ -31,7 +29,7 @@ public class RemotePlayerManager
     {
         if (_remotePlayers.TryGetValue(ntf.RoleId, out RemotePlayer rp))
         {
-            rp.Ctrl.SpawnRemoteVfx(ntf.SkillConfigIndex, ntf.AttackIndex, ntf.VfxIndex);
+            rp.Ctrl.SkillCombo.SpawnRemoteVfx(ntf.SkillConfigIndex, ntf.AttackIndex, ntf.VfxIndex);
         }
     }
 
@@ -50,7 +48,7 @@ public class RemotePlayerManager
             var pc = obj.GetComponent<PlayerCtrl>();
             if (pc != null)
             {
-                pc.IsLocalPlayer = false;
+                pc.Core.IsLocalPlayer = false;
                 pc.CharacterController.enabled = false;
             }
 
@@ -75,7 +73,9 @@ public class RemotePlayerManager
     {
         if (_remotePlayers.TryGetValue(ret.RoleId, out RemotePlayer rp))
         {
-            rp.Ctrl.UpdateSkillConfig(ret.SkillConfigIndex);
+            // 连招序号在协议里是裸 int：先校验成合法枚举再进玩法层，非法值直接丢弃
+            if (System.Enum.IsDefined(typeof(ComboSet), ret.SkillConfigIndex))
+                rp.Ctrl.SkillCombo.UpdateSkillConfig((ComboSet)ret.SkillConfigIndex);
             rp.Ctrl.playerModel.Animator.CrossFadeInFixedTime(ret.AnimationName, 0.1f, 0, 0f);
         }
     }
@@ -90,9 +90,7 @@ public class RemotePlayerManager
         }
     }
 
-    /// <summary>
-    /// 别人的攻击广播 → 同步敌人状态 + 攻击者动画
-    /// </summary>
+    // 别人的攻击广播 → 同步敌人状态 + 攻击者动画
     private void OnPlayerAttackBroadcast(PlayerAttackRet ret)
     {
         if (EnemyCtrl.Instances.TryGetValue(ret.EnemyInstanceId, out EnemyCtrl enemy))
@@ -178,9 +176,7 @@ public class RemotePlayerManager
     }
 }
 
-/// <summary>
-/// 远程玩家组件：挂载在其他玩家的GameObject上，处理位置平滑插值
-/// </summary>
+// 远程玩家组件：挂载在其他玩家的GameObject上，处理位置平滑插值
 public class RemotePlayer : MonoBehaviour
 {
     public int RoleId { get; private set; }
@@ -214,9 +210,7 @@ public class RemotePlayer : MonoBehaviour
     }
 }
 
-/// <summary>
-/// 远程敌人组件：挂载在其他敌人的GameObject上，处理位置平滑插值
-/// </summary>
+// 远程敌人组件：挂载在其他敌人的GameObject上，处理位置平滑插值
 public class RemoteEnemy : MonoBehaviour
 {
     public int RoleId { get; private set; }

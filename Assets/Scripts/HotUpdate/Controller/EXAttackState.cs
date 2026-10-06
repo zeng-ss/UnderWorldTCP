@@ -19,7 +19,7 @@ public class ExAttackState : PlayerState
 
     public override void Enter()
     {
-        if (!Player.IsLocalPlayer) return;
+        if (!Player.Core.IsLocalPlayer) return;
         _targetEnemy = FindNearestEnemyByTag();
         // 播放音效
         AppContext.Sound.PlaySound
@@ -27,8 +27,8 @@ public class ExAttackState : PlayerState
             Player.transform.position);
         // 进入开始状态
         TransitionAttackState(ExState.Start);
-        Player.IsLock = true;
-        Player.VirtualCameraEx.gameObject.SetActive(true);
+        Player.Core.IsLock = true;
+        Player.CameraBinder.VirtualCameraEx.gameObject.SetActive(true);
     }
 
     public override void Update()
@@ -46,10 +46,10 @@ public class ExAttackState : PlayerState
                 _isDistanceLocked = true;
                 FaceToEnemy();
                 if (IsAnimationMoreThanTime("AttackEx_Start", 0.8f))
-                    Player.VirtualCameraEx.gameObject.SetActive(false);
+                    Player.CameraBinder.VirtualCameraEx.gameObject.SetActive(false);
                 if (IsAnimationFinished("AttackEx_Start"))
                 {
-                    Player.StartSkill(Player.CurSkillConfig.skillConfigs[0]);
+                    Player.SkillCombo.StartSkillByIndex(0);
                     TransitionAttackState(ExState.Attack);
                 }
 
@@ -59,27 +59,27 @@ public class ExAttackState : PlayerState
                 break;
             case ExState.PutBack:
                 _isDistanceLocked = false;
-                Player.UpdateSkillConfig(0);
+                Player.SkillCombo.UpdateSkillConfig(ComboSet.Normal);
                 if (h != 0 || v != 0)
                 {
-                    Player.ChangeState(PlayerStateType.Move);
+                    Player.StateMachine.ChangeTo(PlayerStateType.Move);
                     return;
                 }
 
                 if (IsAnimationFinished("AttackEx_PutBack")) TransitionAttackState(ExState.End);
                 break;
             case ExState.End:
-                Player.IsLock = false;
+                Player.Core.IsLock = false;
                 if (h != 0 || v != 0)
                 {
-                    Player.ChangeState(PlayerStateType.Move);
+                    Player.StateMachine.ChangeTo(PlayerStateType.Move);
                     return;
                 }
 
                 if (IsAnimationFinished("AttackEx_End"))
                 {
-                    Player.IsLock = false;
-                    Player.ChangeState(PlayerStateType.Idle);
+                    Player.Core.IsLock = false;
+                    Player.StateMachine.ChangeTo(PlayerStateType.Idle);
                 }
 
                 break;
@@ -126,9 +126,7 @@ public class ExAttackState : PlayerState
         Player.transform.position = Vector3.Lerp(Player.transform.position, targetPos, Time.deltaTime * 15f);
     }
 
-    /// <summary>
-    /// 标签检测最近的敌人
-    /// </summary>
+    // 标签检测最近的敌人
     private Transform FindNearestEnemyByTag()
     {
         GameObject[] allEnemies = GameObject.FindGameObjectsWithTag("enemy");
@@ -153,7 +151,7 @@ public class ExAttackState : PlayerState
 
     public override void Exit()
     {
-        Player.VirtualCameraEx.gameObject.SetActive(false);
-        Player.IsLock = false;
+        Player.CameraBinder.VirtualCameraEx.gameObject.SetActive(false);
+        Player.Core.IsLock = false;
     }
 }

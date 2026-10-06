@@ -4,10 +4,10 @@ public class PlayerEvadeState : PlayerState
 {
     public override void Enter()
     {
-        if (!Player.IsLocalPlayer) return;
+        if (!Player.Core.IsLocalPlayer) return;
         if (InputManager.IsPointerOverBlockingUI())
         {
-            Player.ChangeState(PlayerStateType.Idle);
+            Player.StateMachine.ChangeTo(PlayerStateType.Idle);
             return;
         }
 
@@ -23,11 +23,11 @@ public class PlayerEvadeState : PlayerState
     public override void Update()
     {
         // 只允许本地玩家执行逻辑
-        if (!Player.IsLocalPlayer) return;
+        if (!Player.Core.IsLocalPlayer) return;
         if (!InputManager.Instance.IsGameplayInputEnabled) return;
         if (InputManager.IsPointerOverBlockingUI())
         {
-            Player.ChangeState(PlayerStateType.Idle);
+            Player.StateMachine.ChangeTo(PlayerStateType.Idle);
             return;
         }
 
@@ -37,7 +37,7 @@ public class PlayerEvadeState : PlayerState
         // 等待动画播放完成
         if (IsAnimationMoreThanTime("Evade", 0.5f))
         {
-            Player.ChangeState(PlayerStateType.Idle);
+            Player.StateMachine.ChangeTo(PlayerStateType.Idle);
             return;
         }
 
@@ -49,7 +49,7 @@ public class PlayerEvadeState : PlayerState
             }
             else if (h != 0 || v != 0)
             {
-                Player.ChangeState(PlayerStateType.Move);
+                Player.StateMachine.ChangeTo(PlayerStateType.Move);
             }
         }
     }

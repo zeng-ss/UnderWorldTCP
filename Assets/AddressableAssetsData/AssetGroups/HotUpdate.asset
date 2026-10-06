@@ -13,10 +13,13 @@ MonoBehaviour:
   m_Name: HotUpdate
   m_EditorClassIdentifier: 
   m_GroupName: HotUpdate
-  m_Data:
-    m_SerializedData: []
   m_GUID: 8716707a548cac747a825b8e6c2a3c45
   m_SerializeEntries:
+  - m_GUID: 25e279fe79625c64ba540f498110cd42
+    m_Address: GameScene
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 4be0d5cc9d6de41478874474b105d3a6
     m_Address: EnterScene
     m_ReadOnly: 0
@@ -24,6 +27,16 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 7ae6eba5da28e004cb1d29b057a96f2f
     m_Address: VersionInfo
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8b5829f635718af4b9a268e39db6d4ff
+    m_Address: LobbyScene
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 8fba598fffb2d5e41b35bd814ed4ae21
+    m_Address: StartScene
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -48,3 +61,8 @@ MonoBehaviour:
     m_Schemas:
     - {fileID: 11400000, guid: 43a5d8006ee9f064e870817fbad0fe7f, type: 2}
     - {fileID: 11400000, guid: 38b6b7ccae4e83d4190ffab226c1ae1f, type: 2}
+    m_SchemaDisplayOrder:
+    - HotUpdate_BundledAssetGroupSchema
+    - HotUpdate_ContentUpdateGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

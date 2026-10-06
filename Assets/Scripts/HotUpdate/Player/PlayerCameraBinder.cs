@@ -1,16 +1,14 @@
 using Unity.Cinemachine;
 using UnityEngine;
 
-/// <summary>
-/// 相机绑定子系统：查找场景虚拟相机并绑定 Follow / LookAt（原 PlayerCtrl.Init() 的相机部分）。
-/// PinCamera 由拼刀流程（输入子系统）在拼刀时临时激活。
-/// </summary>
+// 相机绑定子系统：查找场景虚拟相机并绑定 Follow / LookAt（原 PlayerCtrl.Init() 的相机部分）。
+// PinCamera 由拼刀流程（输入子系统）在拼刀时临时激活。
 public class PlayerCameraBinder
 {
     public Transform CameraTransform { get; private set; }
     public CinemachineVirtualCamera VirtualCameraEx { get; private set; }
 
-    /// <summary>拼刀特写相机（TryPin 时激活，1 秒后关闭）</summary>
+    // 拼刀特写相机（TryPin 时激活，1 秒后关闭）
     public CinemachineVirtualCamera PinCamera { get; private set; }
 
     private CinemachineFreeLook _freeLook;

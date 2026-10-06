@@ -1,9 +1,7 @@
 using UnityEngine;
 
-/// <summary>
-/// 移动子系统：重力、CharacterController 位移与着地判断（原 PlayerCtrl.Update 的重力块）。
-/// PlayerCtrl.Update 只需调 Tick()。
-/// </summary>
+// 移动子系统：重力、CharacterController 位移与着地判断（原 PlayerCtrl.Update 的重力块）。
+// PlayerCtrl.Update 只需调 Tick()。
 public class PlayerLocomotion
 {
     private const float Gravity = -5f;

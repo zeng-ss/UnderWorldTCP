@@ -32,15 +32,15 @@ public class WeaponController : MonoBehaviour
         // 只处理本地玩家的武器碰撞
         if (player != null)
         {
-            if (!player.IsLocalPlayer) return;
+            if (!player.Core.IsLocalPlayer) return;
             if (!targetTagList.Contains(other.tag)) return;
             IHurt target = other.GetComponent<IHurt>();
             if (_enemyList.Contains(target)) return;
             player.OnHit(target, other.ClosestPoint(transform.position));
             _enemyList.Add(target);
-            if (player.CurrentState == PlayerStateType.Ex) return;
+            if (player.StateMachine.CurrentState == PlayerStateType.Ex) return;
             // 仅在非顿帧时触发顿帧
-            var attackState = (PlayerAttackState)player.StateMachine.CurrentState;
+            var attackState = (PlayerAttackState)player.StateMachine.Machine.CurrentState;
             if (attackState == null) return;
             if (!attackState.IsInHitStop) attackState.EnterHitStop(); // 使用默认配置（0.08s顿帧，完全暂停）
         }

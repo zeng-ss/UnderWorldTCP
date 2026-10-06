@@ -8,16 +8,16 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/HotUpdateScene.unity
     guid: 90f883e239bf55044b93269a4e8cdd09
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/EnterScene.unity
     guid: 4be0d5cc9d6de41478874474b105d3a6
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/StartScene.unity
     guid: 8fba598fffb2d5e41b35bd814ed4ae21
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/LobbyScene.unity
     guid: 8b5829f635718af4b9a268e39db6d4ff
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/GameScene.unity
     guid: 25e279fe79625c64ba540f498110cd42
   m_configObjects:

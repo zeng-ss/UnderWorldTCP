@@ -1,26 +1,21 @@
 using System;
 using UnityEngine;
 
-/// <summary>
-/// 战斗子系统：受击 / 死亡 / 命中判定发起、血量与角色属性管理
-/// （原 PlayerCtrl 的 OnHurt / OnHurtLocal / OnDead / OnHit / ApplyPlayerData 一族）。
-/// </summary>
+// 战斗子系统：受击 / 死亡 / 命中判定发起、血量与角色属性管理
 public class PlayerCombat
 {
     private readonly PlayerCore _core;
     private readonly PlayerStateMachine _stateMachine;
     private readonly PlayerPresentation _presentation;
-    private readonly PlayerNetworkSync _network;
     private readonly PlayerSkillCombo _skillCombo;
     private readonly GameObject _gameObject;
 
     public PlayerCombat(PlayerCore core, PlayerStateMachine stateMachine, PlayerPresentation presentation,
-        PlayerNetworkSync network, PlayerSkillCombo skillCombo, GameObject gameObject)
+        PlayerSkillCombo skillCombo, GameObject gameObject)
     {
         _core = core;
         _stateMachine = stateMachine;
         _presentation = presentation;
-        _network = network;
         _skillCombo = skillCombo;
         _gameObject = gameObject;
     }
@@ -83,7 +78,9 @@ public class PlayerCombat
         if (!_core.IsLocalPlayer) return;
 
         if (_skillCombo.CurAttackIndex == -1) _skillCombo.CurAttackIndex = 0;
-        HitData hitData = _skillCombo.CurSkillConfig.skillConfigs[_skillCombo.CurAttackIndex].hitData;
+        AttackData attackData = _skillCombo.CurrentAttackData;
+        if (attackData == null) return;
+        HitData hitData = attackData.hitData;
         _presentation.PlayHitEffects(hitData, _skillCombo.CurVFXIndex, hurtPos);
         hurt.OnHurt(hitData, hurtSource);
 
@@ -93,7 +90,8 @@ public class PlayerCombat
         {
             bool isExAttack = _stateMachine.CurrentState == PlayerStateType.Ex;
             float baseDamage = isExAttack ? _core.PlayerValueData.ExAttackValue : _core.PlayerValueData.AttackValue;
-            _network.RequestAttack(enemy, baseDamage, _core.PlayerValueData.BaoJiValue, isExAttack);
+            AppContext.Proto.RequestPlayerAttack(AppContext.Session.RoleId, enemy.serverInstanceId, baseDamage,
+                _core.PlayerValueData.BaoJiValue, isExAttack, enemy.OnServerAttackResult);
         }
     }
 

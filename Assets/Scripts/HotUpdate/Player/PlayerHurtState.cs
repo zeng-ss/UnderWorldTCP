@@ -4,7 +4,7 @@ public class PlayerHurtState : PlayerState
 {
     public override void Enter()
     {
-        if (!Player.IsLocalPlayer) return;
+        if (!Player.Core.IsLocalPlayer) return;
         Player.playerModel.SetRootMotionAction(OnRootMotion);
         Player.PlayAnimation("Hurt");
     }
@@ -16,10 +16,10 @@ public class PlayerHurtState : PlayerState
 
     public override void Update()
     {
-        if (!Player.IsLocalPlayer) return;
+        if (!Player.Core.IsLocalPlayer) return;
         if (IsAnimationMoreThanTime("Hurt", 0.5f))
         {
-            Player.ChangeState(PlayerStateType.Idle);
+            Player.StateMachine.ChangeTo(PlayerStateType.Idle);
         }
     }
 

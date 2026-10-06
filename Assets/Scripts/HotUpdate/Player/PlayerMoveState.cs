@@ -21,7 +21,7 @@ public class PlayerMoveState : PlayerState
     
     public override void Enter()
     {
-        if (!Player.IsLocalPlayer) return;
+        if (!Player.Core.IsLocalPlayer) return;
         _lastMoveDirection = Vector3.zero;
         CheckInput();
         if (_hasMovementInput)
@@ -35,20 +35,20 @@ public class PlayerMoveState : PlayerState
 
     public override void Update()
     {
-        if (!Player.IsLocalPlayer) return;
+        if (!Player.Core.IsLocalPlayer) return;
         // 任何独占型面板打开时都锁住玩法输入，状态内部不再需要各自判断
         if (!InputManager.Instance.IsGameplayInputEnabled) return;
         if (InputManager.IsPointerOverBlockingUI())
         {
-            Player.ChangeState(PlayerStateType.Idle);
+            Player.StateMachine.ChangeTo(PlayerStateType.Idle);
             return;
         }
         CheckInput();
         HandleMovementTransitions();
         if (Input.GetKeyDown(KeyCode.Mouse0) || 
-            (Input.GetKeyDown(KeyCode.Mouse1) && Player.CurSkillConfig == Player.SkillConfigList[2]))
+            (Input.GetKeyDown(KeyCode.Mouse1) && Player.SkillCombo.IsCurrent(ComboSet.Heavy)))
         {
-            Player.ChangeState(PlayerStateType.Attack);
+            Player.StateMachine.ChangeTo(PlayerStateType.Attack);
         }
     }
     
@@ -61,7 +61,7 @@ public class PlayerMoveState : PlayerState
         _hasMovementInput = _inputMagnitude > 0.1f;
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-            Player.ChangeState(PlayerStateType.Evade);
+            Player.StateMachine.ChangeTo(PlayerStateType.Evade);
             return;
         }
         // 计算当前移动方向并处理旋转（所有状态都旋转）
@@ -89,7 +89,7 @@ public class PlayerMoveState : PlayerState
     // 处理旋转 - 所有状态都使用平滑旋转
     private Vector3 HandleRotation(float h, float v) 
     {
-        Transform camTransform = Player.CameraTransform?.transform;
+        Transform camTransform = Player.CameraBinder.CameraTransform?.transform;
         Vector3 camForward = camTransform.forward;
         Vector3 camRight = camTransform.right;
         camForward.y = 0;
@@ -147,7 +147,7 @@ public class PlayerMoveState : PlayerState
             case MoveState.RunEnd:
                 if (IsAnimationFinished("Run_End"))
                 {
-                    Player.ChangeState(PlayerStateType.Idle);
+                    Player.StateMachine.ChangeTo(PlayerStateType.Idle);
                 }
                 if (_hasMovementInput)
                 {
@@ -158,7 +158,7 @@ public class PlayerMoveState : PlayerState
             case MoveState.RunStartEnd:
                 if (IsAnimationFinished("Start_End"))
                 {
-                    Player.ChangeState(PlayerStateType.Idle);
+                    Player.StateMachine.ChangeTo(PlayerStateType.Idle);
                 }
                 if (_hasMovementInput)
                 {

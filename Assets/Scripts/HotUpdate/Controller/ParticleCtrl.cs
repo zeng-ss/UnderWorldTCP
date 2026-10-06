@@ -20,7 +20,7 @@ public class ParticleCtrl : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         if (_player == null) return;
-        if (!_player.IsLocalPlayer) return;
+        if (!_player.Core.IsLocalPlayer) return;
         if (!other.CompareTag("enemy")) return;
         // 如果这个敌人还没被伤害过
         if (_damagedEnemies.Add(other.gameObject))

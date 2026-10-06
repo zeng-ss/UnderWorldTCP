@@ -1,12 +1,7 @@
 using DG.Tweening;
 using UnityEngine;
 
-/// <summary>
-/// 输入子系统：玩法按键的注册 / 注销与按键触发的动作
-/// （技能切换、鼠标连招、闪避、拼刀、调试回血）。
-/// 依赖均为单向：共享状态、状态机、连招配置、相机绑定，加上两个组件引用。
-/// 注意：注册 / 注销必须用方法组，不能用 lambda —— lambda 每次生成的委托不相等，注销不掉。
-/// </summary>
+// 输入子系统：玩法按键的注册 / 注销与按键触发的动作
 public class PlayerInputHandler
 {
     private readonly PlayerCore _core;
@@ -47,9 +42,9 @@ public class PlayerInputHandler
         InputManager.Instance.RegisterGameplayKeyDown(KeyCode.E, TryPin);
         InputManager.Instance.RegisterGameplayKeyDown(KeyCode.Alpha6, DebugHeal);
         InputManager.Instance.RegisterGameplayKeyDown(KeyCode.LeftShift, HandleEvade);
-        InputManager.Instance.RegisterGameplayKeyDown(KeyCode.Alpha1, SwitchSkill0);
-        InputManager.Instance.RegisterGameplayKeyDown(KeyCode.Alpha2, SwitchSkill1);
-        InputManager.Instance.RegisterGameplayKeyDown(KeyCode.R, SwitchSkill3);
+        InputManager.Instance.RegisterGameplayKeyDown(KeyCode.Alpha1, SwitchSkillNormal);
+        InputManager.Instance.RegisterGameplayKeyDown(KeyCode.Alpha2, SwitchSkillSecond);
+        InputManager.Instance.RegisterGameplayKeyDown(KeyCode.R, SwitchSkillEx);
         InputManager.Instance.RegisterGameplayMouseDown(0, OnMouse0);
         InputManager.Instance.RegisterGameplayMouseDown(1, OnMouse1);
     }
@@ -59,49 +54,48 @@ public class PlayerInputHandler
         InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.E, TryPin);
         InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.Alpha6, DebugHeal);
         InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.LeftShift, HandleEvade);
-        InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.Alpha1, SwitchSkill0);
-        InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.Alpha2, SwitchSkill1);
-        InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.R, SwitchSkill3);
+        InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.Alpha1, SwitchSkillNormal);
+        InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.Alpha2, SwitchSkillSecond);
+        InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.R, SwitchSkillEx);
         InputManager.Instance.UnregisterGameplayMouseDown(0, OnMouse0);
         InputManager.Instance.UnregisterGameplayMouseDown(1, OnMouse1);
     }
 
     #region 技能连招切换
 
-    private void SwitchSkill0() => SwitchSkillByInput(0);
-    private void SwitchSkill1() => SwitchSkillByInput(1);
-    private void SwitchSkill3() => SwitchSkillByInput(3);
+    private void SwitchSkillNormal() => SwitchSkill(ComboSet.Normal);
+    private void SwitchSkillSecond() => SwitchSkill(ComboSet.Second);
+    private void SwitchSkillEx() => SwitchSkill(ComboSet.Ex);
 
-    private void SwitchSkillByInput(int index)
+    private void SwitchSkill(ComboSet set)
     {
         if (!_core.IsLocalPlayer) return;
-        if (index < 0 || index >= _skillCombo.SkillConfigList.Count) return;
-        if (_skillCombo.CurSkillConfig == _skillCombo.SkillConfigList[index]) return;
+        if (_skillCombo.GetSkillConfig(set) == null) return;
+        if (_skillCombo.IsCurrent(set)) return;
 
-        // 大招（EX）走独立状态，不只是换连招配置
-        if (index == 3)
+        if (set == ComboSet.Ex)
         {
-            _skillCombo.UpdateSkillConfig(3);
+            _skillCombo.UpdateSkillConfig(ComboSet.Ex);
             _stateMachine.ChangeTo(PlayerStateType.Ex);
             return;
         }
 
-        _skillCombo.UpdateSkillConfig(index);
+        _skillCombo.UpdateSkillConfig(set);
     }
 
     private void OnMouse0()
     {
         if (!_core.IsLocalPlayer) return;
-        // 处于第三套连招时，左键切回第一套
-        if (_skillCombo.SkillConfigList.Count > 2 && _skillCombo.CurSkillConfig == _skillCombo.SkillConfigList[2])
-            SwitchSkillByInput(0);
+        // 处于重击连招时，左键切回普攻
+        if (_skillCombo.IsCurrent(ComboSet.Heavy)) SwitchSkill(ComboSet.Normal);
     }
 
     private void OnMouse1()
     {
         if (!_core.IsLocalPlayer) return;
-        if (_skillCombo.SkillConfigList.Count > 2 && _skillCombo.CurSkillConfig != _skillCombo.SkillConfigList[2])
-            _skillCombo.UpdateSkillConfig(2);
+        if (_skillCombo.GetSkillConfig(ComboSet.Heavy) == null) return;
+        if (_skillCombo.IsCurrent(ComboSet.Heavy)) return;
+        _skillCombo.UpdateSkillConfig(ComboSet.Heavy);
     }
 
     #endregion
@@ -138,13 +132,13 @@ public class PlayerInputHandler
         _characterController.enabled = true;
         _cameraBinder.PinCamera.gameObject.SetActive(true);
         _rootTransform.LookAt(_enemy.transform);
-        _skillCombo.UpdateSkillConfig(1, true);
+        _skillCombo.UpdateSkillConfig(ComboSet.Second, true);
         _stateMachine.ChangeTo(PlayerStateType.Attack, true);
     }
 
     #endregion
 
-    /// <summary>调试用回血</summary>
+    // 调试用回血
     private void DebugHeal()
     {
         _core.Health = Mathf.Clamp(_core.Health + 50, 50, _core.MaxHealth);

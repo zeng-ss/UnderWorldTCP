@@ -1,58 +1,41 @@
 using System.Collections.Generic;
 using DamageNumbersPro;
-using Unity.Cinemachine;
 using UnityEngine;
 
-/// <summary>
-/// 玩家控制器：只做子系统装配与对外 API 转发。
-/// 依赖严格单向：PlayerCtrl → 子系统 → PlayerCore（共享状态），
-/// 子系统之间只注入自己依赖的具体类型，互不引用、也不引用本类。
-/// </summary>
+// 玩家控制器：只负责子系统的创建、装配与只读暴露，以及必须由宿主承担的接口实现。
 public class PlayerCtrl : MonoBehaviour, IStateMachineOwner, ISkillOwner, IHurt
 {
-    // —— 共享状态（外部访问或预制体序列化需要）——
+    // —— 自身组件 / 预制体序列化字段 ——
     public CharacterController CharacterController { get; private set; }
-    public Transform CameraTransform => _cameraBinder.CameraTransform;
     public PlayerModel playerModel;
     public float rotationSpeed;
-
-    public bool IsLock
-    {
-        get => _core.IsLock;
-        set => _core.IsLock = value;
-    }
-
     public DamageNumber damageNumber;
-    public CinemachineVirtualCamera VirtualCameraEx => _cameraBinder.VirtualCameraEx;
 
-    public float Health
-    {
-        get => _core.Health;
-        set => _core.Health = value;
-    }
+    [Header("技能连招配置（按序号：0 普攻 / 1 第二套连招 / 2 重击 / 3 EX；拼刀与防御反击复用序号 1）")] [SerializeField]
+    private List<SkillConfig> skillConfigList = new();
 
-    public float MaxHealth
-    {
-        get => _core.MaxHealth;
-        set => _core.MaxHealth = value;
-    }
+    // 跨子系统共享状态
+    public PlayerCore Core { get; private set; }
 
-    public bool IsLocalPlayer
-    {
-        get => _core.IsLocalPlayer;
-        set => _core.IsLocalPlayer = value;
-    }
+    // 表现层：动画 / 音效 / VFX / 受击反馈
+    public PlayerPresentation Presentation { get; private set; }
 
-    // —— 子系统 ——
-    private PlayerPresentation _presentation;
-    private PlayerNetworkSync _network;
-    private PlayerCombat _combat;
-    private PlayerCameraBinder _cameraBinder;
-    private PlayerCore _core;
-    private PlayerInputHandler _input;
-    private PlayerLocomotion _locomotion;
-    private PlayerSkillCombo _skillCombo;
-    private PlayerStateMachine _stateMachine;
+    // 战斗：命中 / 受伤 / 死亡 / 服务端属性
+    public PlayerCombat Combat { get; private set; }
+
+    // 相机绑定
+    public PlayerCameraBinder CameraBinder { get; private set; }
+
+    // 玩法输入注册与按键动作
+    public PlayerInputHandler InputHandler { get; private set; }
+
+    // 移动 / 重力 / 根运动驱动
+    public PlayerLocomotion Locomotion { get; private set; }
+
+    // 技能连招：配置切换、段位与起手
+    public PlayerSkillCombo SkillCombo { get; private set; }
+    public PlayerStateMachine StateMachine { get; private set; }
+
     private bool _isInit;
 
     private void Awake()
@@ -60,94 +43,67 @@ public class PlayerCtrl : MonoBehaviour, IStateMachineOwner, ISkillOwner, IHurt
         CharacterController = GetComponent<CharacterController>();
         playerModel.Init(this);
 
-        _core = new PlayerCore();
-        _presentation = GetComponent<PlayerPresentation>() ?? gameObject.AddComponent<PlayerPresentation>();
-        _presentation.Init(playerModel, damageNumber, transform);
-        _presentation.BindVfxOwner(particle => particle.Init(this));
+        Core = new PlayerCore();
+        Presentation = GetComponent<PlayerPresentation>() ?? gameObject.AddComponent<PlayerPresentation>();
+        Presentation.Init(playerModel, damageNumber, transform);
+        Presentation.BindVfxOwner(particle => particle.Init(this));
 
-        _network = new PlayerNetworkSync();
-        _cameraBinder = new PlayerCameraBinder();
-        _stateMachine = new PlayerStateMachine(_core);
-        _stateMachine.Init(this);
-        _locomotion = new PlayerLocomotion(CharacterController, _stateMachine);
-        _skillCombo = new PlayerSkillCombo(_core, _presentation, _network);
-        _combat = new PlayerCombat(_core, _stateMachine, _presentation, _network, _skillCombo, gameObject);
-        _input = new PlayerInputHandler(_core, _stateMachine, _skillCombo, _cameraBinder, CharacterController,
-            transform);
-        _skillCombo.InitDefault();
+        CameraBinder = new PlayerCameraBinder();
+        StateMachine = new PlayerStateMachine(Core);
+        StateMachine.Init(this);
+        Locomotion = new PlayerLocomotion(CharacterController, StateMachine);
+        SkillCombo = new PlayerSkillCombo(Core, Presentation, skillConfigList);
+        Combat = new PlayerCombat(Core, StateMachine, Presentation, SkillCombo, gameObject);
+        InputHandler =
+            new PlayerInputHandler(Core, StateMachine, SkillCombo, CameraBinder, CharacterController, transform);
+        SkillCombo.InitDefault();
     }
 
     private void Start()
     {
-        if (!IsLocalPlayer) return;
+        if (!Core.IsLocalPlayer) return;
 
-        _combat.InitializeFromServer(AppContext.Session.MainRoleInfo);
-        _cameraBinder.Bind(transform, playerModel.transform);
-        _locomotion.Init();
-        ChangeState(PlayerStateType.Idle);
+        Combat.InitializeFromServer(AppContext.Session.MainRoleInfo);
+        CameraBinder.Bind(transform, playerModel.transform);
+        Locomotion.Init();
+        StateMachine.ChangeTo(PlayerStateType.Idle);
         _isInit = true;
 
-        _input.Register();
-        _combat.RegisterDataListener();
-        _combat.ApplyPlayerData(AppContext.PlayerData.Current.Value);
-        _network.StartPositionSync(transform, playerModel.transform);
+        InputHandler.Register();
+        Combat.RegisterDataListener();
+        Combat.ApplyPlayerData(AppContext.PlayerData.Current.Value);
+        AppContext.Proto.StartPositionSync(transform, AppContext.Session.RoleId, playerModel.transform);
     }
 
     private void Update()
     {
-        if (!IsLocalPlayer || !_isInit || IsLock) return;
-        _locomotion.Tick();
+        if (!Core.IsLocalPlayer || !_isInit || Core.IsLock) return;
+        Locomotion.Tick();
     }
 
     private void OnDestroy()
     {
-        _input?.Unregister();
-        _combat?.UnregisterDataListener();
-        _network?.StopPositionSync();
+        InputHandler?.Unregister();
+        Combat?.UnregisterDataListener();
+        if (AppContext.IsAlive) AppContext.Proto.StopPositionSync();
     }
 
-    // —— 状态机转发 ——
-    public PlayerStateType CurrentState => _stateMachine.CurrentState;
-    public PlayerStateType LastState => _stateMachine.LastState;
-    public StateMachine StateMachine => _stateMachine.Machine;
-
-    public void ChangeState(PlayerStateType stateType, bool isResfeshState = false) =>
-        _stateMachine.ChangeTo(stateType, isResfeshState);
-
-    // —— 技能连招转发 ——
-    public int CurAttackIndex
-    {
-        get => _skillCombo.CurAttackIndex;
-        set => _skillCombo.CurAttackIndex = value;
-    }
-
-    public int CurVFXIndex => _skillCombo.CurVFXIndex;
-    public SkillConfig CurSkillConfig => _skillCombo.CurSkillConfig;
-    public List<SkillConfig> SkillConfigList => _skillCombo.SkillConfigList;
-    public bool CanSwitchSkill => _skillCombo.CanSwitchSkill;
-
-    public void UpdateSkillConfig(int skillIndex, bool isPin = false) =>
-        _skillCombo.UpdateSkillConfig(skillIndex, isPin);
-
-    public void StartSkill(AttackData attackData) => _skillCombo.StartSkill(attackData);
-    public void StartSkillHit(int weaponIndex) => _skillCombo.StartSkillHit(weaponIndex);
-    public void StopSkillHit(int weaponIndex) => _skillCombo.StopSkillHit(weaponIndex);
-    public void SkillCanSwitch() => _skillCombo.SkillCanSwitch();
-
-    public void SpawnRemoteVfx(int skillConfigIndex, int attackIndex, int vfxIndex) =>
-        _skillCombo.SpawnRemoteVfx(skillConfigIndex, attackIndex, vfxIndex);
-
-    // —— 战斗 / 血量转发 ——
-    public void OnHit(IHurt hurt, Vector3 hurtPos) => _combat.OnHit(hurt, hurtPos, this);
-    public void OnHurt(HitData hitData, ISkillOwner hurtSource) => _combat.OnHurt(hitData, hurtSource);
-    public float GetHealth() => Health;
-    public float GetMaxHealth() => MaxHealth;
-
-    // —— 表现 + 联网转发 ——
-    /// <summary>播放动画并同步给服务端</summary>
     public void PlayAnimation(string animationName, float fixedTransitionTime = 0.1f)
     {
-        _presentation.PlayAnimation(animationName, fixedTransitionTime);
-        _network.SyncAnimation(animationName, _skillCombo.CurSkillIndex);
+        Presentation.PlayAnimation(animationName, fixedTransitionTime);
+        AppContext.Proto.RequestSyncAni(AppContext.Session.RoleId, animationName, SkillCombo.CurSkillIndex,
+            ret => AppContext.RemotePlayer.OnSyncAni(ret));
     }
+
+    // 接口实现
+
+    public void StartSkillHit(int weaponIndex) => SkillCombo.StartSkillHit();
+
+    public void StopSkillHit(int weaponIndex) => SkillCombo.StopSkillHit();
+
+    public void SkillCanSwitch() => SkillCombo.SkillCanSwitch();
+
+    public void OnHit(IHurt hurt, Vector3 hurtPos) => Combat.OnHit(hurt, hurtPos, this);
+
+    public void OnHurt(HitData hitData, ISkillOwner hurtSource) => Combat.OnHurt(hitData, hurtSource);
 }

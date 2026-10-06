@@ -8,9 +8,7 @@ using DamageNumbersPro;
 
 public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IStateMachineOwner
 {
-    /// <summary>
-    /// 按服务端实例ID查找敌人（联机时其他人攻击广播更新血量用）
-    /// </summary>
+    // 按服务端实例ID查找敌人（联机时其他人攻击广播更新血量用）
     public static Dictionary<int, EnemyCtrl> Instances = new();
 
     public bool IsLocalEnemy => AppContext.Session.RoleId == roleId;
@@ -32,7 +30,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IStateMachineOwner
     {
         get
         {
-            if (_playerRef == null || _playerRef.CurrentState == PlayerStateType.Dead)
+            if (_playerRef == null || _playerRef.StateMachine.CurrentState == PlayerStateType.Dead)
                 _playerRef = FindNearestPlayer();
             return _playerRef;
         }
@@ -191,7 +189,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IStateMachineOwner
         float minDist = Mathf.Infinity;
         foreach (PlayerCtrl p in allPlayers)
         {
-            if (p.CurrentState == PlayerStateType.Dead) continue;
+            if (p.StateMachine.CurrentState == PlayerStateType.Dead) continue;
             float dis = Vector3.Distance(transform.position, p.transform.position);
             if (dis < minDist)
             {
