@@ -20,13 +20,7 @@ public class PlayerIdleState : PlayerState
         {
             Player.StateMachine.ChangeTo(PlayerStateType.Move);
         }
-
-        if (Input.GetKeyDown(KeyCode.LeftShift)) Player.StateMachine.ChangeTo(PlayerStateType.Evade);
-        if (Input.GetKeyDown(KeyCode.Mouse0)
-            || (Input.GetKeyDown(KeyCode.Mouse1) && Player.SkillCombo.IsCurrent(ComboSet.Heavy)))
-        {
-            Player.StateMachine.ChangeTo(PlayerStateType.Attack);
-        }
+        // 攻击 / 闪避入口已统一由 PlayerInputHandler 走 InputManager 处理，这里不再读键
     }
 
     public override void Exit()

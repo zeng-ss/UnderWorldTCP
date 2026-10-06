@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -69,12 +70,6 @@ public class PlayerAttackState : PlayerState
         float h = Input.GetAxis("Horizontal");
         float v = Input.GetAxis("Vertical");
         bool hasInput = h != 0 || v != 0;
-        if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Alpha2))
-        {
-            Player.SkillCombo.CurAttackIndex = -1; // 重置为-1，自增后正好是0
-            _isRushAttack = false;
-            _isDistanceLocked = false;
-        }
 
         // 如果正在播放 EndAni ，只检测是否播完，不再执行其他逻辑
         if (_isPlayingEndAni)
@@ -128,48 +123,50 @@ public class PlayerAttackState : PlayerState
             return;
         }
 
-        // 中键重击入口：配置标了 isHeavyEntry 的段，按中键直接跳到最后一段
-        if (Player.SkillCombo.CanSwitchSkill && Input.GetKeyDown(KeyCode.Mouse2) && currentData.isHeavyEntry)
+        // 连招决策：消费输入缓冲（按键已由 PlayerInputHandler 走 InputManager 采集入队），
+        // 只在 CanSwitchSkill（可切换窗口）内消费，缓冲解决手速快于/慢于窗口那一帧导致的吞键。
+        if (Player.SkillCombo.CanSwitchSkill &&
+            Player.SkillCombo.TryConsumeAttackInput(out AttackInput attackInput))
         {
-            // 直接切到最后一个重击
-            Player.SkillCombo.CurAttackIndex = _cacheSkillConfig.Count - 1;
-            _playingAttackIndex = Player.SkillCombo.CurAttackIndex;
-            _isDistanceLocked = false;
-            CheckRushAttack();
-            Attack();
-            return;
-        }
+            switch (attackInput)
+            {
+                // 中键重击：配置标了 isHeavyEntry 的段，按中键直接跳到最后一段
+                case AttackInput.HeavyEntry when currentData.isHeavyEntry:
+                    Player.SkillCombo.CurAttackIndex = _cacheSkillConfig.Count - 1;
+                    _playingAttackIndex = Player.SkillCombo.CurAttackIndex;
+                    _isDistanceLocked = false;
+                    CheckRushAttack();
+                    Attack();
+                    return;
 
-        // 右键切重击表（重击入口段自身除外）
-        SkillConfig heavyConfig = Player.SkillCombo.GetSkillConfig(ComboSet.Heavy);
-        if (Player.SkillCombo.CanSwitchSkill && heavyConfig != null &&
-            Input.GetKeyDown(KeyCode.Mouse1) && !currentData.isHeavyEntry)
-        {
-            // 切换到重击配置表
-            Player.SkillCombo.CurAttackIndex++; // 重击配置表第一段
-            _cacheSkillConfig = heavyConfig;
-            _playingAttackIndex = Player.SkillCombo.CurAttackIndex;
-            _isDistanceLocked = false;
-            Attack();
-            return;
-        }
+                // 右键切重击表（重击入口段自身除外）
+                case AttackInput.Heavy:
+                {
+                    SkillConfig heavyConfig = Player.SkillCombo.GetSkillConfig(ComboSet.Heavy);
+                    if (heavyConfig == null || currentData.isHeavyEntry) break;
+                    Player.SkillCombo.CurAttackIndex++; // 重击配置表第一段
+                    _cacheSkillConfig = heavyConfig;
+                    _playingAttackIndex = Player.SkillCombo.CurAttackIndex;
+                    _isDistanceLocked = false;
+                    Attack();
+                    return;
+                }
 
-        // 左键正常连招逻辑：按配置里的 nextAttackIndex 衔接
-        if (Player.SkillCombo.CanSwitchSkill && Input.GetKeyDown(KeyCode.Mouse0) &&
-            !Player.SkillCombo.IsCurrent(ComboSet.Heavy))
-        {
-            // nextAttackIndex >= 0：跳到指定段（Attack04 配 0 即「跳过重击回第一段」）
-            // nextAttackIndex == -1：自增到下一段（超过最后一段会自动回到第一段）
-            Player.SkillCombo.CurAttackIndex = currentData.nextAttackIndex >= 0
-                ? currentData.nextAttackIndex
-                : Player.SkillCombo.CurAttackIndex + 1;
+                // 左键正常连招：按配置里的 nextAttackIndex 衔接
+                case AttackInput.Normal when !Player.SkillCombo.IsCurrent(ComboSet.Heavy):
+                    // nextAttackIndex >= 0：跳到指定段（Attack04 配 0 即「跳过重击回第一段」）
+                    // nextAttackIndex == -1：自增到下一段（超过最后一段会自动回到第一段）
+                    Player.SkillCombo.CurAttackIndex = currentData.nextAttackIndex >= 0
+                        ? currentData.nextAttackIndex
+                        : Player.SkillCombo.CurAttackIndex + 1;
 
-            _playingAttackIndex = Player.SkillCombo.CurAttackIndex;
-            _cacheSkillConfig = Player.SkillCombo.CurSkillConfig;
-            _isDistanceLocked = false;
-            CheckRushAttack();
-            Attack();
-            return;
+                    _playingAttackIndex = Player.SkillCombo.CurAttackIndex;
+                    _cacheSkillConfig = Player.SkillCombo.CurSkillConfig;
+                    _isDistanceLocked = false;
+                    CheckRushAttack();
+                    Attack();
+                    return;
+            }
         }
 
         // 距离锁定后：强制保持与敌人的距离 + 面向，忽略移动输入
@@ -182,38 +179,38 @@ public class PlayerAttackState : PlayerState
 
         // 旋转逻辑（仅无敌人/未锁定时生效，有敌人时强制面向）
         HandRotate(h, v, hasInput);
-        if (Player.SkillCombo.CanSwitchSkill && Input.GetKeyDown(KeyCode.LeftShift))
-            Player.StateMachine.ChangeTo(PlayerStateType.Evade);
     }
 
     #region 顿帧
 
-    // 原有变量保留，新增以下变量
-    public bool IsInHitStop; // 顿帧标记
+    // 顿帧：用栈式嵌套记录时间缩放，重叠顿帧时能正确逐层恢复，避免 _originalTimeScale 存错值
+    public bool IsInHitStop => _hitStopStack.Count > 0; // 是否处于顿帧中
+
     private float _hitStopDuration; // 顿帧持续时间
     private float _hitStopEndTime; // 顿帧结束时间
-
-    private float _originalTimeScale; // 原始动画速度（用于恢复）
 
     // 顿帧强度配置（可调整）
     [Header("顿帧配置")] private float _hitStopTimeScale; // 顿帧时的时间缩放（0=完全暂停，0.1=轻微慢放）
     private readonly float _hitStopDurationDefault = 0.08f; // 顿帧持续时间
     private float _animSpeedDuringHitStop; // 顿帧时动画速度（0=冻结帧）
 
+    // 顿帧栈：每次 EnterHitStop 压入「进入前的 timeScale」，结束逐层弹栈恢复
+    private readonly Stack<float> _hitStopStack = new();
+
     public void EnterHitStop(float duration = 0f, float timeScale = 0f)
     {
         // 避免重复触发顿帧
         AttackData data = CachedAttackData;
-        if (IsInHitStop || data?.vfxDataList == null ||
+        if (data?.vfxDataList == null ||
             Player.SkillCombo.CurVFXIndex < 0 || Player.SkillCombo.CurVFXIndex >= data.vfxDataList.Count ||
             !data.vfxDataList[Player.SkillCombo.CurVFXIndex].isInHitStop)
             return;
-        // 1. 记录原始状态（用于恢复）
-        _originalTimeScale = Time.timeScale;
+
+        // 1. 压栈记录进入前的 timeScale（重叠顿帧时各层记住各层的旧值）
+        _hitStopStack.Push(Time.timeScale);
         _hitStopDuration = duration <= 0 ? _hitStopDurationDefault : duration;
         float targetTimeScale = timeScale <= 0 ? _hitStopTimeScale : timeScale;
         // 2. 启动顿帧
-        IsInHitStop = true;
         _hitStopEndTime = Time.unscaledTime + _hitStopDuration; // 用unscaledTime避免时间缩放影响
         // 3. 真顿帧：暂停全局时间（仅战斗相关，UI不受影响）
         Time.timeScale = targetTimeScale;
@@ -228,12 +225,17 @@ public class PlayerAttackState : PlayerState
         // 用unscaledTime判断顿帧是否结束（不受Time.timeScale影响）
         if (Time.unscaledTime >= _hitStopEndTime)
         {
-            // 1. 恢复时间缩放
-            Time.timeScale = _originalTimeScale;
+            // 1. 弹栈恢复时间缩放：重叠顿帧时回到「上一层进入前的值」，最终恢复到初始值
+            if (_hitStopStack.Count > 0) Time.timeScale = _hitStopStack.Pop();
             // 2. 恢复动画速度（立即恢复，保证跟手）
             Player.playerModel.Animator.speed = 1;
-            // 4. 重置顿帧标记
-            IsInHitStop = false;
+            // 3. 若栈未清空（仍有外层顿帧未结束），保持冻结由外层继续驱动
+            if (_hitStopStack.Count > 0)
+            {
+                Player.playerModel.Animator.speed = _animSpeedDuringHitStop;
+                Player.playerModel.Animator.Update(0);
+                _hitStopEndTime = Time.unscaledTime + _hitStopDuration;
+            }
             return;
         }
 
@@ -255,10 +257,15 @@ public class PlayerAttackState : PlayerState
     private void HandRotate(float h, float v, bool hasInput)
     {
         AttackData data = CachedAttackData;
-        if (data?.vfxDataList == null || Player.SkillCombo.CurVFXIndex < 0 ||
-            Player.SkillCombo.CurVFXIndex >= data.vfxDataList.Count)
-            return;
-        if (!_isDistanceLocked && _targetEnemy is null && data.vfxDataList[Player.SkillCombo.CurVFXIndex].canRotate)
+
+        // 当前段是否允许「无敌人时旋转」：有特效数据时读该段 canRotate，没有特效数据时默认允许旋转。
+        // 旋转是攻击手感的基础，不应因特效配置缺失（如字段改名导致数据丢失）而失效。
+        bool canRotate = true;
+        if (data?.vfxDataList != null && Player.SkillCombo.CurVFXIndex >= 0 &&
+            Player.SkillCombo.CurVFXIndex < data.vfxDataList.Count)
+            canRotate = data.vfxDataList[Player.SkillCombo.CurVFXIndex].canRotate;
+
+        if (!_isDistanceLocked && _targetEnemy is null && canRotate)
         {
             if (!hasInput) return;
             Vector3 input = new Vector3(h, 0, v);
@@ -424,6 +431,7 @@ public class PlayerAttackState : PlayerState
     {
         _isPlayingEndAni = false;
         Player.SkillCombo.CurAttackIndex = 0;
+        Player.SkillCombo.ClearAttackInput(); // 离开攻击状态时清掉残留的缓冲按键
         if (_rushToEnemyCoroutine != null)
         {
             MonoManager.Instance.StopCoroutine(_rushToEnemyCoroutine);

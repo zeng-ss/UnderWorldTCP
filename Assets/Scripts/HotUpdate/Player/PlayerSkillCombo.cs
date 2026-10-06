@@ -1,6 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// 攻击键语义：由输入层（PlayerInputHandler 走 InputManager）采集后写入缓冲，
+// 连招决策（PlayerAttackState）只消费缓冲，不再自己读 Input。
+public enum AttackInput
+{
+    Normal = 0,   // 左键：普通连招接段
+    Heavy = 1,    // 右键：切重击表
+    HeavyEntry = 2, // 中键：普攻到重击入口段时跳到最后一段收尾
+}
+
 // 技能连招子系统：连招配置切换、攻击段 / 特效段位管理、技能起手与远端特效生成。
 // 配置来源：由 PlayerCtrl 在 Inspector 的 skillConfigList 上赋值后注入，
 // 本类不负责加载、也不持有加载逻辑。
@@ -14,6 +23,17 @@ public class PlayerSkillCombo
     private int _curAttackIndex;
     private int _curVFXIndex;
     private int _curSkillIndex;
+
+    // 输入缓冲：记录「按键类型 + 按下时间戳」，解决手速快于/慢于可切换窗口那一帧导致的吞键。
+    // 过期输入会被丢弃；CanSwitchSkill 为 true 时消费最早一条。
+    private struct BufferedInput
+    {
+        public AttackInput Input;
+        public float Time;
+    }
+
+    private readonly Queue<BufferedInput> _inputBuffer = new();
+    private float _inputBufferWindow = 0.3f; // 缓冲有效期（秒），超过视为误触丢弃
 
     public int CurVFXIndex
     {
@@ -175,4 +195,33 @@ public class PlayerSkillCombo
     public void StopSkillHit() => CurVFXIndex++;
 
     public void SkillCanSwitch() => CanSwitchSkill = true;
+
+    #region 攻击输入缓冲
+
+    // 采集一次攻击键按下（由 PlayerInputHandler 走 InputManager 的回调调用）
+    public void EnqueueAttackInput(AttackInput input)
+    {
+        _inputBuffer.Enqueue(new BufferedInput { Input = input, Time = Time.unscaledTime });
+    }
+
+    // 消费最早的一条有效攻击输入；过期输入会被弹出丢弃。返回 false 表示缓冲为空或全过期
+    public bool TryConsumeAttackInput(out AttackInput input)
+    {
+        input = default;
+        // 先清掉过期输入（用 unscaledTime，避免顿帧的 timeScale 影响判定）
+        while (_inputBuffer.Count > 0 &&
+               Time.unscaledTime - _inputBuffer.Peek().Time > _inputBufferWindow)
+        {
+            _inputBuffer.Dequeue();
+        }
+
+        if (_inputBuffer.Count == 0) return false;
+        input = _inputBuffer.Dequeue().Input;
+        return true;
+    }
+
+    // 清空缓冲（进入新攻击段 / 收招 / 切状态时调用，避免旧按键泄漏到下一段）
+    public void ClearAttackInput() => _inputBuffer.Clear();
+
+    #endregion
 }

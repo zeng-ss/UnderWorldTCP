@@ -14,7 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillConfigs:
   - attackAnimationName: AttackEx
-    HitData:
+    endAnimationName: 
+    nextAttackIndex: -1
+    canBeInterruptedByMove: 0
+    interruptibleTime: 0.5
+    isHeavyEntry: 0
+    isRushAttack: 0
+    hitData:
       hitClip: {fileID: 8300000, guid: be7658528d067aa4ab612584504b3060, type: 3}
       hitPrefabs:
       - {fileID: 2981233846487126522, guid: ce5e7abcffa309b44b9b58d64153d78b, type: 3}
@@ -24,9 +30,9 @@ MonoBehaviour:
       chromaticAberrationValue: 1
       vignetteValue: 0
       damageValue: 10
-    VFXDataList:
+    vfxDataList:
     - prefab: {fileID: 1743412021257025471, guid: c258b15b94ddbd948968d0853164edc5, type: 3}
-      VFXClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
+      vfxClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
       spawnPos: {x: 0.21, y: 1.4, z: 0.8}
       spawnRot: {x: 0, y: 180, z: 90}
       spawnScale: {x: 0, y: 0, z: 0}
@@ -34,7 +40,7 @@ MonoBehaviour:
       canRotate: 0
       isInHitStop: 1
     - prefab: {fileID: 1743412021257025471, guid: c258b15b94ddbd948968d0853164edc5, type: 3}
-      VFXClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
+      vfxClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
       spawnPos: {x: 0.21, y: 3.2, z: 0.8}
       spawnRot: {x: 0, y: 180, z: 90}
       spawnScale: {x: 0, y: 0, z: 0}
@@ -42,7 +48,7 @@ MonoBehaviour:
       canRotate: 0
       isInHitStop: 1
     - prefab: {fileID: 5487650720231781904, guid: f5670dc5930535341a1c3debb5c38405, type: 3}
-      VFXClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
+      vfxClip: {fileID: 8300000, guid: 003aa5abacf93a94089bd8c2ef28fff1, type: 3}
       spawnPos: {x: 0, y: 0.4, z: 1.7}
       spawnRot: {x: 0, y: 0, z: 0}
       spawnScale: {x: 0, y: 0, z: 0}

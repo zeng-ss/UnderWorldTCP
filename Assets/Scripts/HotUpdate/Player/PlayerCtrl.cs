@@ -41,9 +41,9 @@ public class PlayerCtrl : MonoBehaviour, IStateMachineOwner, ISkillOwner, IHurt
     private void Awake()
     {
         CharacterController = GetComponent<CharacterController>();
+        Core = new PlayerCore();
         playerModel.Init(this);
 
-        Core = new PlayerCore();
         Presentation = GetComponent<PlayerPresentation>() ?? gameObject.AddComponent<PlayerPresentation>();
         Presentation.Init(playerModel, damageNumber, transform);
         Presentation.BindVfxOwner(particle => particle.Init(this));

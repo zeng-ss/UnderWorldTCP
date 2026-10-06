@@ -47,6 +47,7 @@ public class PlayerInputHandler
         InputManager.Instance.RegisterGameplayKeyDown(KeyCode.R, SwitchSkillEx);
         InputManager.Instance.RegisterGameplayMouseDown(0, OnMouse0);
         InputManager.Instance.RegisterGameplayMouseDown(1, OnMouse1);
+        InputManager.Instance.RegisterGameplayMouseDown(2, OnMouse2);
     }
 
     public void Unregister()
@@ -59,6 +60,7 @@ public class PlayerInputHandler
         InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.R, SwitchSkillEx);
         InputManager.Instance.UnregisterGameplayMouseDown(0, OnMouse0);
         InputManager.Instance.UnregisterGameplayMouseDown(1, OnMouse1);
+        InputManager.Instance.UnregisterGameplayMouseDown(2, OnMouse2);
     }
 
     #region 技能连招切换
@@ -86,16 +88,51 @@ public class PlayerInputHandler
     private void OnMouse0()
     {
         if (!_core.IsLocalPlayer) return;
-        // 处于重击连招时，左键切回普攻
+        // 处于重击连招时，左键先切回普攻表（切表动作）
         if (_skillCombo.IsCurrent(ComboSet.Heavy)) SwitchSkill(ComboSet.Normal);
+        // 不在攻击状态则进入攻击；已在攻击中则只写缓冲，接段交给 AttackState 消费
+        TryEnterAttack();
+        _skillCombo.EnqueueAttackInput(AttackInput.Normal);
     }
 
     private void OnMouse1()
     {
         if (!_core.IsLocalPlayer) return;
         if (_skillCombo.GetSkillConfig(ComboSet.Heavy) == null) return;
-        if (_skillCombo.IsCurrent(ComboSet.Heavy)) return;
-        _skillCombo.UpdateSkillConfig(ComboSet.Heavy);
+
+        // 攻击中：只写缓冲，切重击表 + 段内衔接交给 AttackState 决策
+        if (_stateMachine.CurrentState == PlayerStateType.Attack)
+        {
+            _skillCombo.EnqueueAttackInput(AttackInput.Heavy);
+            return;
+        }
+
+        // 非攻击状态：
+        // 已在重击表 → 右键起手进入攻击（等价 Idle/Move 里「重击状态下右键」）
+        // 不在重击表 → 仅切重击表，不立即攻击
+        if (_skillCombo.IsCurrent(ComboSet.Heavy))
+        {
+            TryEnterAttack();
+            _skillCombo.EnqueueAttackInput(AttackInput.Heavy);
+        }
+        else
+        {
+            _skillCombo.UpdateSkillConfig(ComboSet.Heavy);
+        }
+    }
+
+    private void OnMouse2()
+    {
+        if (!_core.IsLocalPlayer) return;
+        // 中键重击：只在攻击段内有意义，采集入缓冲，是否命中「重击入口段」由 AttackState 决策
+        _skillCombo.EnqueueAttackInput(AttackInput.HeavyEntry);
+    }
+
+    // 非攻击状态时进入攻击状态（Idle / Move 的「攻击入口」统一收口到这里）
+    private void TryEnterAttack()
+    {
+        if (_stateMachine.CurrentState != PlayerStateType.Attack)
+            _stateMachine.ChangeTo(PlayerStateType.Attack);
     }
 
     #endregion
@@ -148,6 +185,14 @@ public class PlayerInputHandler
 
     private void HandleEvade()
     {
+        // 已在闪避中：再按 Shift 走连闪（重新播 Evade 动画），而不是重复切状态
+        if (_stateMachine.CurrentState == PlayerStateType.Evade)
+        {
+            if (_stateMachine.Machine.CurrentState is PlayerEvadeState evade)
+                evade.RefreshEvade();
+            return;
+        }
+
         _isShiftDoubleTap = Time.time - _lastShiftPressTime < DoubleTapInterval;
 
         _stateMachine.ChangeTo(PlayerStateType.Evade);

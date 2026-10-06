@@ -43,15 +43,17 @@ public class PlayerEvadeState : PlayerState
 
         if (IsAnimationMoreThanTime("Evade", 0.3f))
         {
-            if (Input.GetKeyDown(KeyCode.LeftShift))
-            {
-                Player.PlayAnimation("Evade");
-            }
-            else if (h != 0 || v != 0)
+            if (h != 0 || v != 0)
             {
                 Player.StateMachine.ChangeTo(PlayerStateType.Move);
             }
         }
+    }
+
+    // 闪避中再次按 Shift 连闪：由 PlayerInputHandler 在已是 Evade 状态时调用
+    public void RefreshEvade()
+    {
+        Player.PlayAnimation("Evade");
     }
 
     public void SetEvade(bool isShiftDoubleTap)

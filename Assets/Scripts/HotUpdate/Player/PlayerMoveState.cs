@@ -45,11 +45,7 @@ public class PlayerMoveState : PlayerState
         }
         CheckInput();
         HandleMovementTransitions();
-        if (Input.GetKeyDown(KeyCode.Mouse0) || 
-            (Input.GetKeyDown(KeyCode.Mouse1) && Player.SkillCombo.IsCurrent(ComboSet.Heavy)))
-        {
-            Player.StateMachine.ChangeTo(PlayerStateType.Attack);
-        }
+        // 攻击 / 闪避入口已统一由 PlayerInputHandler 走 InputManager 处理，这里不再读键
     }
     
     private void CheckInput()
@@ -59,11 +55,6 @@ public class PlayerMoveState : PlayerState
         
         _inputMagnitude = new Vector2(horizontal, vertical).magnitude;
         _hasMovementInput = _inputMagnitude > 0.1f;
-        if (Input.GetKeyDown(KeyCode.LeftShift))
-        {
-            Player.StateMachine.ChangeTo(PlayerStateType.Evade);
-            return;
-        }
         // 计算当前移动方向并处理旋转（所有状态都旋转）
         _currentMoveDir = HandleRotation(horizontal, vertical);
         
