@@ -5,53 +5,53 @@ using System;
 /// </summary>
 public class MonoManager : UnitySingleTonMono<MonoManager>
 {
-    private Action updateAction;
-    private Action lateUpdateAction;
-    private Action FixedUpdateAction;
+    private Action _updateAction;
+    private Action _lateUpdateAction;
+    private Action _fixedUpdateAction;
 
     public void AddUpdateListener(Action action)
     {
-        updateAction += action;
+        _updateAction += action;
     }
 
     public void RemoveUpdateListener(Action action)
     {
-        updateAction -= action;
+        _updateAction -= action;
     }
 
     public void AddFixedUpdateListener(Action action)
     {
-        FixedUpdateAction += action;
+        _fixedUpdateAction += action;
     }
 
     public void RemoveFixedUpdateListener(Action action)
     {
-        FixedUpdateAction -= action;
+        _fixedUpdateAction -= action;
     }
 
     public void AddLateUpdateListener(Action action)
     {
-        lateUpdateAction += action;
+        _lateUpdateAction += action;
     }
 
     public void RemoveLateUpdateListener(Action action)
     {
-        lateUpdateAction -= action;
+        _lateUpdateAction -= action;
     }
 
 
     private void Update()
     {
-        updateAction?.Invoke();
+        _updateAction?.Invoke();
     }
 
     private void LateUpdate()
     {
-        lateUpdateAction?.Invoke();
+        _lateUpdateAction?.Invoke();
     }
 
     private void FixedUpdate()
     {
-        FixedUpdateAction?.Invoke();
+        _fixedUpdateAction?.Invoke();
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 ///
 /// 依赖方向单向：本面板 new 并持有 Controller，Controller 不认识本面板。
 /// </summary>
-[PanelPath("Assets/Res/UI/UIPanel/RegisterPanel")]
+[PanelPath("RegisterPanel")]
 public class RegisterPanel : BasePanel
 {
     public Text account;

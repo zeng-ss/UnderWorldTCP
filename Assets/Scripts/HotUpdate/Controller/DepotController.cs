@@ -41,7 +41,7 @@ public class DepotController
             return;
         }
 
-        foreach (var materialId in item.materialsId)
+        foreach (var materialId in item.MaterialsId)
         {
             AppContext.Material.TryConsume(materialId);
         }

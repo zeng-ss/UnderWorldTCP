@@ -12,7 +12,7 @@ public class TaskService
     /// <summary>当前所有任务的运行时数据</summary>
     public List<TaskDataRuntime> Tasks { get; } = new List<TaskDataRuntime>();
 
-    public void Init(TaskDataConfigSO config)
+    public void Init(TaskDataConfigSo config)
     {
         Tasks.Clear();
         if (config == null || config.taskDataList == null) return;
@@ -27,7 +27,7 @@ public class TaskService
     {
         foreach (var task in Tasks)
         {
-            if (task.taskId == taskId) return task;
+            if (task.TaskId == taskId) return task;
         }
 
         return null;
@@ -39,8 +39,8 @@ public class TaskService
     public bool Unlock(int taskId)
     {
         var task = GetById(taskId);
-        if (task == null || task.isUnlock) return false;
-        task.isUnlock = true;
+        if (task == null || task.IsUnlock) return false;
+        task.IsUnlock = true;
         NotifyTaskChanged(taskId);
         return true;
     }
@@ -68,16 +68,16 @@ public class TaskService
 
         foreach (var task in Tasks)
         {
-            if (task.isFinished || !task.isUnlock || task.taskType != taskType) continue;
+            if (task.IsFinished || !task.IsUnlock || task.TaskType != taskType) continue;
 
-            int oldCount = task.currentCount;
-            task.currentCount += addCount;
-            if (task.currentCount > task.targetCount) task.currentCount = task.targetCount;
+            int oldCount = task.CurrentCount;
+            task.CurrentCount += addCount;
+            if (task.CurrentCount > task.TargetCount) task.CurrentCount = task.TargetCount;
 
-            if (task.currentCount != oldCount)
+            if (task.CurrentCount != oldCount)
             {
                 changed = true;
-                changedTaskId = task.taskId;
+                changedTaskId = task.TaskId;
             }
         }
 
@@ -91,7 +91,7 @@ public class TaskService
 
     public bool CanFinish(TaskDataRuntime task)
     {
-        return task != null && !task.isFinished && task.currentCount >= task.targetCount;
+        return task != null && !task.IsFinished && task.CurrentCount >= task.TargetCount;
     }
 
     /// <summary>
@@ -105,20 +105,20 @@ public class TaskService
         rewardDescription = string.Empty;
         if (!CanFinish(task)) return false;
 
-        task.isFinished = true;
+        task.IsFinished = true;
         AppContext.Story.Advance();
 
         // 首个主线任务固定给 1 个驱动盘，其余随机给 1~2 个
-        bool giveFixedCount = task.taskType == TaskType.击败第一个敌人;
+        bool giveFixedCount = task.TaskType == TaskType.击败第一个敌人;
         string des = "获得奖励\n";
-        if (task.taskReward != null)
+        if (task.TaskReward != null)
         {
-            des += task.taskReward.AddDepotNum(giveFixedCount);
-            des += task.taskReward.AddMaterialNum();
+            des += task.TaskReward.AddDepotNum(giveFixedCount);
+            des += task.TaskReward.AddMaterialNum();
         }
 
         rewardDescription = des;
-        NotifyTaskChanged(task.taskId);
+        NotifyTaskChanged(task.TaskId);
         return true;
     }
 

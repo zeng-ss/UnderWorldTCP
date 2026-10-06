@@ -24,7 +24,7 @@ public class MaterialService
         return materialId == 1 ? 10 : 1;
     }
 
-    public void Init(MaterialDataSO config)
+    public void Init(MaterialDataSo config)
     {
         _runtime.Clear();
         _counts.Clear();
@@ -34,8 +34,8 @@ public class MaterialService
         {
             if (material == null) continue;
             var runtime = new MaterialDataRuntime(material);
-            _runtime[runtime.id] = runtime;
-            _counts[runtime.id] = 0;
+            _runtime[runtime.ID] = runtime;
+            _counts[runtime.ID] = 0;
         }
     }
 

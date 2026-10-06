@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 /// <summary>
@@ -11,10 +12,10 @@ using UnityEngine.UI;
 /// 依赖方向是单向的：本面板持有 Controller 实例（自己 new），
 /// Controller 不认识本面板，服务器列表通过 ServerListChanged 事件送回来。
 /// </summary>
-[PanelPath("Assets/Res/UI/UIPanel/LoginPanel")]
+[PanelPath("LoginPanel")]
 public class LoginPanel : BasePanel
 {
-    public Text StateText;
+    [FormerlySerializedAs("StateText")] public Text stateText;
     public Dropdown dropdown;
     public Button loginBtn;
     public Button registerBtn;
@@ -61,8 +62,8 @@ public class LoginPanel : BasePanel
         dropdown.value = a.SelectedIndex;
         _syncingDropdown = false;
 
-        StateText.text = a.StateText;
-        StateText.color = a.StateColor;
+        stateText.text = a.StateText;
+        stateText.color = a.StateColor;
     }
 
     #endregion

@@ -17,13 +17,13 @@ public class DialogueController : MonoBehaviour
     public DialogueSide rightSide;    // 右侧（NPC/其他人）
     
     [Header("动画设置")]
-    private float sideEnterDuration = 0.5f;
-    private float sideExitDuration = 0.3f;
-    private Ease enterEase = Ease.OutCubic;
-    private Ease exitEase = Ease.InCubic;
+    private float _sideEnterDuration = 0.5f;
+    private float _sideExitDuration = 0.3f;
+    private Ease _enterEase = Ease.OutCubic;
+    private Ease _exitEase = Ease.InCubic;
     
-    private DialogueSide currentActiveSide;
-    private Tween currentSideTween;
+    private DialogueSide _currentActiveSide;
+    private Tween _currentSideTween;
     
     private void Awake() { InitializeSides(); }
     
@@ -67,19 +67,19 @@ public class DialogueController : MonoBehaviour
         DialogueSide targetSide = isPlayer ? leftSide : rightSide;
         DialogueSide otherSide = isPlayer ? rightSide : leftSide;
         // 如果已经在显示目标侧，直接返回
-        if (targetSide.isActive && currentActiveSide == targetSide)
+        if (targetSide.isActive && _currentActiveSide == targetSide)
         {
             onComplete?.Invoke();
             return;
         }
         // 停止当前动画
-        currentSideTween?.Kill();
+        _currentSideTween?.Kill();
         Sequence sequence = DOTween.Sequence();
         // 如果另一侧正在显示，先淡出
         if (otherSide.isActive && otherSide.canvasGroup != null)
         {
-            sequence.Append(otherSide.canvasGroup.DOFade(0, sideExitDuration)
-                .SetEase(exitEase));
+            sequence.Append(otherSide.canvasGroup.DOFade(0, _sideExitDuration)
+                .SetEase(_exitEase));
             otherSide.isActive = false;
         }
         // 显示目标侧
@@ -89,30 +89,30 @@ public class DialogueController : MonoBehaviour
             if (rect != null)
             {
                 // 进入动画：从屏幕外滑入
-                sequence.Append(rect.DOAnchorPosX(0, sideEnterDuration)
-                    .SetEase(enterEase));
+                sequence.Append(rect.DOAnchorPosX(0, _sideEnterDuration)
+                    .SetEase(_enterEase));
             }
         }
         // 淡入
         if (targetSide.canvasGroup != null)
         {
-            sequence.Join(targetSide.canvasGroup.DOFade(1, sideEnterDuration));
+            sequence.Join(targetSide.canvasGroup.DOFade(1, _sideEnterDuration));
         }
         // 头像强调动画
         if (targetSide.portraitArea != null)
         {
             targetSide.portraitArea.localScale = Vector3.one * 0.9f;
-            sequence.Join(targetSide.portraitArea.DOScale(Vector3.one, sideEnterDuration * 0.8f)
+            sequence.Join(targetSide.portraitArea.DOScale(Vector3.one, _sideEnterDuration * 0.8f)
                 .SetEase(Ease.OutBack));
         }
         sequence.OnComplete(() =>
         {
             targetSide.isActive = true;
-            currentActiveSide = targetSide;
+            _currentActiveSide = targetSide;
             onComplete?.Invoke();
         });
-        currentSideTween = sequence;
-        currentSideTween.Play();
+        _currentSideTween = sequence;
+        _currentSideTween.Play();
     }
     
     /// <summary>
@@ -121,33 +121,33 @@ public class DialogueController : MonoBehaviour
     public void HideAllSides(System.Action onComplete = null)
     {
         // 停止当前动画
-        currentSideTween?.Kill();
+        _currentSideTween?.Kill();
         Sequence sequence = DOTween.Sequence();
         // 淡出左侧
         if (leftSide.canvasGroup != null && leftSide.canvasGroup.alpha > 0)
         {
-            sequence.Join(leftSide.canvasGroup.DOFade(0, sideExitDuration));
+            sequence.Join(leftSide.canvasGroup.DOFade(0, _sideExitDuration));
             // 滑出屏幕
             if (leftSide.rootObject != null)
             {
                 RectTransform rect = leftSide.rootObject.GetComponent<RectTransform>();
                 if (rect != null)
                 {
-                    sequence.Join(rect.DOAnchorPosX(-rect.rect.width, sideExitDuration));
+                    sequence.Join(rect.DOAnchorPosX(-rect.rect.width, _sideExitDuration));
                 }
             }
         }
         //淡出右侧
         if (rightSide.canvasGroup != null && rightSide.canvasGroup.alpha > 0)
         {
-            sequence.Join(rightSide.canvasGroup.DOFade(0, sideExitDuration));
+            sequence.Join(rightSide.canvasGroup.DOFade(0, _sideExitDuration));
             // 滑出屏幕
             if (rightSide.rootObject != null)
             {
                 RectTransform rect = rightSide.rootObject.GetComponent<RectTransform>();
                 if (rect != null)
                 {
-                    sequence.Join(rect.DOAnchorPosX(rect.rect.width, sideExitDuration));
+                    sequence.Join(rect.DOAnchorPosX(rect.rect.width, _sideExitDuration));
                 }
             }
         }
@@ -155,7 +155,7 @@ public class DialogueController : MonoBehaviour
         {
             leftSide.isActive = false;
             rightSide.isActive = false;
-            currentActiveSide = null;
+            _currentActiveSide = null;
             onComplete?.Invoke();
         });
         sequence.Play();
@@ -164,7 +164,7 @@ public class DialogueController : MonoBehaviour
     /// <summary>
     /// 获取当前激活的侧边
     /// </summary>
-    public DialogueSide GetActiveSide() { return currentActiveSide; }
+    public DialogueSide GetActiveSide() { return _currentActiveSide; }
     
     /// <summary>
     /// 检查指定侧边是否激活

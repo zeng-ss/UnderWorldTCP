@@ -5,7 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-[PanelPath("Assets/Res/UI/UIPanel/ImprovePanel")]
+[PanelPath("ImprovePanel")]
 public class ImprovePanel : BasePanel
 {
     #region 详情界面UI组件
@@ -73,18 +73,18 @@ public class ImprovePanel : BasePanel
     {
         if (_currentDriverDiskData == null) return;
         fillImage.fillAmount = _currentDriverDiskData.GetLevelProgress();
-        fillText.text = $"{_currentDriverDiskData.curLevelFillValue}/{_currentDriverDiskData.curLevelMaxFill}";
-        depotLevelText.text = $"等级：{_currentDriverDiskData.level}/15";
+        fillText.text = $"{_currentDriverDiskData.CurLevelFillValue}/{_currentDriverDiskData.CurLevelMaxFill}";
+        depotLevelText.text = $"等级：{_currentDriverDiskData.Level}/15";
         UpdateMaterialNum();
     }
     // 更新面板信息
     public void UpdateData(DriverDiskDataRuntime driverDiskData)
     {
         _currentDriverDiskData = driverDiskData;
-        depotName.text = driverDiskData.depotName;
-        AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
+        depotName.text = driverDiskData.DepotName;
+        AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.DepotIconName}",
             sprite => { if (depotIcon) depotIcon.sprite = sprite; });
-        depotLevelText.text = $"等级：{driverDiskData.level.ToString()}/15";
+        depotLevelText.text = $"等级：{driverDiskData.Level.ToString()}/15";
         depotBaseTypeText.text = GetDepotType(driverDiskData.DepotDriverDiskValue.driverDiskType);
         depotBaseText.text = driverDiskData.DepotDriverDiskValue.baseValue.ToString();
         depotAttackText.text = $"{driverDiskData.DepotDriverDiskValue.attackPercent}%";
@@ -92,7 +92,7 @@ public class ImprovePanel : BasePanel
         depotDefenseText.text = $"{driverDiskData.DepotDriverDiskValue.defensePercent}%";
         depotBaoJiText.text = $"{driverDiskData.DepotDriverDiskValue.baoJiPercent}%";
         fillImage.fillAmount = driverDiskData.GetLevelProgress();
-        fillText.text = $"{driverDiskData.curLevelFillValue}/{driverDiskData.curLevelMaxFill}";
+        fillText.text = $"{driverDiskData.CurLevelFillValue}/{driverDiskData.CurLevelMaxFill}";
         CreateMaterialIcon();
     }
     private string GetDepotType(DriverDiskType driverDiskType)
@@ -107,18 +107,18 @@ public class ImprovePanel : BasePanel
         };
     }
 
-    private Dictionary<int, TextMeshProUGUI> materialNumTextDict = new();
+    private Dictionary<int, TextMeshProUGUI> _materialNumTextDict = new();
     private void CreateMaterialIcon()
     {
         if (_currentDriverDiskData == null) { return; }
-        materialNumTextDict.Clear();
+        _materialNumTextDict.Clear();
         for (int i = 0; i < iconsContainer.transform.childCount; i++) { Destroy(iconsContainer.transform.GetChild(i).gameObject); }
         foreach (var item in AppContext.Material.RuntimeData)
         {
-            if (!_currentDriverDiskData.materialsId.Contains(item.Key)) continue;
+            if (!_currentDriverDiskData.MaterialsId.Contains(item.Key)) continue;
             var obj = new GameObject("materialIcon", typeof(Image));
             obj.transform.SetParent(iconsContainer.transform);
-            string iconName = AppContext.Material.RuntimeData[item.Key].materialIconName;
+            string iconName = AppContext.Material.RuntimeData[item.Key].MaterialIconName;
             Image materialIcon = obj.GetComponent<Image>();
             AppContext.Res.LoadSpriteAsync($"Res/{iconName}",
                 sprite => { if (materialIcon) materialIcon.sprite = sprite; });
@@ -141,12 +141,12 @@ public class ImprovePanel : BasePanel
             countRect.pivot = new Vector2(1, 1);
             countRect.anchoredPosition = new Vector2(10, 10);
             countRect.sizeDelta = new Vector2(30, 30);
-            materialNumTextDict.Add(item.Key, countText);
+            _materialNumTextDict.Add(item.Key, countText);
         }
     }
     private void UpdateMaterialNum()
     {
-        foreach (var item in materialNumTextDict)
+        foreach (var item in _materialNumTextDict)
         {
             item.Value.text = AppContext.Material.GetCount(item.Key).ToString();
         }

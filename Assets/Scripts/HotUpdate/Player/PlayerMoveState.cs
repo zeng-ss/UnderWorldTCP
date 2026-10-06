@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class PlayerMoveState : Player_State
+public class PlayerMoveState : PlayerState
 {
     private enum MoveState
     {
@@ -21,34 +21,34 @@ public class PlayerMoveState : Player_State
     
     public override void Enter()
     {
-        if (!_player.IsLocalPlayer) return;
+        if (!Player.IsLocalPlayer) return;
         _lastMoveDirection = Vector3.zero;
         CheckInput();
         if (_hasMovementInput)
         {
             TransitionToState(MoveState.RunStart);
         }
-        _player.playerModel.SetRootMotionAction(OnRootMation);
+        Player.playerModel.SetRootMotionAction(OnRootMation);
     }
 
-    private void OnRootMation(Vector3 arg1, Quaternion arg2) { _player.CharacterController.Move(arg1); }
+    private void OnRootMation(Vector3 arg1, Quaternion arg2) { Player.CharacterController.Move(arg1); }
 
     public override void Update()
     {
-        if (!_player.IsLocalPlayer) return;
+        if (!Player.IsLocalPlayer) return;
         // 任何独占型面板打开时都锁住玩法输入，状态内部不再需要各自判断
         if (!InputManager.Instance.IsGameplayInputEnabled) return;
         if (InputManager.IsPointerOverBlockingUI())
         {
-            _player.ChangeState(PlayerStateType.Idle);
+            Player.ChangeState(PlayerStateType.Idle);
             return;
         }
         CheckInput();
         HandleMovementTransitions();
         if (Input.GetKeyDown(KeyCode.Mouse0) || 
-            (Input.GetKeyDown(KeyCode.Mouse1) && _player.CurSkillConfig == _player.SkillConfigList[2]))
+            (Input.GetKeyDown(KeyCode.Mouse1) && Player.CurSkillConfig == Player.SkillConfigList[2]))
         {
-            _player.ChangeState(PlayerStateType.Attack);
+            Player.ChangeState(PlayerStateType.Attack);
         }
     }
     
@@ -61,7 +61,7 @@ public class PlayerMoveState : Player_State
         _hasMovementInput = _inputMagnitude > 0.1f;
         if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-            _player.ChangeState(PlayerStateType.Evade);
+            Player.ChangeState(PlayerStateType.Evade);
             return;
         }
         // 计算当前移动方向并处理旋转（所有状态都旋转）
@@ -89,7 +89,7 @@ public class PlayerMoveState : Player_State
     // 处理旋转 - 所有状态都使用平滑旋转
     private Vector3 HandleRotation(float h, float v) 
     {
-        Transform camTransform = _player.CameraTransform?.transform;
+        Transform camTransform = Player.CameraTransform?.transform;
         Vector3 camForward = camTransform.forward;
         Vector3 camRight = camTransform.right;
         camForward.y = 0;
@@ -106,14 +106,14 @@ public class PlayerMoveState : Player_State
             // 转身状态直接瞬间转向，其他状态平滑旋转
             if (_currentMoveState == MoveState.TurnBack)
             {
-                _player.playerModel.transform.rotation = targetRotation;
+                Player.playerModel.transform.rotation = targetRotation;
             }
             else
             {
-                _player.playerModel.transform.rotation = Quaternion.Slerp(
-                    _player.playerModel.transform.rotation, 
+                Player.playerModel.transform.rotation = Quaternion.Slerp(
+                    Player.playerModel.transform.rotation, 
                     targetRotation,
-                    _player.rotationSpeed * Time.deltaTime
+                    Player.rotationSpeed * Time.deltaTime
                 );
             }
         }
@@ -147,7 +147,7 @@ public class PlayerMoveState : Player_State
             case MoveState.RunEnd:
                 if (IsAnimationFinished("Run_End"))
                 {
-                    _player.ChangeState(PlayerStateType.Idle);
+                    Player.ChangeState(PlayerStateType.Idle);
                 }
                 if (_hasMovementInput)
                 {
@@ -158,7 +158,7 @@ public class PlayerMoveState : Player_State
             case MoveState.RunStartEnd:
                 if (IsAnimationFinished("Start_End"))
                 {
-                    _player.ChangeState(PlayerStateType.Idle);
+                    Player.ChangeState(PlayerStateType.Idle);
                 }
                 if (_hasMovementInput)
                 {
@@ -189,25 +189,25 @@ public class PlayerMoveState : Player_State
         switch (newState)
         {
             case MoveState.RunStart:
-                _player.PlayAnimation("Run_Start");
+                Player.PlayAnimation("Run_Start");
                 break;
             case MoveState.Run:
-                _player.PlayAnimation("Run");
+                Player.PlayAnimation("Run");
                 break;
             case MoveState.RunEnd:
-                _player.PlayAnimation("Run_End");
+                Player.PlayAnimation("Run_End");
                 break;
             case MoveState.RunStartEnd:
-                _player.PlayAnimation("Start_End");
+                Player.PlayAnimation("Start_End");
                 break;
             case MoveState.TurnBack:
-                _player.PlayAnimation("Turn_Back");
+                Player.PlayAnimation("Turn_Back");
                 break;
         }
     }
 
     public override void Exit()
     {
-        _player.playerModel.ClearRootMotionAction();
+        Player.playerModel.ClearRootMotionAction();
     }
 }

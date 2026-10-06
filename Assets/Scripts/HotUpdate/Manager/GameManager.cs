@@ -1,15 +1,16 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 /// <summary>
 /// 游戏组合根
 /// </summary>
 public class GameManager : UnitySingleTonMono<GameManager>
 {
-    [Header("静态配置")] [SerializeField] private MaterialDataSO materialData;
-    [SerializeField] private DepotConfig depotConfig;
-    [Header("当前解锁的任务列表")] [SerializeField] private TaskDataConfigSO taskConfigSo;
-    private PlayerValueData _basePlayerValueData;
     private AppContext _appContext;
+    [FormerlySerializedAs("_depotConfig")] [SerializeField] private DepotConfig depotConfig;
+    [FormerlySerializedAs("_materialData")] [SerializeField] private MaterialDataSo materialData;
+    [FormerlySerializedAs("_taskConfigSo")] [SerializeField] private TaskDataConfigSo taskConfigSo;
+    private PlayerValueData _basePlayerValueData;
 
     public override void Awake()
     {

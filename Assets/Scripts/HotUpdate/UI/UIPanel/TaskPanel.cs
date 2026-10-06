@@ -3,42 +3,42 @@ using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
 
-[PanelPath("Assets/Res/UI/UIPanel/TaskPanel")]
+[PanelPath("TaskPanel")]
 public class TaskPanel : BasePanel
 {
     [Header("任务面板UI组件")]
     public Transform taskContent;       // 任务项父物体
     
     // DOTween动画配置 
-    Tweener openTweener;
-    private float panelShowDuration = 0.3f;  // 面板打开/关闭动画时长
-    private Ease panelEase = Ease.OutQuad;   // 面板动画曲线，丝滑回弹
+    Tweener _openTweener;
+    private float _panelShowDuration = 0.3f;  // 面板打开/关闭动画时长
+    private Ease _panelEase = Ease.OutQuad;   // 面板动画曲线，丝滑回弹
     
-    private float itemDelayInterval = 0.1f;  // 任务项逐个弹出的间隔
-    private CanvasGroup taskCanvasGroup;     // 面板显隐用 CanvasGroup
+    private float _itemDelayInterval = 0.1f;  // 任务项逐个弹出的间隔
+    private CanvasGroup _taskCanvasGroup;     // 面板显隐用 CanvasGroup
 
     protected override void Awake()
     {
         base.Awake();
-        taskCanvasGroup = GetComponent<CanvasGroup>();
+        _taskCanvasGroup = GetComponent<CanvasGroup>();
         // 初始状态 - Y轴缩放为0（卷起状态）
         transform.localScale = new Vector3(1, 0, 1);
-        taskCanvasGroup.alpha = 0;
-        taskCanvasGroup.blocksRaycasts = false;
+        _taskCanvasGroup.alpha = 0;
+        _taskCanvasGroup.blocksRaycasts = false;
         ClearAllTaskItem();
     }
 
     private void OnEnable()
     {
-        taskCanvasGroup.blocksRaycasts = true;
-        taskCanvasGroup.interactable = true;
+        _taskCanvasGroup.blocksRaycasts = true;
+        _taskCanvasGroup.interactable = true;
         // 重置为卷起状态
         transform.localScale = new Vector3(1, 0, 1);
-        taskCanvasGroup.alpha = 0;
+        _taskCanvasGroup.alpha = 0;
         // 卷轴打开动画：Y轴从0到1 + 淡入
         Sequence sequence = DOTween.Sequence();
-        sequence.Join(transform.DOScaleY(1, panelShowDuration).SetEase(panelEase));
-        sequence.Join(taskCanvasGroup.DOFade(1, panelShowDuration).SetEase(panelEase));
+        sequence.Join(transform.DOScaleY(1, _panelShowDuration).SetEase(_panelEase));
+        sequence.Join(_taskCanvasGroup.DOFade(1, _panelShowDuration).SetEase(_panelEase));
 
         // Model → View：数据一变自己刷新，不需要 Controller 反过来调面板
         AppContext.Events.AddEventListener(GameEvent.TaskChanged, OnTaskChanged);
@@ -57,11 +57,11 @@ public class TaskPanel : BasePanel
 
     public void ClosePanel()
     {
-        openTweener?.Kill();
+        _openTweener?.Kill();
         // 卷轴关闭动画：Y轴从1到0 + 淡出
         Sequence sequence = DOTween.Sequence();
-        sequence.Join(transform.DOScaleY(0, panelShowDuration).SetEase(panelEase));
-        sequence.Join(taskCanvasGroup.DOFade(0, panelShowDuration).SetEase(panelEase));
+        sequence.Join(transform.DOScaleY(0, _panelShowDuration).SetEase(_panelEase));
+        sequence.Join(_taskCanvasGroup.DOFade(0, _panelShowDuration).SetEase(_panelEase));
         sequence.OnComplete(() =>
         {
             AppContext.Ui.ClosePanel<TaskPanel>();
@@ -81,9 +81,9 @@ public class TaskPanel : BasePanel
             int index = i;
             var task = taskList[i];
             // 跳过已完成/未解锁的任务
-            if (task.isFinished || !task.isUnlock) continue;
+            if (task.IsFinished || !task.IsUnlock) continue;
             // 延迟创建，实现逐个弹出的效果
-            DOVirtual.DelayedCall(itemDelayInterval * index, ()=>{
+            DOVirtual.DelayedCall(_itemDelayInterval * index, ()=>{
                 CreateTaskItem(task);
             });
         }
@@ -94,14 +94,14 @@ public class TaskPanel : BasePanel
     /// </summary>
     private void CreateTaskItem(TaskDataRuntime task)
     {
-        AppContext.Res.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/TaskItem", taskContent,(itemObj =>
+        AppContext.Res.LoadAndInstantiateAsync("TaskItem", taskContent,(itemObj =>
         {
             if (itemObj == null)
             {
                 Debug.LogError("加载任务项预制体失败：UI/UIItem/TaskItem");
                 return;
             }
-            itemObj.name = "TaskItem_" + task.taskId;
+            itemObj.name = "TaskItem_" + task.TaskId;
             TaskItem taskItem = itemObj.GetComponent<TaskItem>();
             taskItem.OnFinishRequested += RaiseTaskFinishRequested;
             taskItem.UpdateData(task);

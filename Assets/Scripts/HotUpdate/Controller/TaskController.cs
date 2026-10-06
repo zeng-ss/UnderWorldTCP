@@ -62,7 +62,7 @@ public class TaskController
 
     private void NotifyServer(TaskDataRuntime task, string rewardText)
     {
-        int rewardId = task.taskType == TaskType.击败第一个敌人 ? 1 : 2;
+        int rewardId = task.TaskType == TaskType.击败第一个敌人 ? 1 : 2;
         AppContext.Proto.RequestGetReward(rewardId, ret => { AppContext.Ui.ShowTip(rewardText, 4f); });
     }
 }

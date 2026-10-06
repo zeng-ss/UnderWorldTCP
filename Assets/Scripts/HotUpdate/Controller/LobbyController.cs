@@ -7,26 +7,26 @@ using UnityEngine.UI;
 public class LobbyController : MonoBehaviour
 {
     [Header("房间")]
-    private TMP_InputField roomNameInput;
-    private TMP_InputField roomIdInput;
-    private Button createRoomBtn;
-    private Button joinRoomBtn;
-    private Button leaveRoomBtn;
-    private TMP_Text roomTitleTxt;
-    private GameObject panel;
+    private TMP_InputField _roomNameInput;
+    private TMP_InputField _roomIdInput;
+    private Button _createRoomBtn;
+    private Button _joinRoomBtn;
+    private Button _leaveRoomBtn;
+    private TMP_Text _roomTitleTxt;
+    private GameObject _panel;
 
     [Header("玩家列表")]
-    private Transform playerListRoot;
-    private GameObject playerItemPrefab;
+    private Transform _playerListRoot;
+    private GameObject _playerItemPrefab;
 
     [Header("准备/开始")]
-    private Button startBtn;
-    private Toggle readyToggle;
-    private TMP_Text readyTipText;
+    private Button _startBtn;
+    private Toggle _readyToggle;
+    private TMP_Text _readyTipText;
 
-    private Dictionary<ulong, PlayerRoomItem> playerRoomItemDict = new();
-    private Dictionary<ulong, PlayerConfig> playerConfigDict = new();
-    private Dictionary<ulong, RoomPlayerInfo> roomPlayerInfoDict = new();
+    private Dictionary<ulong, PlayerRoomItem> _playerRoomItemDict = new();
+    private Dictionary<ulong, PlayerConfig> _playerConfigDict = new();
+    private Dictionary<ulong, RoomPlayerInfo> _roomPlayerInfoDict = new();
 
     private int _currentRoomId;
     private bool _isMaster;
@@ -36,11 +36,11 @@ public class LobbyController : MonoBehaviour
         FindUIReferences();
 
         // 按钮事件
-        createRoomBtn.onClick.AddListener(OnCreateRoom);
-        joinRoomBtn.onClick.AddListener(OnJoinRoom);
-        leaveRoomBtn.onClick.AddListener(OnLeaveRoom);
-        startBtn.onClick.AddListener(OnStartGame);
-        readyToggle.onValueChanged.AddListener(OnToggleReady);
+        _createRoomBtn.onClick.AddListener(OnCreateRoom);
+        _joinRoomBtn.onClick.AddListener(OnJoinRoom);
+        _leaveRoomBtn.onClick.AddListener(OnLeaveRoom);
+        _startBtn.onClick.AddListener(OnStartGame);
+        _readyToggle.onValueChanged.AddListener(OnToggleReady);
 
         // 房间事件
         AppContext.Proto.OnRoomInfoChanged += OnRoomInfoChanged;
@@ -57,36 +57,36 @@ public class LobbyController : MonoBehaviour
             IsReady = false,
             HeadImageName = "icon_question"
         };
-        playerConfigDict.TryAdd(playerConfig.ID, playerConfig);
+        _playerConfigDict.TryAdd(playerConfig.ID, playerConfig);
 
-        startBtn.gameObject.SetActive(false);
-        readyTipText.gameObject.SetActive(true);
-        leaveRoomBtn.gameObject.SetActive(false);
+        _startBtn.gameObject.SetActive(false);
+        _readyTipText.gameObject.SetActive(true);
+        _leaveRoomBtn.gameObject.SetActive(false);
 
         Debug.Log($"LobbyController: 玩家 {playerName} 进入大厅");
     }
 
     private void FindUIReferences()
     {
-        panel = GameObject.Find("Panel");
-        roomNameInput = GameObject.Find("RoomName")?.GetComponent<TMP_InputField>();
-        roomIdInput = GameObject.Find("roomId")?.GetComponent<TMP_InputField>();
-        createRoomBtn = GameObject.Find("creatBtn")?.GetComponent<Button>();
-        joinRoomBtn = GameObject.Find("joinBtn")?.GetComponent<Button>();
-        leaveRoomBtn = GameObject.Find("LevelBtn")?.GetComponent<Button>();
-        roomTitleTxt = GameObject.Find("title")?.GetComponent<TMP_Text>();
+        _panel = GameObject.Find("Panel");
+        _roomNameInput = GameObject.Find("RoomName")?.GetComponent<TMP_InputField>();
+        _roomIdInput = GameObject.Find("roomId")?.GetComponent<TMP_InputField>();
+        _createRoomBtn = GameObject.Find("creatBtn")?.GetComponent<Button>();
+        _joinRoomBtn = GameObject.Find("joinBtn")?.GetComponent<Button>();
+        _leaveRoomBtn = GameObject.Find("LevelBtn")?.GetComponent<Button>();
+        _roomTitleTxt = GameObject.Find("title")?.GetComponent<TMP_Text>();
 
-        playerListRoot = GameObject.Find("RoomItemContent")?.transform;
-        startBtn = GameObject.Find("StartBtn")?.GetComponent<Button>();
-        readyToggle = GameObject.Find("Toggle")?.GetComponent<Toggle>();
-        readyTipText = GameObject.Find("ReadyTipText")?.GetComponent<TMP_Text>();
+        _playerListRoot = GameObject.Find("RoomItemContent")?.transform;
+        _startBtn = GameObject.Find("StartBtn")?.GetComponent<Button>();
+        _readyToggle = GameObject.Find("Toggle")?.GetComponent<Toggle>();
+        _readyTipText = GameObject.Find("ReadyTipText")?.GetComponent<TMP_Text>();
     }
 
     #region 房间管理
 
     private void OnCreateRoom()
     {
-        string roomName = roomNameInput.text.Trim();
+        string roomName = _roomNameInput.text.Trim();
         if (string.IsNullOrEmpty(roomName)) roomName = AppContext.Session.PlayerName + "的房间";
 
         AppContext.Proto.RequestCreateRoom(AppContext.Session.RoleId, roomName, AppContext.Session.PlayerName,
@@ -99,14 +99,14 @@ public class LobbyController : MonoBehaviour
                     RefreshRoomUI(ret.Players);
                     // 打开聊天面板
                     AppContext.Ui.OpenPanel<ChatPanel>();
-                    panel.SetActive(false);
+                    _panel.SetActive(false);
                 }
             });
     }
 
     private void OnJoinRoom()
     {
-        if (!int.TryParse(roomIdInput.text.Trim(), out int roomId)) return;
+        if (!int.TryParse(_roomIdInput.text.Trim(), out int roomId)) return;
 
         AppContext.Proto.RequestJoinRoom(
             AppContext.Session.RoleId, roomId,
@@ -118,7 +118,7 @@ public class LobbyController : MonoBehaviour
                     _currentRoomId = ret.RoomId;
                     _isMaster = false;
                     RefreshRoomUI(ret.Players);
-                    panel.SetActive(false);
+                    _panel.SetActive(false);
                     // 打开聊天面板
                     AppContext.Ui.OpenPanel<ChatPanel>();
                 }
@@ -130,16 +130,16 @@ public class LobbyController : MonoBehaviour
         AppContext.Proto.RequestLeaveRoom(AppContext.Session.RoleId);
         _currentRoomId = 0;
         _isMaster = false;
-        roomTitleTxt.text = "";
-        roomPlayerInfoDict.Clear();
+        _roomTitleTxt.text = "";
+        _roomPlayerInfoDict.Clear();
 
         ClearPlayerList();
 
-        panel.SetActive(true);
-        createRoomBtn.gameObject.SetActive(true);
-        joinRoomBtn.gameObject.SetActive(true);
-        leaveRoomBtn.gameObject.SetActive(false);
-        startBtn.gameObject.SetActive(false);
+        _panel.SetActive(true);
+        _createRoomBtn.gameObject.SetActive(true);
+        _joinRoomBtn.gameObject.SetActive(true);
+        _leaveRoomBtn.gameObject.SetActive(false);
+        _startBtn.gameObject.SetActive(false);
     }
 
     #endregion
@@ -166,21 +166,21 @@ public class LobbyController : MonoBehaviour
 
     private void RefreshRoomUI(IList<RoomPlayerInfo> players)
     {
-        if (!roomTitleTxt) return;
+        if (!_roomTitleTxt) return;
 
-        roomTitleTxt.text = $"房间 {_currentRoomId} ({players.Count}人)";
-        leaveRoomBtn.gameObject.SetActive(true);
-        roomPlayerInfoDict.Clear();
+        _roomTitleTxt.text = $"房间 {_currentRoomId} ({players.Count}人)";
+        _leaveRoomBtn.gameObject.SetActive(true);
+        _roomPlayerInfoDict.Clear();
 
         bool allReady = true;
         foreach (var p in players)
         {
-            roomPlayerInfoDict[(ulong)p.RoleId] = p;
+            _roomPlayerInfoDict[(ulong)p.RoleId] = p;
             if (!p.IsMaster && !p.IsReady) allReady = false;
         }
 
         // 房主且所有非房主玩家都已准备时才显示开始按钮
-        startBtn.gameObject.SetActive(_isMaster && allReady);
+        _startBtn.gameObject.SetActive(_isMaster && allReady);
 
         // 刷新本地玩家列表显示
         RefreshPlayerListDisplay(players);
@@ -199,7 +199,7 @@ public class LobbyController : MonoBehaviour
 
     private void SpawnPlayerItem(ulong id, string name, bool isReady, bool isMaster)
     {
-        AppContext.Res.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/PlayerRoomItem", playerListRoot, obj =>
+        AppContext.Res.LoadAndInstantiateAsync("PlayerRoomItem", _playerListRoot, obj =>
         {
             PlayerRoomItem item = obj.GetComponent<PlayerRoomItem>();
             if (item == null) { Destroy(obj); return; }
@@ -213,7 +213,7 @@ public class LobbyController : MonoBehaviour
             };
             item.Init(cfg);
 
-            if (playerRoomItemDict.TryAdd(id, item))
+            if (_playerRoomItemDict.TryAdd(id, item))
             {
                 // 如果是房主，显示标记
                 //if (isMaster && item.isReadyText) item.isReadyText.text = "(房主)";
@@ -224,12 +224,12 @@ public class LobbyController : MonoBehaviour
 
     private void ClearPlayerList()
     {
-        foreach (var kv in playerRoomItemDict.Where(kv => kv.Value))
+        foreach (var kv in _playerRoomItemDict.Where(kv => kv.Value))
         {
             Destroy(kv.Value.gameObject);
         }
 
-        playerRoomItemDict.Clear();
+        _playerRoomItemDict.Clear();
     }
 
     #endregion
@@ -238,7 +238,7 @@ public class LobbyController : MonoBehaviour
 
     private void OnToggleReady(bool isOn)
     {
-        readyTipText.gameObject.SetActive(!isOn);
+        _readyTipText.gameObject.SetActive(!isOn);
         if (_currentRoomId <= 0) return;
 
         // 发送到服务器，服务端广播 RoomInfoNtf 后由 OnRoomInfoChanged 统一刷新 UI
@@ -260,14 +260,14 @@ public class LobbyController : MonoBehaviour
         AppContext.Proto.OnRoomInfoChanged -= OnRoomInfoChanged;
         AppContext.Proto.OnRoomStartGame -= OnRoomStartGame;
 
-        if (createRoomBtn) createRoomBtn.onClick.RemoveAllListeners();
-        if (joinRoomBtn) joinRoomBtn.onClick.RemoveAllListeners();
-        if (leaveRoomBtn) leaveRoomBtn.onClick.RemoveAllListeners();
-        if (startBtn) startBtn.onClick.RemoveAllListeners();
-        if (readyToggle) readyToggle.onValueChanged.RemoveAllListeners();
+        if (_createRoomBtn) _createRoomBtn.onClick.RemoveAllListeners();
+        if (_joinRoomBtn) _joinRoomBtn.onClick.RemoveAllListeners();
+        if (_leaveRoomBtn) _leaveRoomBtn.onClick.RemoveAllListeners();
+        if (_startBtn) _startBtn.onClick.RemoveAllListeners();
+        if (_readyToggle) _readyToggle.onValueChanged.RemoveAllListeners();
 
-        playerConfigDict.Clear();
-        playerRoomItemDict.Clear();
-        roomPlayerInfoDict.Clear();
+        _playerConfigDict.Clear();
+        _playerRoomItemDict.Clear();
+        _roomPlayerInfoDict.Clear();
     }
 }

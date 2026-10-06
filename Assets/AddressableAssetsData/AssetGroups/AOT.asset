@@ -13,43 +13,14 @@ MonoBehaviour:
   m_Name: AOT
   m_EditorClassIdentifier: 
   m_GroupName: AOT
-  m_Data:
-    m_SerializedData: []
   m_GUID: 39f91e3140c848f499baaa914fd94f9e
-  m_SerializeEntries:
-  - m_GUID: 3c1d619a56ae9184f97c9f67e53f792b
-    m_Address: System.Core.dll
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 4e5e6a49d3ab6ca43adb70acd3aa2ee8
-    m_Address: UnityEngine.dll
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 670635e48940af946afb265ef6dbba0e
-    m_Address: AOT.dll
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7772c5aeb5c21684ab71c51bfe17d0c8
-    m_Address: UnityEngine.UI.dll
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 9965f56e9106ffc40abbaed55353940e
-    m_Address: System.dll
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c4ba9068e966a1140bfb34159040b526
-    m_Address: mscorlib.dll
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: f365035c43801984b949c9349eafb986, type: 2}
   m_SchemaSet:
     m_Schemas:
     - {fileID: 11400000, guid: 35418b6c1135f8943a0a55ba645791f5, type: 2}
     - {fileID: 11400000, guid: 1803b14f6b29ce949809cf22675a2871, type: 2}
+    m_SchemaDisplayOrder: []
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

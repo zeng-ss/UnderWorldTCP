@@ -1,18 +1,18 @@
-public interface IState_MachineOwner
+public interface IStateMachineOwner
 {
 } //拿到玩家脚本对象，待会玩家去继承它就可以拿它来代表玩家
 
 /// <summary>
 /// 所以状态的基类 有可能是玩家状态 也可能是敌人状态
 /// </summary>
-public abstract class State_Base //抽象类
+public abstract class StateBase //抽象类
 {
     //初始化方法 需要拿到宿主
-    protected virtual void Init(IState_MachineOwner owner)
+    protected virtual void Init(IStateMachineOwner owner)
     {
     }
 
-    public virtual void _Init(IState_MachineOwner owner)
+    public virtual void _Init(IStateMachineOwner owner)
     {
     }
 

@@ -8,21 +8,21 @@ public abstract class PlayerBase : MonoBehaviour
     public Vector3 Position => transform.position;
     
     // 通用组件
-    protected CharacterController characterController;
-    protected Animator animator;
-    protected Camera playerCamera;
+    protected CharacterController CharacterController;
+    protected Animator Animator;
+    protected Camera PlayerCamera;
     
     // 通用方法（所有角色都有）
     public virtual void Initialize()
     {
-        characterController = GetComponent<CharacterController>();
-        animator = GetComponentInChildren<Animator>();
+        CharacterController = GetComponent<CharacterController>();
+        Animator = GetComponentInChildren<Animator>();
     }
     
     // 通用工具方法
     protected void PlayAnimation(string animationName)
     {
-        if (animator != null)
-            animator.Play(animationName);
+        if (Animator != null)
+            Animator.Play(animationName);
     }
 }

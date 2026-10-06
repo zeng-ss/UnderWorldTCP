@@ -2,47 +2,47 @@ using UnityEngine;
 
 public class SingleTonMono<T> : MonoBehaviour where T : MonoBehaviour
 {
-    private static T instance;
-    private static readonly object locker = new object();
-    private static bool applicationIsQuitting = false;
+    private static T _instance;
+    private static readonly object Locker = new object();
+    private static bool _applicationIsQuitting = false;
 
     public static T Instance
     {
         get
         {
-            if (applicationIsQuitting)
+            if (_applicationIsQuitting)
             {
                 Debug.LogWarning($"[Singleton] Instance of {typeof(T)} already destroyed on quit.");
                 return null;
             }
 
-            lock (locker)
+            lock (Locker)
             {
-                if (instance == null)
+                if (_instance == null)
                 {
-                    instance = FindObjectOfType<T>();
+                    _instance = FindObjectOfType<T>();
 
-                    if (instance == null)
+                    if (_instance == null)
                     {
                         GameObject obj = new GameObject(typeof(T).Name);
-                        instance = obj.AddComponent<T>();
+                        _instance = obj.AddComponent<T>();
                         DontDestroyOnLoad(obj);
                     }
                 }
 
-                return instance;
+                return _instance;
             }
         }
     }
 
     protected virtual void Awake()
     {
-        if (instance == null)
+        if (_instance == null)
         {
-            instance = this as T;
+            _instance = this as T;
             DontDestroyOnLoad(gameObject);
         }
-        else if (instance != this)
+        else if (_instance != this)
         {
             Destroy(gameObject);
         }
@@ -50,6 +50,6 @@ public class SingleTonMono<T> : MonoBehaviour where T : MonoBehaviour
 
     protected virtual void OnApplicationQuit()
     {
-        applicationIsQuitting = true;
+        _applicationIsQuitting = true;
     }
 }

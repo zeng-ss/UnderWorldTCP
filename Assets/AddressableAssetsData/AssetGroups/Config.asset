@@ -13,8 +13,6 @@ MonoBehaviour:
   m_Name: Config
   m_EditorClassIdentifier: 
   m_GroupName: Config
-  m_Data:
-    m_SerializedData: []
   m_GUID: 4b830a8a851244345bb72151619254d2
   m_SerializeEntries:
   - m_GUID: 17a278dfb8f13714489535496914c623
@@ -57,14 +55,12 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: dd60326bdea5cb547b23759fbdc78c12
-    m_Address: TaskData
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: f365035c43801984b949c9349eafb986, type: 2}
   m_SchemaSet:
     m_Schemas:
     - {fileID: 11400000, guid: 0c648b70135f16b4a8251640c536415e, type: 2}
     - {fileID: 11400000, guid: d42cee09a10f4974f9ccf9349cc6f690, type: 2}
+    m_SchemaDisplayOrder: []
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

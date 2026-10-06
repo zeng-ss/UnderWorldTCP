@@ -1,8 +1,8 @@
-public class PlayerDeadState : Player_State
+public class PlayerDeadState : PlayerState
 {
     public override void Enter()
     {
-        if (!_player.IsLocalPlayer) return;
-        _player.PlayAnimation("Dead");
+        if (!Player.IsLocalPlayer) return;
+        Player.PlayAnimation("Dead");
     }
 }

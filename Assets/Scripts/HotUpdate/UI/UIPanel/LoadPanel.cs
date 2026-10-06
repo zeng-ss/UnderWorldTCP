@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
-[PanelPath("Assets/Res/UI/UIPanel/LoadPanel")]
+[PanelPath("LoadPanel")]
 public class LoadPanel : BasePanel
 {
     public Image pivot;           // 进度指示器（滑块/箭头/特效）
@@ -15,7 +15,7 @@ public class LoadPanel : BasePanel
     [Header("Pivot设置")]
     public float pivotMinX;    // pivot最小X位置
     public float pivotMaxX = -1350;  // pivot最大X位置
-    private float targetProgress;
+    private float _targetProgress;
     
     private void OnEnable() { ResetProgress(); }
     private void Start()
@@ -29,10 +29,10 @@ public class LoadPanel : BasePanel
     private void UpdateProgress(EventArgs args)
     {
         float progress = ((LoadProgressArgs)args).Progress;
-        targetProgress = Mathf.Clamp01(progress);
+        _targetProgress = Mathf.Clamp01(progress);
         // 终止正在进行的动画
         // 进度条动画
-        loadingBar.DOFillAmount(targetProgress,  0.5f)
+        loadingBar.DOFillAmount(_targetProgress,  0.5f)
             .SetEase(animationEase)
             .OnUpdate(() => 
             {
@@ -66,7 +66,7 @@ public class LoadPanel : BasePanel
         Vector3 localPos = pivot.transform.localPosition;
         localPos.x = -775; // 重置到最左边
         pivot.transform.localPosition = localPos;
-        targetProgress = 0f;
+        _targetProgress = 0f;
     }
     protected override void OnDestroy()
     {

@@ -13,7 +13,7 @@ public static class Build
         $"Builds/{Application.productName}.exe");
 
     /// <summary>
-    /// 生成DLL字节文件到 DllBytes 目录（由YooAsset收集）
+    /// 生成DLL字节文件到 DllBytes 目录（由 Addressables 收集，跑一遍 Tools/Addressables/一键标记资源 即可）
     /// </summary>
     [MenuItem("Build/GenerateDllFiles")]
     public static void GenerateDllFiles()
@@ -72,7 +72,7 @@ public static class Build
         }
 
         AssetDatabase.Refresh();
-        Debug.Log("成功生成DLL字节文件！请在YooAsset AssetBundleCollector中配置这些文件");
+        Debug.Log("成功生成DLL字节文件！请运行 Tools/Addressables/一键标记资源 将新增的 .bytes 标记为 Addressable");
     }
 
     /// <summary>
@@ -111,6 +111,6 @@ public static class Build
     {
         PrebuildCommand.GenerateAll();
         GenerateDllFiles();
-        Debug.Log("请在 YooAsset 编辑器工具中执行增量构建，然后更新远程资源");
+        Debug.Log("请执行 Build/Addressables/Build New Build > Default Build Script 构建 Addressables，然后更新远程资源");
     }
 }

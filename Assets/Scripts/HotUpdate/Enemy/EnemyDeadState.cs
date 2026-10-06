@@ -1,11 +1,11 @@
 
-public class EnemyDeadState : Enemy_State
+public class EnemyDeadState : EnemyState
 {
     public override void Enter()
     {
-        if (!enemy.IsServer) return;
-        enemy.PlayAnimation("Dead");
-        enemy.characterController.enabled = false;
-        enemy.tag = "Untagged";
+        if (!Enemy.IsServer) return;
+        Enemy.PlayAnimation("Dead");
+        Enemy.characterController.enabled = false;
+        Enemy.tag = "Untagged";
     }
 }

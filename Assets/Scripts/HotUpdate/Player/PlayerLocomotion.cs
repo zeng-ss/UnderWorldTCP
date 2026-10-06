@@ -11,7 +11,7 @@ public class PlayerLocomotion
     private readonly CharacterController _characterController;
     private readonly PlayerStateMachine _stateMachine;
     private Vector3 _velocity;
-    private bool hasGravity;
+    private bool _hasGravity;
 
     public bool IsOnGround { get; private set; }
 
@@ -25,7 +25,7 @@ public class PlayerLocomotion
     public void Init()
     {
         _characterController.enabled = true;
-        hasGravity = true;
+        _hasGravity = true;
     }
 
     /// <summary>逐帧调用，内部逻辑与重构前完全一致</summary>
@@ -34,7 +34,7 @@ public class PlayerLocomotion
         if (!_characterController.enabled && _stateMachine.CurrentState != PlayerStateType.Dead)
             _characterController.enabled = true;
 
-        if (!hasGravity || !_characterController.enabled) return;
+        if (!_hasGravity || !_characterController.enabled) return;
 
         _characterController.Move(_velocity * Time.deltaTime);
         IsOnGround = _characterController.isGrounded;

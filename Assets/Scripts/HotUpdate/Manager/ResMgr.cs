@@ -1,20 +1,19 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using YooAsset;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
 public class ResMgr
 {
-    // 仍在加载/已加载的 AssetHandle，只有显式 Release 才会移除（用于正确释放）
-    private readonly Dictionary<string, AssetHandle> _handleCache = new();
+    // 仍在加载/已加载的 handle，只有显式 Release 才会移除（用于正确释放）
+    private readonly Dictionary<string, AsyncOperationHandle> _handleCache = new();
 
     // 已加载资源本体，命中后直接返回，避免重复走 handle
     private readonly Dictionary<string, object> _assetCache = new();
 
     // 精灵图缓存：列表项 UI 会反复请求同一张图
     private readonly Dictionary<string, Sprite> _spriteCache = new();
-
-    private ResourcePackage Package => Global.Instance._YooPackage;
 
     #region 加载方法
 
@@ -33,23 +32,19 @@ public class ResMgr
             return;
         }
 
-        if (_handleCache.TryGetValue(address, out AssetHandle handle))
+        if (_handleCache.TryGetValue(address, out AsyncOperationHandle existing))
         {
-            if (handle.IsDone)
-            {
-                OnLoadComplete(handle, address, onComplete);
-            }
+            var typed = existing.Convert<T>();
+            if (typed.IsDone)
+                OnLoadComplete(typed, address, onComplete);
             else
-            {
-                handle.Completed += (h) => OnLoadComplete(h, address, onComplete);
-            }
-
+                typed.Completed += h => OnLoadComplete(h, address, onComplete);
             return;
         }
 
-        AssetHandle loadHandle = Package.LoadAssetAsync<T>(address);
-        _handleCache.Add(address, loadHandle);
-        loadHandle.Completed += (h) => OnLoadComplete(h, address, onComplete);
+        var handle = Addressables.LoadAssetAsync<T>(address);
+        _handleCache.Add(address, handle);
+        handle.Completed += h => OnLoadComplete(h, address, onComplete);
     }
 
     public void LoadAndInstantiateAsync(string address, Transform parent = null, Action<GameObject> onComplete = null)
@@ -84,31 +79,37 @@ public class ResMgr
             return;
         }
 
-        bool inPackage = Package != null && Package.IsLocationValid(address);
-        if (inPackage)
+        // 先探测地址是否已被 Addressables 收集（未标记的老资源回退 Resources.Load）
+        var locHandle = Addressables.LoadResourceLocationsAsync(address, typeof(Sprite));
+        locHandle.Completed += h =>
         {
-            LoadAssetAsync<Sprite>(address, sprite =>
+            Addressables.Release(locHandle);
+
+            if (h.Result != null && h.Result.Count > 0)
             {
-                if (sprite != null) _spriteCache[address] = sprite;
-                onComplete?.Invoke(sprite);
-            });
-            return;
-        }
+                LoadAssetAsync<Sprite>(address, sprite =>
+                {
+                    if (sprite != null) _spriteCache[address] = sprite;
+                    onComplete?.Invoke(sprite);
+                });
+                return;
+            }
 
-        // 还没挪进 YooAsset 收集目录的老资源，先兜底保证不炸图
-        Sprite fallback = Resources.Load<Sprite>(address);
-        if (fallback == null)
-        {
-            Debug.LogError($"ResMgr: 精灵图加载失败 {address}（YooAsset 包与 Resources 中都没有）");
-        }
-        else
-        {
-            Debug.LogWarning($"ResMgr: {address} 不在 YooAsset 包内，已回退 Resources.Load。" +
-                             "把资源移到 Assets/Res 下被收集的目录并重新打包后即可热更。");
-            _spriteCache[address] = fallback;
-        }
+            // 还没标记成 Addressable 的老资源，先兜底保证不炸图
+            Sprite fallback = Resources.Load<Sprite>(address);
+            if (fallback == null)
+            {
+                Debug.LogError($"ResMgr: 精灵图加载失败 {address}（Addressables 与 Resources 中都没有）");
+            }
+            else
+            {
+                Debug.LogWarning($"ResMgr: {address} 不在 Addressables 里，已回退 Resources.Load。" +
+                                 "把资源标记为 Addressable（Tools/Addressables/一键标记资源）后即可热更。");
+                _spriteCache[address] = fallback;
+            }
 
-        onComplete?.Invoke(fallback);
+            onComplete?.Invoke(fallback);
+        };
     }
 
     public void LoadBatchAssetsAsync<T>(List<string> addressList, Action<Dictionary<string, T>> onComplete)
@@ -140,9 +141,9 @@ public class ResMgr
 
     public void ReleaseAsset(string address)
     {
-        if (_handleCache.TryGetValue(address, out AssetHandle handle))
+        if (_handleCache.TryGetValue(address, out AsyncOperationHandle handle))
         {
-            handle.Release();
+            Addressables.Release(handle);
             _handleCache.Remove(address);
         }
 
@@ -152,7 +153,7 @@ public class ResMgr
 
     public void ReleaseAll()
     {
-        foreach (var handle in _handleCache.Values) handle.Release();
+        foreach (var handle in _handleCache.Values) Addressables.Release(handle);
         _handleCache.Clear();
         _assetCache.Clear();
         _spriteCache.Clear();
@@ -162,12 +163,12 @@ public class ResMgr
 
     #region 私有辅助方法
 
-    private void OnLoadComplete<T>(AssetHandle handle, string address, Action<T> onComplete)
+    private void OnLoadComplete<T>(AsyncOperationHandle<T> handle, string address, Action<T> onComplete)
         where T : UnityEngine.Object
     {
-        if (handle.Status == EOperationStatus.Succeeded)
+        if (handle.Status == AsyncOperationStatus.Succeeded)
         {
-            T result = handle.AssetObject as T;
+            T result = handle.Result;
             if (result != null)
             {
                 _assetCache[address] = result;
@@ -181,7 +182,7 @@ public class ResMgr
         }
         else
         {
-            Debug.LogError($"ResMgr: 加载失败 {address} - {handle.Error}");
+            Debug.LogError($"ResMgr: 加载失败 {address} - {handle.OperationException}");
             onComplete?.Invoke(null);
         }
         // 注意：这里不能把 handle 从 handleCache 移除，否则 ReleaseAsset 找不到句柄，资源永远释放不掉

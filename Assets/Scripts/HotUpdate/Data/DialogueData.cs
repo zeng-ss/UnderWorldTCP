@@ -19,7 +19,7 @@ public class DialogueOption
     public string optionText;          // 选项文本
     public int nextLineIndex;          // 选择后跳转的对话行索引
     public bool isTriggerEvent;        // 是否需要触发事件
-    [NonSerialized] public int index;  // 用于动画延迟
+    [NonSerialized] public int Index;  // 用于动画延迟
 }
 
 [CreateAssetMenu(fileName = "NewDialogue", menuName = "Config/DialogueData")]

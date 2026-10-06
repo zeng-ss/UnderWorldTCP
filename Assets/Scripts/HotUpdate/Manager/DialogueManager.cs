@@ -266,8 +266,8 @@ public class DialogueManager : MonoBehaviour
         for (int i = 0; i < options.Count; i++)
         {
             var option = options[i];
-            option.index = i;
-            AppContext.Res.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/DialogueOptionItem", optionsPanel,
+            option.Index = i;
+            AppContext.Res.LoadAndInstantiateAsync("DialogueOptionItem", optionsPanel,
                 optionObj =>
                 {
                     if (optionObj == null)

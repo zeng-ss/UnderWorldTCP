@@ -91,7 +91,7 @@ public class PlayerCombat
         EnemyCtrl enemy = ((Component)hurt).GetComponent<EnemyCtrl>();
         if (enemy is not null && enemy.serverInstanceId > 0)
         {
-            bool isExAttack = _stateMachine.CurrentState == PlayerStateType.EX;
+            bool isExAttack = _stateMachine.CurrentState == PlayerStateType.Ex;
             float baseDamage = isExAttack ? _core.PlayerValueData.ExAttackValue : _core.PlayerValueData.AttackValue;
             _network.RequestAttack(enemy, baseDamage, _core.PlayerValueData.BaoJiValue, isExAttack);
         }

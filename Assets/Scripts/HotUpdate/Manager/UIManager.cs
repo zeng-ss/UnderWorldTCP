@@ -15,7 +15,7 @@ public class UIManager
     private readonly Dictionary<string, BasePanel> _uiPanelDict = new Dictionary<string, BasePanel>();
 
     // Canvas相关
-    [HideInInspector] public RectTransform canvas;
+    [HideInInspector] public RectTransform Canvas;
     private Canvas _canvasComponent;
     private CanvasScaler _canvasScaler;
 
@@ -120,7 +120,7 @@ public class UIManager
     private void DoClosePanel(string path, BasePanel panel)
     {
         panel.Hide();
-        panel.transform.SetParent(canvas.transform, false);
+        panel.transform.SetParent(Canvas.transform, false);
         PopInputLock(path);
     }
 
@@ -234,12 +234,12 @@ public class UIManager
             _canvasScaler = canvasObj.GetComponent<CanvasScaler>();
         }
 
-        canvas = canvasObj.transform as RectTransform;
+        Canvas = canvasObj.transform as RectTransform;
         GameObject.DontDestroyOnLoad(canvasObj);
 
         _currentPanel = new GameObject("currentShowPanel");
         RectTransform rect = _currentPanel.AddComponent<RectTransform>();
-        rect.SetParent(canvas, false);
+        rect.SetParent(Canvas, false);
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;
         rect.offsetMin = Vector2.zero;

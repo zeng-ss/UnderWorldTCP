@@ -13,13 +13,26 @@ MonoBehaviour:
   m_Name: AnimationController
   m_EditorClassIdentifier: 
   m_GroupName: AnimationController
-  m_Data:
-    m_SerializedData: []
   m_GUID: 6113332d19eba8646847e121244c59c5
-  m_SerializeEntries: []
+  m_SerializeEntries:
+  - m_GUID: 4d7b2b55796be9b4fa3db0453f77b2cd
+    m_Address: EnemyController
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 50e723ccf8d825f49989b80950eeff95
+    m_Address: PlayerController
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: f365035c43801984b949c9349eafb986, type: 2}
   m_SchemaSet:
     m_Schemas:
     - {fileID: 11400000, guid: 9501238e840ab72439d4549758f239b7, type: 2}
     - {fileID: 11400000, guid: 1f1036c92a9e8c443b18d0137323dbe4, type: 2}
+    m_SchemaDisplayOrder:
+    - AnimationController_BundledAssetGroupSchema
+    - AnimationController_ContentUpdateGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

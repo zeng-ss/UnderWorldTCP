@@ -1,29 +1,29 @@
 using UnityEngine;
 
-public class EnemyIdleState : Enemy_State
+public class EnemyIdleState : EnemyState
 {
-    private float randomValue;
-    private float timer;
+    private float _randomValue;
+    private float _timer;
     public override void Enter()
     {
-        enemy.isCanPlayHurtAni = true;
-        enemy.PlayAnimation("Idle");
-        randomValue = Random.Range(3f, 8f);
+        Enemy.isCanPlayHurtAni = true;
+        Enemy.PlayAnimation("Idle");
+        _randomValue = Random.Range(3f, 8f);
     }
 
     public override void Update()
     {
-        if (enemy.IsLocalEnemy) return;
-        if (enemy.PlayerRef == null) { timer = 0; return; }
-        timer += Time.deltaTime;
-        if (timer >= randomValue)
+        if (Enemy.IsLocalEnemy) return;
+        if (Enemy.PlayerRef == null) { _timer = 0; return; }
+        _timer += Time.deltaTime;
+        if (_timer >= _randomValue)
         {
-            enemy.ChangeState(EnemyStateType.Attack);
-            randomValue = Random.Range(3f, 8f);
-            timer = 0f;
+            Enemy.ChangeState(EnemyStateType.Attack);
+            _randomValue = Random.Range(3f, 8f);
+            _timer = 0f;
         }
     }
 
-    public override void Exit() { timer = 0f; }
+    public override void Exit() { _timer = 0f; }
     
 }

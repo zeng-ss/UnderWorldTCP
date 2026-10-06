@@ -1,291 +1,198 @@
 using HybridCLR;
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Reflection;
-using System.Linq;
 using UnityEngine;
-using YooAsset;
+using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 
+/// <summary>
+/// 启动流程：
+///   1. 初始化 → 2. 检查 catalog 更新 → 3. 加载热更窗口 → 4. 计算下载大小并下载
+///   → 5. 加载 AOT 程序集元数据（HybridCLR）→ 6. 加载热更程序集 → 7. 实例化 GameLanuch 进入游戏
+/// </summary>
 public class Load : MonoBehaviour
 {
-    [SerializeField, Header("运行模式")] private EPlayMode _playMode = EPlayMode.EditorSimulateMode;
-    [SerializeField, Header("资源系统地址")] private string defaultHostServer;
-    [SerializeField, Header("备用地址")] private string fallbackHostServer;
-    [Header("热更新窗口")] private IHotUpdateWindow hotUpdateWindow;
-    private ResourcePackage package;
+    [Header("热更新窗口")] private IHotUpdateWindow _hotUpdateWindow;
 
-    private static Dictionary<string, byte[]> s_assetDatas = new();
+    private const string DllConfigKey = "DllConfig";
+    private const string HotUpdateWindowKey = "HotUpdateWindow";
+    private const string GameLanuchKey = "GameLanuch";
+    private const string PreloadLabel = "preload";
 
-    public static List<string> AOTMetaAssemblyNames { get; } = new()
+    private readonly HashSet<string> _loadedDlls = new();
+    private DllConfig _dllConfig;
+
+    private void Start()
     {
-        "mscorlib.dll",
-        "System.dll",
-        "System.Core.dll",
-    };
-
-    private void Awake()
-    {
-        InitYooAsset();
+        StartCoroutine(HotUpdate());
     }
 
-    private void InitYooAsset()
+    private IEnumerator HotUpdate()
     {
-        YooAssets.Initialize();
-        package = YooAssets.CreatePackage("DefaultPackage");
-        StartCoroutine(InitPackage());
-    }
+        // 1. 初始化 Addressables
+        var initHandle = Addressables.InitializeAsync();
+        yield return initHandle;
+        //Addressables.Release(initHandle);
+        Debug.Log("Addressables 初始化完成");
 
-    private IEnumerator InitPackage()
-    {
-        Debug.Log("初始化....");
-        InitializePackageOperation operation;
-        switch (_playMode)
-        {
-            case EPlayMode.EditorSimulateMode:
-            {
-                var buildResult =
-                    EditorSimulateBuildInvoker.Build("DefaultPackage", (int)EBundleType.VirtualAssetBundle);
-                var editorParams =
-                    FileSystemParameters.CreateDefaultEditorFileSystemParameters(buildResult.PackageRootDirectory);
-                var options = new EditorSimulateModeOptions { EditorFileSystemParameters = editorParams };
-                operation = package.InitializePackageAsync(options);
-                break;
-            }
-
-            case EPlayMode.HostPlayMode:
-            {
-                // 指定到包含 yoo/DefaultPackage/ 的上级目录
-                string buildinRoot = Path.Combine(Application.streamingAssetsPath, "yoo", "DefaultPackage");
-    
-                var builtinParams = FileSystemParameters.CreateDefaultBuiltinFileSystemParameters(buildinRoot);
-                builtinParams.AddParameter(EFileSystemParameter.BuiltinFileAccessor, new GameBuiltinFileAccessor());
-
-                var remoteService = new RemoteServiceAdapter(defaultHostServer, fallbackHostServer);
-                var sandboxParams = FileSystemParameters.CreateDefaultSandboxFileSystemParameters(remoteService, null);
-                var decryptor = new GameBundleDecryption();
-                sandboxParams.AddParameter(EFileSystemParameter.AssetBundleDecryptor, decryptor);
-
-                var options = new HostPlayModeOptions
-                {
-                    BuiltinFileSystemParameters = builtinParams,
-                    CacheFileSystemParameters = sandboxParams
-                };
-                operation = package.InitializePackageAsync(options);
-                break;
-            }
-
-            default:
-                yield break;
-        }
-
-        yield return operation;
-
-        if (operation.Status != EOperationStatus.Succeeded)
-        {
-            Debug.LogError($"{operation.Error}");
-            yield break;
-        }
-
-        // 请求资源版本
-        var versionOperation = package.RequestPackageVersionAsync();
-        yield return versionOperation;
-        if (versionOperation.Status != EOperationStatus.Succeeded)
-        {
-            Debug.LogError("RequestVersion Error::" + versionOperation.Error);
-            yield break;
-        }
-
-        // 加载资源清单
-        var manifestOptions = new LoadPackageManifestOptions(versionOperation.PackageVersion, 60);
-        var manifestOperation = package.LoadPackageManifestAsync(manifestOptions);
-        yield return manifestOperation;
-
-        if (manifestOperation.Status != EOperationStatus.Succeeded)
-        {
-            Debug.LogError("UpdateManifest Error::" + manifestOperation.Error);
-            yield break;
-        }
-
-        AssetHandle handle = package.LoadAssetAsync<GameObject>("Assets/Res/Prefab/HotUpdateWindow");
-        yield return handle;
-
-        if (handle.Status == EOperationStatus.Succeeded)
-        {
-            GameObject prefab = handle.AssetObject as GameObject;
-            yield return hotUpdateWindow = Instantiate(prefab).GetComponent<IHotUpdateWindow>();
-            // 或者如果你有 UI 组件，可以用 GetComponent
-        }
-        else
-        {
-            Debug.LogError($"加载失败: {handle.Error}");
-        }
-        Debug.Log("开始下载...");
-
-        yield return Download();
-    }
-
-    private IEnumerator Download()
-    {
-        int downloadingMaxNum = 10;
-        int failedTryAgain = 3;
-        var downloadOptions = new ResourceDownloaderOptions(downloadingMaxNum, failedTryAgain);
-        var downloader = package.CreateResourceDownloader(downloadOptions);
-
-        if (downloader.TotalDownloadCount == 0)
-        {
-            Debug.Log("没有资源更新，直接进入游戏..");
-            hotUpdateWindow.RefreshUI(1, "没有资源更新");
-            yield return InitCode();
-            yield break;
-        }
-
-        downloader.DownloadCompleted += OnDownloadCompleted;
-        downloader.DownloadError += OnDownloadError;
-        downloader.DownloadProgressChanged += OnDownloadProgress;
-        downloader.DownloadFileStarted += OnStartDownloadFile;
-
-        downloader.StartDownload();
-        yield return downloader;
-
-        downloader.DownloadCompleted -= OnDownloadCompleted;
-        downloader.DownloadError -= OnDownloadError;
-        downloader.DownloadProgressChanged -= OnDownloadProgress;
-        downloader.DownloadFileStarted -= OnStartDownloadFile;
-
-        if (downloader.Status == EOperationStatus.Succeeded)
-        {
-            yield return InitCode();
-        }
-        else
-        {
-            Debug.Log("下载失败...");
-        }
-    }
-
-    private IEnumerator InitCode()
-    {
-        var assets = new List<string>
-        {
-            "HotUpdate.dll",
-            "PriorityHotUpdate.dll"
-        }.Concat(AOTMetaAssemblyNames);
-
-        foreach (var asset in assets)
-        {
-            AssetHandle dllHandle;
-            dllHandle = package.LoadAssetAsync<TextAsset>("Assets/DllBytes/" + asset);
-            /*if (asset.StartsWith("HotUpdate") || asset.StartsWith("PriorityHotUpdate"))
-            {
-                dllHandle = package.LoadAssetAsync<TextAsset>("Assets/DllBytes/" + asset);
-            }
-            else dllHandle = package.LoadAssetAsync<TextAsset>("Assets/DllBytes/AOT/" + asset);*/
-            yield return dllHandle;
-            TextAsset textAsset = dllHandle.AssetObject as TextAsset;
-            s_assetDatas[asset] = textAsset?.bytes;
-            Debug.Log($"dll:{asset} size:{textAsset?.bytes.Length}");
-        }
-
-        LoadMetadataForAOTAssemblies();
-#if !UNITY_EDITOR
-        Assembly.Load(s_assetDatas["PriorityHotUpdate.dll"]);
-        Assembly.Load(s_assetDatas["HotUpdate.dll"]);
+#if UNITY_EDITOR
+        // 编辑器：Use Asset Database 模式直接跑源代码，无需下载与加载 DLL
+        yield return EnterGame();
+        yield break;
 #endif
+        // 2. 检查 catalog 更新
+        yield return CheckForCatalogUpdates();
 
+        // 3. 加载热更窗口（展示下载进度）
+        yield return LoadHotUpdateWindow();
+
+        // 4. 计算下载大小并下载全部待更新资源
+        var sizeHandle = Addressables.GetDownloadSizeAsync(PreloadLabel);
+        yield return sizeHandle;
+        long totalBytes = sizeHandle.Result;
+        Addressables.Release(sizeHandle);
+
+        if (totalBytes > 0)
+        {
+            Debug.Log($"开始下载，共 {totalBytes / (1024f * 1024f):F1}M ...");
+            _hotUpdateWindow?.Show(totalBytes, null);
+
+            var downloadHandle =
+                Addressables.DownloadDependenciesAsync(PreloadLabel, Addressables.MergeMode.Union, false);
+            while (!downloadHandle.IsDone)
+            {
+                var status = downloadHandle.GetDownloadStatus();
+                _hotUpdateWindow?.UpdateDownloadProgress(status.Percent);
+                _hotUpdateWindow?.UpdateDownloadBytes(status.DownloadedBytes);
+                yield return null;
+            }
+
+            if (downloadHandle.Status == AsyncOperationStatus.Failed)
+                Debug.LogError($"资源下载失败: {downloadHandle.OperationException}");
+            Addressables.Release(downloadHandle);
+        }
+        else
+        {
+            Debug.Log("没有资源更新，直接进入游戏");
+            _hotUpdateWindow?.RefreshUI(1f, "没有资源更新");
+        }
+
+        // 5. 加载 AOT 程序集元数据（HybridCLR）
+        LoadMetadataForAOTAssemblies();
+
+        // 6. 加载热更程序集
+        LoadHotUpdateAssemblies();
+
+        // 7. 进入游戏
         yield return EnterGame();
     }
 
-    IEnumerator EnterGame()
+    /// <summary>检查 catalog 是否有新版本，有则拉取更新</summary>
+    private IEnumerator CheckForCatalogUpdates()
     {
-        SceneHandle handle = package.LoadSceneAsync("Assets/Scenes/StartScene");
-        yield return handle;
-        Debug.Log($"Scene name is {handle.SceneName}");
-    }
+        var checkHandle = Addressables.CheckForCatalogUpdates(false);
+        yield return checkHandle;
 
-    private void OnDownloadCompleted(DownloadCompletedEventArgs args)
-    {
-        Debug.Log("下载" + (args.Succeeded ? " 成功 " : "失败") + " ....");
-    }
-
-    private void OnDownloadError(DownloadErrorEventArgs args)
-    {
-        Debug.Log($"下载失败::{args.FileName}  Error::{args.ErrorInfo}");
-    }
-
-    private void OnDownloadProgress(DownloadProgressChangedEventArgs args)
-    {
-        float prgs = args.CurrentDownloadBytes * 1.0f / args.TotalDownloadBytes;
-        hotUpdateWindow.RefreshUI(prgs,
-            $"下载进度:{args.CurrentDownloadBytes / (1024 * 1024)}M/{args.TotalDownloadBytes / (1024 * 1024)}" +
-            $"M【{prgs * 100}%】");
-    }
-
-    private void OnStartDownloadFile(DownloadFileStartedEventArgs args)
-    {
-        Debug.Log($"开始下载：{args.FileName}  大小：{args.FileSize / 1024f}KB");
-    }
-
-    private static void LoadMetadataForAOTAssemblies()
-    {
-        HomologousImageMode mode = HomologousImageMode.SuperSet;
-        foreach (var aotDllName in AOTMetaAssemblyNames)
+        if (checkHandle.Status != AsyncOperationStatus.Succeeded)
         {
-            byte[] dllBytes = s_assetDatas[aotDllName];
-            LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, mode);
-            Debug.Log($"LoadMetadataForAOTAssembly:{aotDllName}. mode:{mode} ret:{err}");
+            Debug.LogError($"CheckForCatalogUpdates 失败: {checkHandle.OperationException}");
+        }
+        else
+        {
+            List<string> catalogs = checkHandle.Result;
+            if (catalogs.Count > 0)
+            {
+                var updateHandle = Addressables.UpdateCatalogs(catalogs);
+                yield return updateHandle;
+                Addressables.Release(updateHandle);
+                Debug.Log("catalog 更新完成");
+            }
+            else
+            {
+                Debug.Log("catalog 已是最新，无需更新");
+            }
+        }
+
+        Addressables.Release(checkHandle);
+    }
+
+    private IEnumerator LoadHotUpdateWindow()
+    {
+        var handle = Addressables.InstantiateAsync(HotUpdateWindowKey);
+        yield return handle;
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+            _hotUpdateWindow = handle.Result.GetComponent<IHotUpdateWindow>();
+        else
+            Debug.LogError($"加载热更窗口失败: {handle.OperationException}");
+    }
+
+    /// <summary>加载 AOT 程序集元数据，为 HybridCLR 补齐跨程序集引用（仅真机）</summary>
+    private void LoadMetadataForAOTAssemblies()
+    {
+        EnsureDllConfig();
+        foreach (string dllName in _dllConfig.aot)
+        {
+            byte[] dllBytes = LoadDllBytes(dllName);
+            if (dllBytes == null) continue;
+            LoadImageErrorCode err = RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, HomologousImageMode.SuperSet);
+            Debug.Log($"LoadMetadataForAOTAssembly:{dllName} ret:{err}");
         }
     }
-}
 
-internal class GameBundleDecryption : IBundleOffsetDecryptor, IBundleStreamDecryptor
-{
-    public long GetFileOffset(BundleDecryptArgs args)
+    /// <summary>按 DllConfig 名单加载优先热更与普通热更程序集（仅真机）</summary>
+    private void LoadHotUpdateAssemblies()
     {
-        return 32;
+        EnsureDllConfig();
+        foreach (string dllName in _dllConfig.priorityHotUpdate)
+            LoadDll(dllName);
+        foreach (string dllName in _dllConfig.hotUpdate)
+            LoadDll(dllName);
     }
 
-    public int GetBufferSize(BundleDecryptArgs args)
+    private void EnsureDllConfig()
     {
-        return 1024;
+        if (_dllConfig != null) return;
+
+        _dllConfig = Addressables.LoadAssetAsync<DllConfig>(DllConfigKey).WaitForCompletion();
+        if (_dllConfig == null)
+            Debug.LogError($"DllConfig 加载失败（地址 {DllConfigKey}），请检查 Addressables 分组中的地址");
     }
 
-    public Stream CreateDecryptionStream(BundleDecryptArgs args)
+    /// <summary>按 DLL 名加载 .bytes 资产（地址即 DLL 全名，如 HotUpdate.dll）</summary>
+    private byte[] LoadDllBytes(string dllName)
     {
-        return new FileStream(args.FilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-    }
-}
-
-internal class RemoteServiceAdapter : IRemoteService
-{
-    private readonly string _defaultHostServer;
-    private readonly string _fallbackHostServer;
-
-    public RemoteServiceAdapter(string defaultHostServer, string fallbackHostServer)
-    {
-        _defaultHostServer = defaultHostServer;
-        _fallbackHostServer = fallbackHostServer;
-    }
-
-    public IReadOnlyList<string> GetRemoteUrls(string fileName)
-    {
-        return new List<string>
+        TextAsset textAsset = Addressables.LoadAssetAsync<TextAsset>(dllName).WaitForCompletion();
+        if (textAsset == null)
         {
-            $"{_defaultHostServer}/{fileName}",
-            $"{_fallbackHostServer}/{fileName}"
-        };
-    }
-}
+            Debug.LogError($"DLL 字节加载失败（地址 {dllName}），请在 Addressables 分组里为该 .bytes 设置同名地址");
+            return null;
+        }
 
-internal class GameBuiltinFileAccessor : IBuiltinFileAccessor
-{
-    public bool FileExists(string filePath)
-    {
-        return File.Exists(filePath);
+        byte[] bytes = textAsset.bytes;
+        Addressables.Release(textAsset);
+        return bytes;
     }
 
-    public byte[] ReadAllBytes(string filePath)
+    private void LoadDll(string dllName)
     {
-        return File.ReadAllBytes(filePath);
+        if (_loadedDlls.Contains(dllName)) return;
+
+        byte[] bytes = LoadDllBytes(dllName);
+        if (bytes == null) return;
+
+        Assembly.Load(bytes);
+        _loadedDlls.Add(dllName);
+        Debug.Log($"已加载热更程序集: {dllName} size:{bytes.Length}");
+    }
+
+    private IEnumerator EnterGame()
+    {
+        var handle = Addressables.InstantiateAsync(GameLanuchKey);
+        yield return handle;
+        if (handle.Status == AsyncOperationStatus.Succeeded)
+            Debug.Log("GameLanuch 已实例化，主流程启动");
+        else
+            Debug.LogError($"GameLanuch 实例化失败: {handle.OperationException}");
     }
 }

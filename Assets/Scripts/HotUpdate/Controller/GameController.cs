@@ -2,12 +2,6 @@ using UnityEngine;
 
 /// <summary>
 /// 战斗场景内的输入 Controller。
-///
-/// 所有按键统一注册到 InputManager，这里不再有 Update 每帧轮询 Input。
-/// 光标锁定也改成响应 CursorShow / CursorHide 事件，而不是每帧去写 Cursor.lockState。
-///
-/// 原先这里还直接去操作 ImprovePanel / PlayerDataPanel 的数据，
-/// 那些已交由 DepotController 与 PlayerDataService 处理。
 /// </summary>
 public class GameController : MonoBehaviour
 {

@@ -162,7 +162,7 @@ public enum PlayerStateType
     Evade,
     Hurt,
     Dead,
-    EX
+    Ex
 }
 
 public enum EnemyStateType

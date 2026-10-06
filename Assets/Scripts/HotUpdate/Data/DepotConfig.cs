@@ -13,32 +13,32 @@ public class DepotConfig : ScriptableObject
 
 public class DriverDiskDataRuntime
 {
-    public string depotName;
-    public int depotId;
-    public int level;
-    public string depotIconName;
-    public List<int> materialsId;
-    public float curLevelMaxFill;
-    public float curLevelFillValue;
+    public string DepotName;
+    public int DepotId;
+    public int Level;
+    public string DepotIconName;
+    public List<int> MaterialsId;
+    public float CurLevelMaxFill;
+    public float CurLevelFillValue;
     [SerializeReference] // 使用 SerializeReference 支持多态
     public DriverDiskValueData DepotDriverDiskValue = new();
 
     public DriverDiskDataRuntime() { }
     public DriverDiskDataRuntime(DriverDiskData driverDiskData)
     {
-        depotName = driverDiskData.depotName;
-        depotId = driverDiskData.depotId;
-        level = driverDiskData.level;
-        depotIconName = driverDiskData.depotIconName;
-        materialsId = driverDiskData.materialsId;
-        curLevelMaxFill = driverDiskData.curLevelMaxFill;
-        curLevelFillValue = driverDiskData.curLevelFillValue;
+        DepotName = driverDiskData.depotName;
+        DepotId = driverDiskData.depotId;
+        Level = driverDiskData.level;
+        DepotIconName = driverDiskData.depotIconName;
+        MaterialsId = driverDiskData.materialsId;
+        CurLevelMaxFill = driverDiskData.curLevelMaxFill;
+        CurLevelFillValue = driverDiskData.curLevelFillValue;
         // 深拷贝 ValueData
         // 核心修复：空值保护 + 初始化默认值
         if (driverDiskData.depotDriverDiskValue == null)
         {
             DepotDriverDiskValue = new DriverDiskValueData();
-            Debug.LogWarning($"DepotId {depotId} 的depotValue为空，已初始化默认值");
+            Debug.LogWarning($"DepotId {DepotId} 的depotValue为空，已初始化默认值");
         }
         else
         {
@@ -55,16 +55,16 @@ public class DriverDiskDataRuntime
     }
     public DriverDiskDataRuntime(DriverDiskDataRuntime driverDiskData)
     {
-        depotName = driverDiskData.depotName;
-        depotId = driverDiskData.depotId;
-        level = driverDiskData.level;
-        depotIconName = driverDiskData.depotIconName;
-        materialsId = driverDiskData.materialsId;
-        curLevelMaxFill = driverDiskData.curLevelMaxFill;
-        curLevelFillValue = driverDiskData.curLevelFillValue;
+        DepotName = driverDiskData.DepotName;
+        DepotId = driverDiskData.DepotId;
+        Level = driverDiskData.Level;
+        DepotIconName = driverDiskData.DepotIconName;
+        MaterialsId = driverDiskData.MaterialsId;
+        CurLevelMaxFill = driverDiskData.CurLevelMaxFill;
+        CurLevelFillValue = driverDiskData.CurLevelFillValue;
         if (driverDiskData.DepotDriverDiskValue == null)
         {
-            Debug.LogWarning($"DepotDataRuntime[{depotId}]的depotValue为null！已创建默认值");
+            Debug.LogWarning($"DepotDataRuntime[{DepotId}]的depotValue为null！已创建默认值");
             DepotDriverDiskValue = new DriverDiskValueData();
         }
         else
@@ -84,14 +84,14 @@ public class DriverDiskDataRuntime
     // 添加经验值
     public void AddExp(float exp)
     {
-        curLevelFillValue += exp;
+        CurLevelFillValue += exp;
         // 检查是否可以升级
-        while (curLevelFillValue >= curLevelMaxFill)
+        while (CurLevelFillValue >= CurLevelMaxFill)
         {
-            level++;
-            if (level == 2) AppContext.Task.UpdateProgress(TaskType.给每一个驱动盘都升一级);
-            curLevelFillValue -= curLevelMaxFill;
-            curLevelMaxFill = (int)Random.Range(curLevelMaxFill + 200, curLevelMaxFill + 500);
+            Level++;
+            if (Level == 2) AppContext.Task.UpdateProgress(TaskType.给每一个驱动盘都升一级);
+            CurLevelFillValue -= CurLevelMaxFill;
+            CurLevelMaxFill = (int)Random.Range(CurLevelMaxFill + 200, CurLevelMaxFill + 500);
             // 升级时提升属性
             UpgradeValue();
         }
@@ -106,10 +106,10 @@ public class DriverDiskDataRuntime
     {
         shortageTip = "";
         bool canAddExp = true;
-        foreach (var materialId in materialsId)
+        foreach (var materialId in MaterialsId)
         {
             if (AppContext.Material.HasEnough(materialId)) continue;
-            shortageTip += $"{AppContext.Material.GetRuntime(materialId)?.name ?? materialId.ToString()}\n";
+            shortageTip += $"{AppContext.Material.GetRuntime(materialId)?.Name ?? materialId.ToString()}\n";
             canAddExp = false;
         }
 
@@ -156,7 +156,7 @@ public class DriverDiskDataRuntime
     }
 
     // 获取当前等级进度（0-1）
-    public float GetLevelProgress() { return curLevelFillValue / curLevelMaxFill; }
+    public float GetLevelProgress() { return CurLevelFillValue / CurLevelMaxFill; }
 }
 
 

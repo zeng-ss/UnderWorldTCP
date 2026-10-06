@@ -4,25 +4,26 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-[PanelPath("Assets/Res/UI/UIPanel/ChatPanel")]
+[PanelPath("ChatPanel")]
 public class ChatPanel : BasePanel
 {
-    private GameObject content;
-    
+    private GameObject _content;
+
     // UI组件
-    [HideInInspector] public TMP_InputField chatInput;
-    private ScrollRect chatScrollView;
+    private TMP_InputField _chatInput;
+    private ScrollRect _chatScrollView;
 
     protected override void Awake()
     {
         base.Awake();
-        content = GameObject.Find("DialogueItemContent").gameObject;
-        chatInput = GameObject.Find("DialogueInput").GetComponent<TMP_InputField>();
-        chatScrollView = transform.Find("Scroll View").GetComponent<ScrollRect>();
+        _content = GameObject.Find("DialogueItemContent").gameObject;
+        _chatInput = GameObject.Find("DialogueInput").GetComponent<TMP_InputField>();
+        _chatScrollView = transform.Find("Scroll View").GetComponent<ScrollRect>();
     }
+
     private void Start()
     {
-        chatInput.onEndEdit.AddListener(OnEndEditMessage);
+        _chatInput.onEndEdit.AddListener(OnEndEditMessage);
     }
 
     private void OnEnable()
@@ -48,43 +49,51 @@ public class ChatPanel : BasePanel
         bool isSelf = message != null && message.SenderClientId == 0;
         AddChatItem(message, isSelf);
     }
-    
+
     /// <summary>回车激活输入框。注册到 InputManager，不再每帧轮询。</summary>
     private void OnEnterPressed()
     {
-        if (chatInput == null || chatInput.isFocused) return;
-        chatInput.ActivateInputField();
-        chatInput.Select();
+        if (_chatInput == null || _chatInput.isFocused) return;
+        _chatInput.ActivateInputField();
+        _chatInput.Select();
     }
 
     private void OnEndEditMessage(string inputMes)
     {
         if (string.IsNullOrEmpty(inputMes)) return;
-        chatInput.text = "";
+        _chatInput.text = "";
         DateTime now = DateTime.Now;
         AppContext.Chat.SendLocal(inputMes, now.ToString("HH:mm:ss"));
     }
 
-    public void AddChatItem(MessageData messageData, bool isLocal)
+    private void AddChatItem(MessageData messageData, bool isLocal)
     {
-        AppContext.Res.LoadAndInstantiateAsync(isLocal ? "Assets/Res/UI/UIItem/ChatRootRight" : "Assets/Res/UI/UIItem/ChatRootLeft", content.transform,chatItem =>
-        {
-            chatItem.GetComponent<ChatItem>().UpdateDate(messageData); 
-            // 直接 DOTween 滚动
-            DOTween.To(
-                () => chatScrollView.verticalNormalizedPosition,
-                x => chatScrollView.verticalNormalizedPosition = x,
-                0f, // 目标值（底部）
-                0.4f // 动画时间
-            ).SetEase(Ease.OutBack);
-        });
+        AppContext.Res.LoadAndInstantiateAsync(
+            isLocal ? "ChatRootRight" : "ChatRootLeft", _content.transform,
+            chatItem =>
+            {
+                chatItem.GetComponent<ChatItem>().UpdateDate(messageData);
+                // 直接 DOTween 滚动
+                DOTween.To(
+                    () => _chatScrollView.verticalNormalizedPosition,
+                    x => _chatScrollView.verticalNormalizedPosition = x,
+                    0f, // 目标值（底部）
+                    0.4f // 动画时间
+                ).SetEase(Ease.OutBack);
+            });
     }
 
-    public void ClearChatItems() { for (var i = 0; i < content.transform.childCount; i++) { Destroy(content.transform.GetChild(i).gameObject); } }
+    public void ClearChatItems()
+    {
+        for (var i = 0; i < _content.transform.childCount; i++)
+        {
+            Destroy(_content.transform.GetChild(i).gameObject);
+        }
+    }
 
     protected override void OnDestroy()
     {
         base.OnDestroy();
-        chatInput.onEndEdit.RemoveListener(OnEndEditMessage);
+        _chatInput.onEndEdit.RemoveListener(OnEndEditMessage);
     }
 }

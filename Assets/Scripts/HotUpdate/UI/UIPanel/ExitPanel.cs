@@ -2,19 +2,19 @@ using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 
-[PanelPath("Assets/Res/UI/UIPanel/ExitPanel")]
+[PanelPath("ExitPanel")]
 public class ExitPanel : BasePanel
 {
     public Button yesBtn;
     public Button noBtn;
-    private Vector3 startPos = new(0, 840, 0);
+    private Vector3 _startPos = new(0, 840, 0);
 
     /// <summary>退出确认弹出时应锁住角色操作</summary>
     public override bool BlocksGameplayInput => true;
 
     private void OnEnable()
     {
-        transform.localPosition = startPos;
+        transform.localPosition = _startPos;
         transform.DOLocalMove(Vector3.zero, 0.5f);
         yesBtn.onClick.AddListener(() =>
         {
@@ -23,7 +23,7 @@ public class ExitPanel : BasePanel
         });
         noBtn.onClick.AddListener(() =>
         {
-            transform.DOLocalMove(startPos, 0.5f)
+            transform.DOLocalMove(_startPos, 0.5f)
                 .OnComplete(() => { AppContext.Ui.ClosePanel<ExitPanel>(); });
         });
     }

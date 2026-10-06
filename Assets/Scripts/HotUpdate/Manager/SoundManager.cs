@@ -5,23 +5,23 @@ public class SoundManager
 {
     #region 音频数据
 
-    public AudioClip footSound;
-    public AudioClip footBackSound;
-    public AudioClip weaponBackSound;
-    public AudioClip weaponEndSound;
-    public List<AudioClip> playerAttackSpeaks;
-    public AudioClip startPinSound;
-    public List<AudioClip> exSounds;
+    public AudioClip FootSound;
+    public AudioClip FootBackSound;
+    public AudioClip WeaponBackSound;
+    public AudioClip WeaponEndSound;
+    public List<AudioClip> PlayerAttackSpeaks;
+    public AudioClip StartPinSound;
+    public List<AudioClip> ExSounds;
 
     #endregion
 
-    private string poolName = "AudioPrefab";
-    private GameObject pool;
+    private string _poolName = "AudioPrefab";
+    private GameObject _pool;
 
     public void Init()
     {
-        pool = new GameObject("ActiveAudio");
-        AppContext.Pool.Preload("Assets/Res/Prefab/AudioPrefab", poolName, 30);
+        _pool = new GameObject("ActiveAudio");
+        AppContext.Pool.Preload("AudioPrefab", _poolName, 30);
     }
 
 
@@ -36,10 +36,10 @@ public class SoundManager
     {
         if (!clip) return;
         // 从对象池获取播放器
-        AppContext.Pool.GetObj(poolName, audioPlayer =>
+        AppContext.Pool.GetObj(_poolName, audioPlayer =>
         {
             audioPlayer.transform.position = position;
-            audioPlayer.transform.SetParent(pool.transform);
+            audioPlayer.transform.SetParent(_pool.transform);
             var audioSource = audioPlayer.GetComponent<AudioSource>();
 
             // 设置音效属性

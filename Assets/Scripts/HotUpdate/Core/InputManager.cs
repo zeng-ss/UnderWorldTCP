@@ -5,12 +5,6 @@ using UnityEngine.EventSystems;
 
 /// <summary>
 /// 输入集中管理。所有按键统一在这里注册、由唯一的一处 Update 轮询，
-/// 避免每个模块各写一个 Update 读 Input.GetKeyDown（原先有 6 处）。
-///
-/// 两类回调：
-///   RegisterKeyDown         —— 任何时候都响应，用于 Esc / Tab 这类 UI 按键
-///   RegisterGameplayKeyDown —— 仅在没有任何输入锁时响应，用于移动 / 攻击 / 技能这类玩法按键
-///
 /// 输入锁：打开需要独占操作的面板时压栈锁住玩法输入，关闭时弹栈。
 /// 由 UIManager 依据 BasePanel.BlocksGameplayInput 统一管理，业务代码不用关心。
 /// </summary>
@@ -28,7 +22,7 @@ public class InputManager : UnitySingleTonMono<InputManager>
     private KeyValuePair<int, Action>[] _mouseSnapshot = Array.Empty<KeyValuePair<int, Action>>();
     private KeyValuePair<int, Action>[] _gameplayMouseSnapshot = Array.Empty<KeyValuePair<int, Action>>();
 
-    /// <summary>当前是否允许玩法输入（没有任何输入锁）</summary>
+    /// <summary>当前是否允许玩法输入</summary>
     public bool IsGameplayInputEnabled => _lockTokens.Count == 0;
 
     public override void Awake()
@@ -182,24 +176,24 @@ public class InputManager : UnitySingleTonMono<InputManager>
     {
         foreach (var kv in _alwaysSnapshot)
         {
-            if (kv.Value != null && Input.GetKeyDown(kv.Key)) kv.Value.Invoke();
+            if (Input.GetKeyDown(kv.Key)) kv.Value?.Invoke();
         }
 
         foreach (var kv in _mouseSnapshot)
         {
-            if (kv.Value != null && Input.GetMouseButtonDown(kv.Key)) kv.Value.Invoke();
+            if (Input.GetMouseButtonDown(kv.Key)) kv.Value?.Invoke();
         }
 
         if (!IsGameplayInputEnabled) return;
 
         foreach (var kv in _gameplaySnapshot)
         {
-            if (kv.Value != null && Input.GetKeyDown(kv.Key)) kv.Value.Invoke();
+            if (Input.GetKeyDown(kv.Key)) kv.Value?.Invoke();
         }
 
         foreach (var kv in _gameplayMouseSnapshot)
         {
-            if (kv.Value != null && Input.GetMouseButtonDown(kv.Key)) kv.Value.Invoke();
+            if (Input.GetMouseButtonDown(kv.Key)) kv.Value?.Invoke();
         }
     }
 

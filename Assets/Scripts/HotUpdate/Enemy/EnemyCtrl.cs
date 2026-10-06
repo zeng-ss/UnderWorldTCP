@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using DamageNumbersPro;
 
-public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
+public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IStateMachineOwner
 {
     /// <summary>
     /// 按服务端实例ID查找敌人（联机时其他人攻击广播更新血量用）
@@ -22,9 +22,9 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
     public HitData hitData;
     [HideInInspector] public float disToPlayer;
     public EnemyModel enemyModel;
-    private AudioSource audioSource;
-    private State_Machine stateMachine;
-    private CapsuleCollider capsuleCollider;
+    private AudioSource _audioSource;
+    private StateMachine _stateMachine;
+    private CapsuleCollider _capsuleCollider;
     [HideInInspector] public CharacterController characterController;
     private PlayerCtrl _playerRef;
 
@@ -39,8 +39,8 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
         set => _playerRef = value;
     }
 
-    private float gravity = -5f;
-    private Vector3 velocity;
+    private float _gravity = -5f;
+    private Vector3 _velocity;
     [HideInInspector] public bool hasGravity;
     [HideInInspector] public bool isOnGround;
     [HideInInspector] public EnemyStateType currentState;
@@ -67,12 +67,12 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
 
     private void Start()
     {
-        audioSource = GetComponent<AudioSource>();
-        capsuleCollider = GetComponent<CapsuleCollider>();
+        _audioSource = GetComponent<AudioSource>();
+        _capsuleCollider = GetComponent<CapsuleCollider>();
         characterController = GetComponent<CharacterController>();
         enemyModel.Init(this);
-        stateMachine = new State_Machine();
-        stateMachine.Init(this);
+        _stateMachine = new StateMachine();
+        _stateMachine.Init(this);
         ChangeState(EnemyStateType.Idle);
 
         isStartPin = false;
@@ -80,7 +80,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
         networkHealth = maxHealthValue;
         isStartLock = false;
         isCanPlayHurtAni = true;
-        capsuleCollider.enabled = false;
+        _capsuleCollider.enabled = false;
         _playerRef = FindNearestPlayer();
         hasGravity = true;
         isOnGround = characterController.isGrounded;
@@ -105,15 +105,15 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
         #region 重力
 
         if (!hasGravity || !characterController.enabled) return;
-        characterController.Move(velocity * Time.deltaTime);
+        characterController.Move(_velocity * Time.deltaTime);
         isOnGround = characterController.isGrounded;
         if (isOnGround)
         {
-            velocity.y = -2f;
+            _velocity.y = -2f;
         }
         else
         {
-            velocity.y += gravity * Time.deltaTime;
+            _velocity.y += _gravity * Time.deltaTime;
         }
 
         #endregion
@@ -152,10 +152,10 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
         currentState = stateType;
         switch (stateType)
         {
-            case EnemyStateType.Idle: stateMachine.ChangeState<EnemyIdleState>(isResfeshState); break;
-            case EnemyStateType.Attack: stateMachine.ChangeState<EnemyAttackState>(isResfeshState); break;
-            case EnemyStateType.Dead: stateMachine.ChangeState<EnemyDeadState>(isResfeshState); break;
-            case EnemyStateType.Hurt: stateMachine.ChangeState<EnemyHurtState>(isResfeshState); break;
+            case EnemyStateType.Idle: _stateMachine.ChangeState<EnemyIdleState>(isResfeshState); break;
+            case EnemyStateType.Attack: _stateMachine.ChangeState<EnemyAttackState>(isResfeshState); break;
+            case EnemyStateType.Dead: _stateMachine.ChangeState<EnemyDeadState>(isResfeshState); break;
+            case EnemyStateType.Hurt: _stateMachine.ChangeState<EnemyHurtState>(isResfeshState); break;
             default: throw new ArgumentOutOfRangeException(nameof(stateType), stateType, null);
         }
     }
@@ -167,7 +167,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
             ret => { AppContext.RemotePlayer.OnSyncAni(ret); });
     }
 
-    private void EnemyAudio(AudioClip audioClip) => audioSource.PlayOneShot(audioClip);
+    private void EnemyAudio(AudioClip audioClip) => _audioSource.PlayOneShot(audioClip);
     #endregion
 
     #region 玩家相关
@@ -311,7 +311,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IState_MachineOwner
     {
         Instances.Remove(serverInstanceId);
         AppContext.Task.UpdateProgress(TaskType.击败第一个敌人);
-        capsuleCollider.enabled = false;
+        _capsuleCollider.enabled = false;
         tag = "Untagged";
         ChangeState(EnemyStateType.Dead);
         DOVirtual.DelayedCall(5, () => { Destroy(gameObject); });

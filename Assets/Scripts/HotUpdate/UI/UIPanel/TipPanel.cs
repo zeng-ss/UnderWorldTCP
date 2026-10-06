@@ -3,13 +3,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-[PanelPath("Assets/Res/UI/UIPanel/TipPanel")]
+[PanelPath("TipPanel")]
 public class TipPanel : BasePanel
 {
     public TMP_Text tipText;
     public CanvasGroup canvasGroup;
     [HideInInspector] public float showTime = 1f;
-    private float fadeDuration = 0.6f;
+    private float _fadeDuration = 0.6f;
 
     protected override void Awake()
     {
@@ -25,9 +25,9 @@ public class TipPanel : BasePanel
         
         // 动画序列
         Sequence seq = DOTween.Sequence();
-        seq.Append(canvasGroup.DOFade(1f, fadeDuration))
+        seq.Append(canvasGroup.DOFade(1f, _fadeDuration))
             .AppendInterval(showTime)
-            .Append(canvasGroup.DOFade(0f, fadeDuration))
+            .Append(canvasGroup.DOFade(0f, _fadeDuration))
             .OnComplete(() =>
             {
                 showTime = 1;

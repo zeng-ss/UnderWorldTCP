@@ -4,21 +4,21 @@ using UnityEngine.UI;
 public class BasePanel : MonoBehaviour
 {
     [HideInInspector] public bool isAnimating;
-    private RectTransform rootRect;
+    private RectTransform _rootRect;
     protected IEnumerator DelayedLayoutUpdate()
     {
         yield return null; // 等待一帧
-        LayoutRebuilder.ForceRebuildLayoutImmediate(rootRect);
+        LayoutRebuilder.ForceRebuildLayoutImmediate(_rootRect);
     }
-    private Button closeBtn;
+    private Button _closeBtn;
 
     protected virtual void Awake()
     {
-        rootRect = transform as RectTransform;
-        closeBtn = transform.Find("CloseBtn")?.GetComponent<Button>();
-        if (closeBtn != null)
+        _rootRect = transform as RectTransform;
+        _closeBtn = transform.Find("CloseBtn")?.GetComponent<Button>();
+        if (_closeBtn != null)
         {
-            closeBtn.onClick.AddListener(OnCloseClicked);
+            _closeBtn.onClick.AddListener(OnCloseClicked);
         }
     }
 
@@ -40,9 +40,9 @@ public class BasePanel : MonoBehaviour
 
     protected virtual void OnDestroy()
     {
-        if (closeBtn != null)
+        if (_closeBtn != null)
         {
-            closeBtn.onClick.RemoveListener(OnCloseClicked);
+            _closeBtn.onClick.RemoveListener(OnCloseClicked);
         }
     }
 

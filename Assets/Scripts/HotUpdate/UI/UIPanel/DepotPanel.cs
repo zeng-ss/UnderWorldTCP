@@ -12,7 +12,7 @@ using UnityEngine.UI;
 /// 不再持有「已装备列表」这类业务状态（已归于 DepotService），
 /// 也不再直接调用 PlayerDataPanel / PlayerCtrl。
 /// </summary>
-[PanelPath("Assets/Res/UI/UIPanel/DepotPanel")]
+[PanelPath("DepotPanel")]
 public class DepotPanel : BasePanel
 {
     #region 详情界面UI组件
@@ -84,7 +84,7 @@ public class DepotPanel : BasePanel
         foreach (var item in AppContext.Depot.Owned)
         {
             var data = item;
-            AppContext.Res.LoadAndInstantiateAsync("Assets/Res/UI/UIItem/DepotItem", content.transform, obj =>
+            AppContext.Res.LoadAndInstantiateAsync("DepotItem", content.transform, obj =>
             {
                 if (obj == null) return;
                 var depotItem = obj.GetComponent<DepotItem>();
@@ -151,7 +151,7 @@ public class DepotPanel : BasePanel
             rect.sizeDelta = new Vector2(150f, 150f);
 
             var image = obj.GetComponent<Image>();
-            AppContext.Res.LoadSpriteAsync($"Res/{data.depotIconName}",
+            AppContext.Res.LoadSpriteAsync($"Res/{data.DepotIconName}",
                 sprite => { if (image) image.sprite = sprite; });
 
             // 右键卸下
@@ -175,8 +175,8 @@ public class DepotPanel : BasePanel
         if (driverDiskData == null) return;
         _currentDetail = driverDiskData;
 
-        depotName.text = driverDiskData.depotName;
-        depotLevelText.text = driverDiskData.level.ToString();
+        depotName.text = driverDiskData.DepotName;
+        depotLevelText.text = driverDiskData.Level.ToString();
         depotBaseTypeText.text = GetDepotType(driverDiskData.DepotDriverDiskValue.driverDiskType);
         depotBaseText.text = driverDiskData.DepotDriverDiskValue.baseValue.ToString();
         depotAttackText.text = $"{driverDiskData.DepotDriverDiskValue.attackPercent}%";
@@ -184,7 +184,7 @@ public class DepotPanel : BasePanel
         depotDefenseText.text = $"{driverDiskData.DepotDriverDiskValue.defensePercent}%";
         depotBaoJiText.text = $"{driverDiskData.DepotDriverDiskValue.baoJiPercent}%";
 
-        AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.depotIconName}",
+        AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.DepotIconName}",
             sprite => { if (depotIcon) depotIcon.sprite = sprite; });
     }
 

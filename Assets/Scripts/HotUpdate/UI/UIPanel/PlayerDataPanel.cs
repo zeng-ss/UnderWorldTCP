@@ -7,7 +7,7 @@ using UnityEngine;
 /// 只订阅 PlayerDataService.Current 并渲染，不再自己去找 PlayerCtrl 算属性、也不再改玩家数据。
 /// 原先靠判断 attackText.text == "？？？" 来区分是否首次初始化，这个开关现在改由数据层驱动。
 /// </summary>
-[PanelPath("Assets/Res/UI/UIPanel/PlayerDataPanel")]
+[PanelPath("PlayerDataPanel")]
 public class PlayerDataPanel : BasePanel
 {
     public TMP_Text attackText;

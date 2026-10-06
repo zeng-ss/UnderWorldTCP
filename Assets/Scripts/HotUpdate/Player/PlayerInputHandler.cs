@@ -82,7 +82,7 @@ public class PlayerInputHandler
         if (index == 3)
         {
             _skillCombo.UpdateSkillConfig(3);
-            _stateMachine.ChangeTo(PlayerStateType.EX);
+            _stateMachine.ChangeTo(PlayerStateType.Ex);
             return;
         }
 

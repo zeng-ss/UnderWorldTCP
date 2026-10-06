@@ -10,24 +10,24 @@ public class DialogueOptionItem : MonoBehaviour,IPointerEnterHandler,IPointerExi
     public TMP_Text optionText;
     public Button button;
     public Image backgroundImage;
-    private CanvasGroup canvasGroup;
+    private CanvasGroup _canvasGroup;
     
     // 动画设置
-    private float hoverScale = 1.1f;
-    private float clickScale = 0.9f;
-    private float animationDuration = 0.2f;
+    private float _hoverScale = 1.1f;
+    private float _clickScale = 0.9f;
+    private float _animationDuration = 0.2f;
     [Header("悬停颜色")] public Color hoverColor = new (0.9f, 0.9f, 0.9f);
 
-    private Color originalColor;
-    private Vector3 originalScale;
-    private DialogueOption optionData;
+    private Color _originalColor;
+    private Vector3 _originalScale;
+    private DialogueOption _optionData;
     
     private void Awake()
     {
         button.onClick.AddListener(OnOptionClicked);
-        originalScale = transform.localScale;
-        originalColor = backgroundImage.color;
-        canvasGroup = GetComponent<CanvasGroup>();
+        _originalScale = transform.localScale;
+        _originalColor = backgroundImage.color;
+        _canvasGroup = GetComponent<CanvasGroup>();
     }
     
     /// <summary>
@@ -35,18 +35,18 @@ public class DialogueOptionItem : MonoBehaviour,IPointerEnterHandler,IPointerExi
     /// </summary>
     public void SetupOption(DialogueOption option)
     {
-        optionData = option;
+        _optionData = option;
         optionText.text = option.optionText;
         // 入场动画
         transform.localScale = Vector3.zero;
-        canvasGroup.alpha = 0;
+        _canvasGroup.alpha = 0;
         
         transform.DOScale(Vector3.one, 0.3f)
             .SetEase(Ease.OutBack)
-            .SetDelay(option.index * 0.1f);
+            .SetDelay(option.Index * 0.1f);
         
-        canvasGroup.DOFade(1, 0.3f)
-            .SetDelay(option.index * 0.1f);
+        _canvasGroup.DOFade(1, 0.3f)
+            .SetDelay(option.Index * 0.1f);
     }
     
     /// <summary>
@@ -56,16 +56,16 @@ public class DialogueOptionItem : MonoBehaviour,IPointerEnterHandler,IPointerExi
     {
         // 点击动画
         DOTween.Sequence()
-            .Append(transform.DOScale(originalScale * clickScale, animationDuration * 0.5f))
-            .Append(transform.DOScale(originalScale, animationDuration * 0.5f))
+            .Append(transform.DOScale(_originalScale * _clickScale, _animationDuration * 0.5f))
+            .Append(transform.DOScale(_originalScale, _animationDuration * 0.5f))
             .OnComplete(() =>
             {
                 // 通知对话管理器选项被选择
-                AppContext.Dialogue.OnOptionSelected(optionData);
+                AppContext.Dialogue.OnOptionSelected(_optionData);
                 // 按钮消失动画
-                if (canvasGroup != null)
+                if (_canvasGroup != null)
                 {
-                    canvasGroup.DOFade(0, 0.2f)
+                    _canvasGroup.DOFade(0, 0.2f)
                         .OnComplete(() => Destroy(gameObject));
                 }
                 else { Destroy(gameObject); }
@@ -79,14 +79,14 @@ public class DialogueOptionItem : MonoBehaviour,IPointerEnterHandler,IPointerExi
     public void OnPointerEnter(PointerEventData eventData)
     {
         transform.DOKill();
-        transform.DOScale(originalScale * hoverScale, animationDuration);
-        backgroundImage.DOColor(hoverColor, animationDuration);
+        transform.DOScale(_originalScale * _hoverScale, _animationDuration);
+        backgroundImage.DOColor(hoverColor, _animationDuration);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         transform.DOKill();
-        transform.DOScale(originalScale, animationDuration);
-        backgroundImage.DOColor(originalColor, animationDuration);
+        transform.DOScale(_originalScale, _animationDuration);
+        backgroundImage.DOColor(_originalColor, _animationDuration);
     }
 }

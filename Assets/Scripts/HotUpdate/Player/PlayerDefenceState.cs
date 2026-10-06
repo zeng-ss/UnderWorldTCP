@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class PlayerDefenceState : Player_State
+public class PlayerDefenceState : PlayerState
 {
     private enum DefenceChildState
     {
@@ -10,32 +10,32 @@ public class PlayerDefenceState : Player_State
         Exit //退出格挡
     }
 
-    private DefenceChildState defenceState;
+    private DefenceChildState _defenceState;
 
     private DefenceChildState DefenceState
     {
-        get => defenceState;
+        get => _defenceState;
         set
         {
-            defenceState = value;
-            switch (defenceState)
+            _defenceState = value;
+            switch (_defenceState)
             {
                 case DefenceChildState.Enter:
-                    _player.PlayAnimation("EnterDefence");
+                    Player.PlayAnimation("EnterDefence");
                     break;
                 case DefenceChildState.Hold:
-                    _player.PlayAnimation("HoldDefence");
+                    Player.PlayAnimation("HoldDefence");
                     break;
                 case DefenceChildState.CounterAttack:
                     //_player.playerModel.transform.LookAt(((Component)_player.Enemy).transform); //面向敌人
-                    if (!_player.IsLocalPlayer) return;
+                    if (!Player.IsLocalPlayer) return;
                     // 本地先更新（预测，提升手感）
-                    _player.UpdateSkillConfig(1);
-                    _player.CurAttackIndex = 1;
-                    _player.StartSkill(_player.CurSkillConfig.skillConfigs[_player.CurAttackIndex]);
+                    Player.UpdateSkillConfig(1);
+                    Player.CurAttackIndex = 1;
+                    Player.StartSkill(Player.CurSkillConfig.skillConfigs[Player.CurAttackIndex]);
                     break;
                 case DefenceChildState.Exit:
-                    _player.PlayAnimation("ExitDefence");
+                    Player.PlayAnimation("ExitDefence");
                     break;
             }
         }
@@ -43,13 +43,13 @@ public class PlayerDefenceState : Player_State
 
     public override void Enter()
     {
-        _player.playerModel.SetRootMotionAction(OnRootMotion);
+        Player.playerModel.SetRootMotionAction(OnRootMotion);
         DefenceState = DefenceChildState.Enter;
     }
 
     private void OnRootMotion(Vector3 arg1, Quaternion arg2)
     {
-        _player.CharacterController.Move(arg1);
+        Player.CharacterController.Move(arg1);
     }
 
     public override void Update()
@@ -58,6 +58,6 @@ public class PlayerDefenceState : Player_State
 
     public override void Exit()
     {
-        _player.playerModel.ClearRootMotionAction();
+        Player.playerModel.ClearRootMotionAction();
     }
 }

@@ -4,27 +4,27 @@ using UnityEngine;
 
 
 [CreateAssetMenu(menuName = "Config/MaterialConfig")]
-public class MaterialDataSO : ScriptableObject
+public class MaterialDataSo : ScriptableObject
 {
     public List<MaterialData> materials = new();
 }
 
 public class MaterialDataRuntime
 {
-    public int id;
-    public string name;
-    public string materialIconName;
-    public float materialValue;
+    public int ID;
+    public string Name;
+    public string MaterialIconName;
+    public float MaterialValue;
     
     public MaterialDataRuntime() {}
     public MaterialDataRuntime(MaterialData materialData)
     {
-        id = materialData.id;
-        name = materialData.name;
-        materialIconName = materialData.materialIconName;
-        materialValue = materialData.materialValue;
+        ID = materialData.id;
+        Name = materialData.name;
+        MaterialIconName = materialData.materialIconName;
+        MaterialValue = materialData.materialValue;
     }
-    public void AddValue(float addValue) { materialValue += addValue; }
+    public void AddValue(float addValue) { MaterialValue += addValue; }
 }
 
 [Serializable]

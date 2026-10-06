@@ -8,7 +8,7 @@ using UnityEngine;
 /// 依赖严格单向：PlayerCtrl → 子系统 → PlayerCore（共享状态），
 /// 子系统之间只注入自己依赖的具体类型，互不引用、也不引用本类。
 /// </summary>
-public class PlayerCtrl : MonoBehaviour, IState_MachineOwner, ISkillOwner, IHurt
+public class PlayerCtrl : MonoBehaviour, IStateMachineOwner, ISkillOwner, IHurt
 {
     // —— 共享状态（外部访问或预制体序列化需要）——
     public CharacterController CharacterController { get; private set; }
@@ -109,7 +109,7 @@ public class PlayerCtrl : MonoBehaviour, IState_MachineOwner, ISkillOwner, IHurt
     // —— 状态机转发 ——
     public PlayerStateType CurrentState => _stateMachine.CurrentState;
     public PlayerStateType LastState => _stateMachine.LastState;
-    public State_Machine StateMachine => _stateMachine.Machine;
+    public StateMachine StateMachine => _stateMachine.Machine;
 
     public void ChangeState(PlayerStateType stateType, bool isResfeshState = false) =>
         _stateMachine.ChangeTo(stateType, isResfeshState);

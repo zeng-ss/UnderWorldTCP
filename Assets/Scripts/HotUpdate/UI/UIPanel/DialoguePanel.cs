@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-[PanelPath("Assets/Res/UI/UIPanel/DialoguePanel")]
+[PanelPath("DialoguePanel")]
 public class DialoguePanel : BasePanel
 {
     #region 数据
@@ -25,27 +25,27 @@ public class DialoguePanel : BasePanel
     
     [Header("公共UI")]
     public TMP_Text tipText; // 提示文字（居中显示）
-    private Camera followCamera;
+    private Camera _followCamera;
     
     [Header("动画设置")]
-    private float fadeDuration = 0.3f;
-    private float textTypeDuration = 0.05f;
-    private Ease fadeEase = Ease.OutQuad;
+    private float _fadeDuration = 0.3f;
+    private float _textTypeDuration = 0.05f;
+    private Ease _fadeEase = Ease.OutQuad;
     
-    private Sequence showSequence;
-    private Tween typingTween;
-    private bool isPlayerSpeaking = true;
-    private float lastSoundTime;
+    private Sequence _showSequence;
+    private Tween _typingTween;
+    private bool _isPlayerSpeaking = true;
+    private float _lastSoundTime;
 
     #endregion
 
-    protected override void Awake() { base.Awake(); followCamera = Camera.main; }
+    protected override void Awake() { base.Awake(); _followCamera = Camera.main; }
     
     private void OnEnable()
     {
         // 面板显示动画
         transform.localScale = Vector3.zero;
-        showSequence = DOTween.Sequence().Append(transform.DOScale(Vector3.one, fadeDuration).SetEase(fadeEase)).Play();
+        _showSequence = DOTween.Sequence().Append(transform.DOScale(Vector3.one, _fadeDuration).SetEase(_fadeEase)).Play();
     }
     
     /// <summary>
@@ -53,7 +53,7 @@ public class DialoguePanel : BasePanel
     /// </summary>
     public void SetSpeaker(string speakerName, Sprite portrait, bool isPlayer)
     {
-        isPlayerSpeaking = isPlayer;
+        _isPlayerSpeaking = isPlayer;
         // 更新UI组件
         if (isPlayer)
         {
@@ -105,16 +105,16 @@ public class DialoguePanel : BasePanel
     public void ShowDialogue(string content, AudioClip typingSound = null)
     {
         // 停止之前的打字效果
-        typingTween?.Kill();
+        _typingTween?.Kill();
         // 根据当前说话者选择对应的文本组件
-        TMP_Text targetText = isPlayerSpeaking ? dialogueTextL : dialogueTextR;
+        TMP_Text targetText = _isPlayerSpeaking ? dialogueTextL : dialogueTextR;
         if (targetText == null) return;
         // 重置文本
         targetText.text = "";
         targetText.alpha = 1;
         // 打字机效果
         int charCount = 0;
-        typingTween = DOTween.To(() => charCount, x => charCount = x, content.Length, content.Length * textTypeDuration)
+        _typingTween = DOTween.To(() => charCount, x => charCount = x, content.Length, content.Length * _textTypeDuration)
             .SetEase(Ease.Linear)
             .OnUpdate(() =>
             {
@@ -123,14 +123,14 @@ public class DialoguePanel : BasePanel
                 if (typingSound != null && charCount % 3 == 0)
                 {
                     float currentTime = Time.time;
-                    if (currentTime - lastSoundTime >= 0.1f)
+                    if (currentTime - _lastSoundTime >= 0.1f)
                     {
-                        AudioSource.PlayClipAtPoint(typingSound, followCamera.transform.position, 0.05f);
-                        lastSoundTime = currentTime;
+                        AudioSource.PlayClipAtPoint(typingSound, _followCamera.transform.position, 0.05f);
+                        _lastSoundTime = currentTime;
                     }
                 }
             })
-            .OnComplete(() => { typingTween = null; }).Play();
+            .OnComplete(() => { _typingTween = null; }).Play();
     }
     
     /// <summary>
@@ -138,11 +138,11 @@ public class DialoguePanel : BasePanel
     /// </summary>
     public void CompleteCurrentTyping()
     {
-        if (typingTween != null && typingTween.IsActive())
+        if (_typingTween != null && _typingTween.IsActive())
         {
-            typingTween.Complete();
-            typingTween.Kill();
-            typingTween = null;
+            _typingTween.Complete();
+            _typingTween.Kill();
+            _typingTween = null;
         }
         // 显示提示文字
         ShowContinueHint();
@@ -179,7 +179,7 @@ public class DialoguePanel : BasePanel
     /// </summary>
     public Transform GetCurrentOptionsPanel()
     {
-        return isPlayerSpeaking ? optionsPanelL : optionsPanelR;
+        return _isPlayerSpeaking ? optionsPanelL : optionsPanelR;
     }
     
     /// <summary>
@@ -212,8 +212,8 @@ public class DialoguePanel : BasePanel
     public void ClosePanel()
     {
         // 停止所有动画
-        showSequence?.Kill();
-        typingTween?.Kill();
+        _showSequence?.Kill();
+        _typingTween?.Kill();
         Sequence closeSequence = DOTween.Sequence();
         // 隐藏所有侧边
         if (dialogueController != null)
@@ -221,7 +221,7 @@ public class DialoguePanel : BasePanel
             closeSequence.AppendCallback(() => dialogueController.HideAllSides());
         }
         // 面板缩放消失
-        closeSequence.Append(transform.DOScale(Vector3.zero, fadeDuration)
+        closeSequence.Append(transform.DOScale(Vector3.zero, _fadeDuration)
                 .SetEase(Ease.InBack))
             .OnComplete(() =>
             {

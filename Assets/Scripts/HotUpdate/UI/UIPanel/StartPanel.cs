@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-[PanelPath("Assets/Res/UI/UIPanel/StartPanel")]
+[PanelPath("StartPanel")]
 public class StartPanel : BasePanel
 {
     public TMP_Text playerNameTxt;

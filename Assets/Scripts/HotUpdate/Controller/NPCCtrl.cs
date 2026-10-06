@@ -3,18 +3,18 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-public class NPCCtrl : MonoBehaviour
+public class NpcCtrl : MonoBehaviour
 {
     public List<DialogueData> dialogueDatas;
-    private new Camera camera;
-    private TMP_Text tipText;
+    private new Camera _camera;
+    private TMP_Text _tipText;
     [HideInInspector] public bool isEnter;
 
     public void Start()
     {
-        camera = Camera.main;
-        tipText = GetComponentInChildren<TMP_Text>();
-        tipText.gameObject.SetActive(false);
+        _camera = Camera.main;
+        _tipText = GetComponentInChildren<TMP_Text>();
+        _tipText.gameObject.SetActive(false);
         AppContext.Events.AddEventListener(GameEvent.DialogueEnd, GetTask);
         InputManager.Instance.RegisterGameplayKeyDown(KeyCode.F, OnInteractPressed);
     }
@@ -22,10 +22,10 @@ public class NPCCtrl : MonoBehaviour
     private void Update()
     {
         // 提示文字始终朝向相机（每帧的视觉更新，不涉及输入）
-        if (tipText.gameObject.activeSelf)
+        if (_tipText.gameObject.activeSelf)
         {
-            tipText.transform.LookAt(camera.transform.position);
-            tipText.transform.Rotate(0, 180, 0);
+            _tipText.transform.LookAt(_camera.transform.position);
+            _tipText.transform.Rotate(0, 180, 0);
         }
     }
 
@@ -53,9 +53,9 @@ public class NPCCtrl : MonoBehaviour
     {
         int dialogueId = ((DialogueEndArgs)args).DialogueId;
         foreach (var task in AppContext.Task.Tasks.Where(task =>
-                     dialogueDatas[AppContext.Story.DialogueIndex].taskIds.Contains(task.taskId)))
+                     dialogueDatas[AppContext.Story.DialogueIndex].taskIds.Contains(task.TaskId)))
         {
-            task.isUnlock = true; // 解锁对应任务
+            task.IsUnlock = true; // 解锁对应任务
         }
 
         if (dialogueId != 2)
@@ -76,7 +76,7 @@ public class NPCCtrl : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isEnter = true;
-            tipText.gameObject.SetActive(true);
+            _tipText.gameObject.SetActive(true);
         }
     }
 
@@ -85,7 +85,7 @@ public class NPCCtrl : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isEnter = false;
-            tipText.gameObject.SetActive(false);
+            _tipText.gameObject.SetActive(false);
         }
     }
 

@@ -44,7 +44,7 @@ public class RemotePlayerManager
         }
 
         Vector3 pos = new Vector3(ntf.PosX, ntf.PosY, ntf.PosZ);
-        AppContext.Res.LoadAndInstantiateAsync("Assets/Res/Prefab/Character", null, obj =>
+        AppContext.Res.LoadAndInstantiateAsync("Character", null, obj =>
         {
             // 标记为非本地玩家，禁用 CharacterController 防止与位置插值冲突
             var pc = obj.GetComponent<PlayerCtrl>();
@@ -66,8 +66,8 @@ public class RemotePlayerManager
     {
         if (_remotePlayers.TryGetValue(ntf.RoleId, out RemotePlayer rp))
         {
-            rp.TargetPos = new Vector3(ntf.PosX, ntf.PosY, ntf.PosZ);
-            rp.TargetRotation = Quaternion.Euler(0, ntf.RotationY, 0);
+            rp.targetPos = new Vector3(ntf.PosX, ntf.PosY, ntf.PosZ);
+            rp.targetRotation = Quaternion.Euler(0, ntf.RotationY, 0);
         }
     }
 
@@ -121,7 +121,7 @@ public class RemotePlayerManager
         }
 
         Vector3 spawnPos = new Vector3(ret.PosX, ret.PosY, ret.PosZ);
-        AppContext.Res.LoadAndInstantiateAsync("Assets/Res/Prefab/enemy", null, enemy =>
+        AppContext.Res.LoadAndInstantiateAsync("enemy", null, enemy =>
         {
             enemy.transform.position = spawnPos;
             EnemyCtrl ctrl = enemy.GetComponent<EnemyCtrl>();
@@ -185,8 +185,8 @@ public class RemotePlayer : MonoBehaviour
 {
     public int RoleId { get; private set; }
     public string Nickname { get; private set; }
-    public Vector3 TargetPos;
-    public Quaternion TargetRotation;
+    [FormerlySerializedAs("TargetPos")] public Vector3 targetPos;
+    [FormerlySerializedAs("TargetRotation")] public Quaternion targetRotation;
     public float smoothSpeed = 10f;
     private Transform _modelTransform;
     public PlayerCtrl Ctrl { get; private set; }
@@ -195,8 +195,8 @@ public class RemotePlayer : MonoBehaviour
     {
         RoleId = roleId;
         Nickname = nickname;
-        TargetPos = pos;
-        TargetRotation = Quaternion.identity;
+        targetPos = pos;
+        targetRotation = Quaternion.identity;
         Ctrl = GetComponent<PlayerCtrl>();
 
         // 找模型子节点（Character 预制体的 root/playerModel）
@@ -205,9 +205,9 @@ public class RemotePlayer : MonoBehaviour
 
     private void Update()
     {
-        transform.position = Vector3.Lerp(transform.position, TargetPos, smoothSpeed * Time.deltaTime);
+        transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed * Time.deltaTime);
         Transform rotTarget = _modelTransform ? _modelTransform : transform;
-        rotTarget.rotation = Quaternion.Slerp(rotTarget.rotation, TargetRotation, smoothSpeed * Time.deltaTime);
+        rotTarget.rotation = Quaternion.Slerp(rotTarget.rotation, targetRotation, smoothSpeed * Time.deltaTime);
     }
 }
 
