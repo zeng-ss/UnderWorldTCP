@@ -14,16 +14,19 @@ namespace cfg
 public partial class Tables
 {
     public TbSkillInfo TbSkillInfo {get; }
+    public TbtaskData TbtaskData {get; }
 
     public Tables(System.Func<string, ByteBuf> loader)
     {
         TbSkillInfo = new TbSkillInfo(loader("tbskillinfo"));
+        TbtaskData = new TbtaskData(loader("tbtaskdata"));
         ResolveRef();
     }
     
     private void ResolveRef()
     {
         TbSkillInfo.ResolveRef(this);
+        TbtaskData.ResolveRef(this);
     }
 }
 

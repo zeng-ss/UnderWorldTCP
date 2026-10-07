@@ -1,0 +1,9 @@
+<module name="">
+    <!-- 任务类型枚举：value 与客户端 TaskType 枚举一一对应
+         0 = 击败第一个敌人（KillFirstEnemy）
+         1 = 给每一个驱动盘都升一级（UpgradeAllDriveDisk） -->
+    <enum name="TaskType">
+        <var name="KillFirstEnemy" alias="击败第一个敌人" value="0"/>
+        <var name="UpgradeAllDriveDisk" alias="给每一个驱动盘都升一级" value="1"/>
+    </enum>
+</module>

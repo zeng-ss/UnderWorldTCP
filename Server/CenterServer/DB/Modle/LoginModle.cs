@@ -216,6 +216,10 @@ public class LoginModle
             {
                 ret.RoleId = newRole.Id;
                 ret.Nickname = newRole.NickName;
+
+                //初始化角色任务进度：遍历 Luban 任务配置，为每个任务写入初始状态
+                //（默认解锁的进入 InProgress，否则 Locked），使 role_task_progress 持有该角色所有任务的状态
+                InitRoleTaskProgress(newRole.Id);
             }
             else
             {
@@ -224,6 +228,97 @@ public class LoginModle
         }
 
         return ret;
+    }
+
+    /// <summary>
+    /// 创建角色时初始化任务进度：把所有 Luban 任务配置写入 role_task_progress 表。
+    /// 状态：IsUnlock 默认解锁 → InProgress(1)，否则 → Locked(0)。
+    /// 幂等：若该角色已存在任一任务进度记录则跳过，避免重复插入。
+    /// </summary>
+    private void InitRoleTaskProgress(int roleId)
+    {
+        // 幂等保护：已有任务进度记录则跳过
+        bool hasRecord = _db.Queryable<RoleTaskProgress>().Where(v => v.RoleId == roleId).Any();
+        if (hasRecord)
+        {
+            return;
+        }
+
+        var taskDatas = LubanMgr.Instance.GetTaskDatas();
+        if (taskDatas == null || taskDatas.Count == 0)
+        {
+            LogMsg.Info("InitRoleTaskProgress：Luban taskData 表为空，跳过初始化");
+            return;
+        }
+
+        foreach (var kv in taskDatas)
+        {
+            var t = kv.Value;
+            int state = t.IsUnlock ? 1 : 0; // 1=InProgress 0=Locked（对应 TaskState 枚举）
+            _db.Insertable(new RoleTaskProgress
+            {
+                RoleId = roleId,
+                TaskId = t.TaskID,
+                State = state,
+                CurrentCount = 0,
+                CreateDate = DateTime.Now,
+                UpdateDate = DateTime.Now
+            }).ExecuteCommand();
+        }
+
+        LogMsg.Info("InitRoleTaskProgress：为角色 " + roleId + " 初始化 " + taskDatas.Count + " 条任务进度");
+    }
+
+    /// <summary>
+    /// 服务端启动时的补偿逻辑：扫描所有已存在角色，为「在 role_task_progress 里没有任何任务记录」的角色补初始化。
+    /// 保证老角色也能拿到任务配置对应的初始进度（幂等，不会重复插入）。
+    /// </summary>
+    public void CompensateRoleTaskProgress()
+    {
+        var taskDatas = LubanMgr.Instance.GetTaskDatas();
+        if (taskDatas == null || taskDatas.Count == 0)
+        {
+            LogMsg.Info("CompensateRoleTaskProgress：Luban taskData 表为空，跳过补偿");
+            return;
+        }
+
+        // 已存在任务进度记录的角色 id 集合（用于跳过）
+        var progressList = _db.Queryable<RoleTaskProgress>().ToList();
+        HashSet<int> initializedRoleIds = new HashSet<int>();
+        foreach (var p in progressList)
+        {
+            initializedRoleIds.Add(p.RoleId);
+        }
+
+        // 所有角色
+        var allRoles = _db.Queryable<RoleTable>().ToList();
+        int compensated = 0;
+        foreach (var role in allRoles)
+        {
+            if (initializedRoleIds.Contains(role.Id))
+            {
+                continue; // 已有任务进度，跳过
+            }
+
+            foreach (var kv in taskDatas)
+            {
+                var t = kv.Value;
+                int state = t.IsUnlock ? 1 : 0;
+                _db.Insertable(new RoleTaskProgress
+                {
+                    RoleId = role.Id,
+                    TaskId = t.TaskID,
+                    State = state,
+                    CurrentCount = 0,
+                    CreateDate = DateTime.Now,
+                    UpdateDate = DateTime.Now
+                }).ExecuteCommand();
+            }
+
+            compensated++;
+        }
+
+        LogMsg.Info("CompensateRoleTaskProgress：为 " + compensated + " 个角色补齐任务进度（总角色 " + allRoles.Count + " 个）");
     }
 
     /// <summary>
@@ -431,4 +526,76 @@ public class LoginModle
 
         return ret;
     }
+
+    #region 任务进度持久化
+
+    /// <summary>
+    /// 保存任务进度（批量）：客户端任务状态机迁移 / 进度变化时上报。
+    /// 采用「存在则更新、不存在则插入」的 upsert，避免重复记录。
+    /// </summary>
+    public TaskProgressRet SaveTaskProgress(TaskProgressNtf ntf)
+    {
+        TaskProgressRet ret = new TaskProgressRet();
+        if (ntf.RoleId <= 0 || ntf.ProgressList == null || ntf.ProgressList.Count == 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        foreach (var p in ntf.ProgressList)
+        {
+            RoleTaskProgress exist = _db.Queryable<RoleTaskProgress>()
+                .Where(v => v.RoleId == ntf.RoleId && v.TaskId == p.TaskId).First();
+            if (exist != null)
+            {
+                exist.State = p.State;
+                exist.CurrentCount = p.CurrentCount;
+                exist.UpdateDate = DateTime.Now;
+                _db.Updateable(exist).ExecuteCommand();
+            }
+            else
+            {
+                _db.Insertable(new RoleTaskProgress
+                {
+                    RoleId = ntf.RoleId,
+                    TaskId = p.TaskId,
+                    State = p.State,
+                    CurrentCount = p.CurrentCount,
+                    CreateDate = DateTime.Now,
+                    UpdateDate = DateTime.Now
+                }).ExecuteCommand();
+            }
+        }
+
+        return ret;
+    }
+
+    /// <summary>
+    /// 拉取角色的全量任务进度（登录 / 进入游戏时恢复任务状态机）。
+    /// 服务端没有记录的返回空列表，客户端保持默认状态。
+    /// </summary>
+    public TaskProgressListRet LoadTaskProgress(TaskProgressReq req)
+    {
+        TaskProgressListRet ret = new TaskProgressListRet();
+        if (req.RoleId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        var list = _db.Queryable<RoleTaskProgress>().Where(v => v.RoleId == req.RoleId).ToList();
+        foreach (var item in list)
+        {
+            ret.ProgressList.Add(new TaskProgressData
+            {
+                TaskId = item.TaskId,
+                State = item.State,
+                CurrentCount = item.CurrentCount
+            });
+        }
+
+        return ret;
+    }
+
+    #endregion
 }

@@ -76,6 +76,8 @@ public class SceneMgr
                 AppContext.Res.LoadAndInstantiateAsync("Character");
                 AppContext.Res.LoadAndInstantiateAsync("NPC");
                 AppContext.Res.LoadAndInstantiateAsync("GameController");
+                // 联机时从服务端恢复任务进度（离线调试内部会跳过）
+                AppContext.Task.LoadFromServer();
                 AppContext.Events.EventTrigger(GameEvent.GameStart);
                 break;
         }

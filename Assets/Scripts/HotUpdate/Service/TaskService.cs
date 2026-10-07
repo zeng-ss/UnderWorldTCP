@@ -1,27 +1,23 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
 /// 任务服务：持有运行时任务列表，负责状态迁移 / 进度推进 / 完成与领奖。
-///
-/// 设计要点：
-///   1. 状态机驱动 —— 每个任务用 TaskState 枚举表达完整生命周期（Locked → InProgress → Completed → Claimed），
-///      状态迁移集中在 Transition 方法，杜绝「解锁 / 完成 / 领奖」靠 bool 组合推断的歧义。
-///   2. 事件化 —— 进度推进不再暴露 UpdateProgress(TaskType) 给外部直接调，而是订阅战斗 / 背包的领域事件
-///      （EnemyKilled、DriverDiskLevelUp），由本服务判断哪些任务该推进。加任务不碰战斗代码。
-///   3. 持久化 —— 进度变化与领奖统一走服务端（AppContext.Proto），启动时从服务端恢复。
-///   4. 数据变化统一广播 GameEvent.TaskChanged，UI 监听刷新。
 /// </summary>
 public class TaskService
 {
     /// <summary>当前所有任务的运行时数据</summary>
-    public List<TaskDataRuntime> Tasks { get; } = new List<TaskDataRuntime>();
+    public List<TaskDataRuntime> Tasks { get; } = new();
 
     private bool _registered;
+    private bool _persistEnabled; // 是否联网持久化（离线调试传 null config 时关闭）
 
     public void Init(TaskDataConfigSo config)
     {
         Tasks.Clear();
+        // 离线调试（OfflineDebugLauncher 传 null）不联网持久化；正常联机才开启
+        _persistEnabled = config != null;
         if (config == null || config.taskDataList == null) return;
 
         foreach (var taskSo in config.taskDataList)
@@ -49,15 +45,7 @@ public class TaskService
         AppContext.Events.RemoveEventListener(GameEvent.DriverDiskLevelUp, OnDriverDiskLevelUp);
     }
 
-    public TaskDataRuntime GetById(int taskId)
-    {
-        foreach (var task in Tasks)
-        {
-            if (task.TaskId == taskId) return task;
-        }
-
-        return null;
-    }
+    private TaskDataRuntime GetById(int taskId) => Tasks.FirstOrDefault(task => task.TaskId == taskId);
 
     #region 领域事件 → 状态机推进
 
@@ -96,12 +84,6 @@ public class TaskService
 
     #endregion
 
-    #region 状态迁移
-
-    /// <summary>
-    /// 集中管理状态迁移。返回是否真的发生了变化。
-    /// 只允许向「更后」的状态单向迁移，非法迁移直接忽略并告警。
-    /// </summary>
     private bool Transition(TaskDataRuntime task, TaskState to)
     {
         if (task == null) return false;
@@ -114,8 +96,6 @@ public class TaskService
         task.State = to;
         return true;
     }
-
-    #endregion
 
     #region 解锁
 
@@ -147,10 +127,7 @@ public class TaskService
 
     #region 完成与领奖
 
-    public bool CanClaim(TaskDataRuntime task)
-    {
-        return task != null && task.State == TaskState.Completed;
-    }
+    public bool CanClaim(TaskDataRuntime task) => task is { State: TaskState.Completed };
 
     /// <summary>
     /// 领奖：Completed → Claimed，发放奖励。UI 弹窗与联网由调用方（Controller）处理。
@@ -185,7 +162,8 @@ public class TaskService
     /// <summary>把单个任务的进度与状态持久化到服务端</summary>
     private void SaveProgress(TaskDataRuntime task)
     {
-        AppContext.Proto.RequestSaveTaskProgress(task.TaskId, (int)task.State, task.CurrentCount, null);
+        if (!_persistEnabled) return; // 离线调试模式不联网
+        AppContext.Proto.RequestSaveTaskProgress(task, null);
     }
 
     /// <summary>
@@ -199,6 +177,27 @@ public class TaskService
 
         task.State = (TaskState)state;
         task.CurrentCount = currentCount;
+    }
+
+    /// <summary>
+    /// 联机时从服务端拉取全量任务进度并恢复状态机。
+    /// 离线（OfflineDebugLauncher）或未登录时跳过，保持本地默认状态。
+    /// </summary>
+    public void LoadFromServer()
+    {
+        if (!_persistEnabled) return; // 离线调试模式不联网
+        if (!AppContext.IsAlive || AppContext.Session.RoleId <= 0) return;
+
+        AppContext.Proto.RequestLoadTaskProgress(ret =>
+        {
+            if (ret == null) return;
+            foreach (var p in ret.ProgressList)
+            {
+                RestoreProgress(p.TaskId, p.State, p.CurrentCount);
+            }
+
+            NotifyTaskChanged(-1);
+        });
     }
 
     #endregion

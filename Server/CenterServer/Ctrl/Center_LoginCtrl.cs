@@ -61,6 +61,12 @@ public class Center_LoginCtrl : IContainer
             case NetDefine.CMD_GetRewardCode:
                 OnGetRewardHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_TaskProgressCode:
+                OnTaskProgressHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_TaskProgressReqCode:
+                OnTaskProgressReqHandle(serverBase, basePackage);
+                break;
         }
     }
 
@@ -70,6 +76,24 @@ public class Center_LoginCtrl : IContainer
         LogMsg.Info("[Center]收到获取奖励请求:" + req);
         GetRewardRet ret = _loginModle.GetReward(req);
         LogMsg.Info("[Center]获取奖励处理完成:" + ret);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 任务进度上报（状态迁移 / 进度变化）
+    private void OnTaskProgressHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        TaskProgressNtf ntf = TaskProgressNtf.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到任务进度上报: roleId=" + ntf.RoleId + " count=" + ntf.ProgressList.Count);
+        TaskProgressRet ret = _loginModle.SaveTaskProgress(ntf);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 任务进度拉取（登录 / 进入游戏时恢复状态）
+    private void OnTaskProgressReqHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        TaskProgressReq req = TaskProgressReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到任务进度拉取: roleId=" + req.RoleId);
+        TaskProgressListRet ret = _loginModle.LoadTaskProgress(req);
         serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
     }
 

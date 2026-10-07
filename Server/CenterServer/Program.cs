@@ -12,10 +12,13 @@ namespace CenterServer
             NetServer server = new NetServer();
             server.StartServer(NetDefine.IPHost, NetDefine.CenterServerPort);
             SqlSugarClient db = DBMgr.Instance.InitDB(); //初始化数据库 
-            //LubanMgr.Instance.init(); //初始化luban
+            LubanMgr.Instance.Init(); //初始化 luban（技能表 + 任务配置表读进内存，供服务端校验用）
 
             //创建负责和接收登录注册的模块对象 相关的数据  
-            Center_LoginCtrl loginCtrl = new Center_LoginCtrl(new LoginModle(db));
+            LoginModle loginModle = new LoginModle(db);
+            Center_LoginCtrl loginCtrl = new Center_LoginCtrl(loginModle);
+            //服务端启动时补偿初始化：为还没有任务进度记录的角色补齐所有任务的初始状态（幂等）
+            loginModle.CompensateRoleTaskProgress();
             //注册指令集
             server.RegistCommand(NetDefine.CMD_RegistCode, loginCtrl); //注册接口指令集
             server.RegistCommand(NetDefine.CMD_LoginCode, loginCtrl); //登录接口指令集
@@ -28,6 +31,8 @@ namespace CenterServer
             server.RegistCommand(NetDefine.CMD_GetRewardCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SpawnEnemyCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PlayerAttackCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_TaskProgressCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_TaskProgressReqCode, loginCtrl);
 
             //RoleTable role = db.Queryable<RoleTable>().Where(v => v.Id == 1).First();
             /*var allRoles = db.Queryable<RoleTable>().ToList().Where(role => role.SceneName != "StartScene");

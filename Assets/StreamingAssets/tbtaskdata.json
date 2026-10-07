@@ -1,0 +1,26 @@
+[
+  {
+    "taskID": 1,
+    "taskDesc": "击败第一个敌人",
+    "taskType": 0,
+    "targetCount": 1,
+    "isUnlock": true,
+    "depotIds": [
+      1
+    ],
+    "materialsId": [
+      5
+    ]
+  },
+  {
+    "taskID": 2,
+    "taskDesc": "给每一个驱动盘都升一级",
+    "taskType": 1,
+    "targetCount": 1,
+    "isUnlock": false,
+    "depotIds": [],
+    "materialsId": [
+      5
+    ]
+  }
+]

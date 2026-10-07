@@ -28,6 +28,8 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_PlayerAttackCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_GetRewardCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SpawnEnemyCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_TaskProgressCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_TaskProgressReqCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PositionSyncCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_CreateRoomCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_JoinRoomCode, loginCtrl);
@@ -50,6 +52,8 @@ namespace LoginServer
             client.RegistCommand(NetDefine.CMD_SpawnEnemyCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_PlayerAttackCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_GetRewardCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_TaskProgressCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_TaskProgressReqCode, loginCtrl);
 
             // new Timer(_ =>
             // {

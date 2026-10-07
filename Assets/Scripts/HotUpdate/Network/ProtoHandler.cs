@@ -53,6 +53,8 @@ public class ProtoHandler
     private readonly Dictionary<int, Action<PlayerAttackRet>> _playerAttackCallbacks = new();
     private int _nextAttackSeqId;
     private Action<GetRewardRet> _getRewardCallback;
+    private Action<TaskProgressRet> _taskProgressCallback;
+    private Action<TaskProgressListRet> _taskProgressListCallback;
     private Action<CreateRoomRet> _createRoomCallback;
     private Action<JoinRoomRet> _joinRoomCallback;
     private Action<SyncAniRet> _syncAniCallback;
@@ -83,6 +85,8 @@ public class ProtoHandler
         AppContext.Events.AddNetHandler(NetDefine.CMD_SpawnEnemyCode, OnSpawnEnemyResult);
         AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerAttackCode, OnPlayerAttackResult);
         AppContext.Events.AddNetHandler(NetDefine.CMD_GetRewardCode, OnGetRewardResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_TaskProgressCode, OnTaskProgressResult);
+        AppContext.Events.AddNetHandler(NetDefine.CMD_TaskProgressReqCode, OnTaskProgressListResult);
         AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoomCode, OnCreateRoomResult);
         AppContext.Events.AddNetHandler(NetDefine.CMD_JoinRoomCode, OnJoinRoomResult);
         AppContext.Events.AddNetHandler(NetDefine.CMD_RoomInfoCode, OnRoomInfoNtf);
@@ -298,15 +302,29 @@ public class ProtoHandler
     }
 
     /// <summary>
-    /// 保存任务进度到服务端（任务状态机迁移时调用）。
-    /// 注意：TaskProgressReq / TaskProgressRet 协议类尚未生成，本方法当前为桩实现，
-    /// 等 proto 定义 TaskProgressReq 并重新编译后，再补上真实的网络发送。
+    /// 保存任务进度到服务端（任务状态机迁移时调用）。批量上报，支持一次提交多个任务。
     /// </summary>
-    public void RequestSaveTaskProgress(int taskId, int state, int currentCount, Action<GetRewardRet> callback)
+    public void RequestSaveTaskProgress(TaskDataRuntime task, Action<TaskProgressRet> callback)
     {
-        // TODO(任务持久化)：等 proto 生成 TaskProgressReq 后，替换为真实发送。
-        // 当前仅记录日志，保证客户端状态机逻辑可独立编译运行。
-        Debug.Log($"[Task] 保存任务进度 taskId={taskId} state={state} count={currentCount}（桩，未联网）");
+        _taskProgressCallback = callback;
+        TaskProgressNtf ntf = new TaskProgressNtf { RoleId = AppContext.Session.RoleId };
+        ntf.ProgressList.Add(new TaskProgressData
+        {
+            TaskId = task.TaskId,
+            State = (int)task.State,
+            CurrentCount = task.CurrentCount
+        });
+        NetClientMgr.Instance.Send(NetDefine.CMD_TaskProgressCode, ntf.ToByteString());
+    }
+
+    /// <summary>
+    /// 从服务端拉取全量任务进度（联机时在 StartGame 成功后调用，恢复任务状态机）。
+    /// </summary>
+    public void RequestLoadTaskProgress(Action<TaskProgressListRet> callback)
+    {
+        _taskProgressListCallback = callback;
+        TaskProgressReq req = new TaskProgressReq { RoleId = AppContext.Session.RoleId };
+        NetClientMgr.Instance.Send(NetDefine.CMD_TaskProgressReqCode, req.ToByteString());
     }
 
     public void RequestCreateRoom(int roleId, string roomName, string nickname,
@@ -475,6 +493,22 @@ public class ProtoHandler
         _getRewardCallback = null;
     }
 
+    private void OnTaskProgressResult(ByteString data)
+    {
+        TaskProgressRet ret = TaskProgressRet.Parser.ParseFrom(data);
+        Debug.Log($"ProtoHandler: 任务进度保存结果 CmdCode={ret.CmdCode}");
+        _taskProgressCallback?.Invoke(ret);
+        _taskProgressCallback = null;
+    }
+
+    private void OnTaskProgressListResult(ByteString data)
+    {
+        TaskProgressListRet ret = TaskProgressListRet.Parser.ParseFrom(data);
+        Debug.Log($"ProtoHandler: 任务进度拉取结果 CmdCode={ret.CmdCode} count={ret.ProgressList.Count}");
+        _taskProgressListCallback?.Invoke(ret);
+        _taskProgressListCallback = null;
+    }
+
     private void OnCreateRoomResult(ByteString data)
     {
         CreateRoomRet ret = CreateRoomRet.Parser.ParseFrom(data);
@@ -595,6 +629,8 @@ public class ProtoHandler
         AppContext.Events.RemoveNetHandler(NetDefine.CMD_SpawnEnemyCode);
         AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerAttackCode);
         AppContext.Events.RemoveNetHandler(NetDefine.CMD_GetRewardCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_TaskProgressCode);
+        AppContext.Events.RemoveNetHandler(NetDefine.CMD_TaskProgressReqCode);
         AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoomCode);
         AppContext.Events.RemoveNetHandler(NetDefine.CMD_JoinRoomCode);
         AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomInfoCode);

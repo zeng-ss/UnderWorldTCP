@@ -14,7 +14,6 @@ namespace Luban
         {
             foreach (var p in o.GetType().GetFields())
             {
-
                 sb.Append($"{p.Name} = {p.GetValue(o)},");
             }
 
@@ -22,6 +21,7 @@ namespace Luban
             {
                 sb.Append($"{p.Name} = {p.GetValue(o)},");
             }
+
             return sb.ToString();
         }
 
@@ -46,6 +46,7 @@ namespace Luban
                 sb.Append(e.Key).Append(':');
                 sb.Append(e.Value).Append(',');
             }
+
             sb.Append('}');
             return sb.ToString();
         }

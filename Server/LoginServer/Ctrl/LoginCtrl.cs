@@ -47,6 +47,12 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_GetRewardCode:
                 OnGetRewardResultHandle(session, basePackage);
                 break;
+            case NetDefine.CMD_TaskProgressCode:
+                OnTaskProgressResultHandle(session, basePackage);
+                break;
+            case NetDefine.CMD_TaskProgressReqCode:
+                OnTaskProgressReqResultHandle(session, basePackage);
+                break;
             default:
                 LogMsg.Info("[LoginCtrl]中心服务器发过来的结果的请求码没有注册");
                 break;
@@ -61,7 +67,36 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]获取奖励结果:" + ret);
+        session.SendData(basePackage);
+    }
+
+    // 任务进度上报返回（CenterServer 处理完回包，透传给真正客户端）
+    private void OnTaskProgressResultHandle(Session session, BasePackage basePackage)
+    {
+        TaskProgressRet ret = TaskProgressRet.Parser.ParseFrom(basePackage.Data);
+        if (ret.CmdCode != CmdCode.Succeed)
+        {
+            session.SendError(basePackage, ret.CmdCode);
+            return;
+        }
+
+        LogMsg.Info("[Login]任务进度上报结果:" + ret);
+        session.SendData(basePackage);
+    }
+
+    // 任务进度拉取返回（CenterServer 处理完回包，透传给真正客户端）
+    private void OnTaskProgressReqResultHandle(Session session, BasePackage basePackage)
+    {
+        TaskProgressListRet ret = TaskProgressListRet.Parser.ParseFrom(basePackage.Data);
+        if (ret.CmdCode != CmdCode.Succeed)
+        {
+            session.SendError(basePackage, ret.CmdCode);
+            return;
+        }
+
+        LogMsg.Info("[Login]任务进度拉取结果: 条数=" + ret.ProgressList.Count);
         session.SendData(basePackage);
     }
 
@@ -74,6 +109,7 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]跳转场景结果:" + ret);
         session.SendData(basePackage);
     }
@@ -87,6 +123,7 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]保存角色结果:" + ret);
         session.SendData(basePackage);
     }
@@ -100,6 +137,7 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]开始游戏结果:" + ret);
         session.SendData(basePackage);
     }
@@ -113,6 +151,7 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]登录游戏服务器结果:" + ret);
         session.SendData(basePackage);
     }
@@ -126,6 +165,7 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]创建角色结果:" + ret);
         session.SendData(basePackage);
     }
@@ -139,6 +179,7 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]获取服务器列表结果:" + ret);
         session.SendData(basePackage);
     }
@@ -152,6 +193,7 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]登录结果:" + ret);
         session.SendData(basePackage);
     }
@@ -165,6 +207,7 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]注册结果:" + ret);
         session.SendData(basePackage);
     }
@@ -176,7 +219,8 @@ public class LoginCtrl : IContainer
         if (!(serverBase is Session session)) return;
 
         PlayerAttackRet ret = EnemyMgr.Instance.ProcessAttack(req);
-        LogMsg.Info($"[Login]攻击处理: roleId={req.RoleId} enemyId={req.EnemyInstanceId} damage={ret.DamageDealt} isDead={ret.IsDead}");
+        LogMsg.Info(
+            $"[Login]攻击处理: roleId={req.RoleId} enemyId={req.EnemyInstanceId} damage={ret.DamageDealt} isDead={ret.IsDead}");
 
         // 回包给攻击者
         session.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
@@ -204,6 +248,7 @@ public class LoginCtrl : IContainer
             session.SendError(basePackage, ret.CmdCode);
             return;
         }
+
         LogMsg.Info("[Login]玩家攻击结果:" + ret);
         session.SendData(basePackage);
     }
@@ -224,13 +269,15 @@ public class LoginCtrl : IContainer
         {
             PlayerSceneMgr.Instance.OnPlayerLeave(roleId);
             PlayerLeaveSceneNtf ntf = new PlayerLeaveSceneNtf { RoleId = roleId };
-            BasePackage pkg = new BasePackage { ProtoCode = NetDefine.CMD_PlayerLeaveSceneCode, Data = ntf.ToByteString() };
+            BasePackage pkg = new BasePackage
+                { ProtoCode = NetDefine.CMD_PlayerLeaveSceneCode, Data = ntf.ToByteString() };
             var sessions = SessionMgr.Instance.GetAllSessions();
             foreach (var s in sessions)
             {
                 if (s.SessionId != sessionId) s.SendData(pkg);
             }
         }
+
         LogMsg.Info($"[Login]玩家断线清理: sessionId={sessionId} roleId={roleId}");
     }
 
@@ -278,6 +325,12 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_GetRewardCode:
                 OnGetRewardHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_TaskProgressCode:
+                OnTaskProgressHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_TaskProgressReqCode:
+                OnTaskProgressReqHandle(serverBase, basePackage);
+                break;
             case NetDefine.CMD_PositionSyncCode:
                 OnPositionSyncHandle(serverBase, basePackage);
                 break;
@@ -323,9 +376,10 @@ public class LoginCtrl : IContainer
             PosX = req.PosX,
             PosY = req.PosY,
             PosZ = req.PosZ,
-            RotationY = req.RotationY 
+            RotationY = req.RotationY
         };
-        BasePackage pkg = new BasePackage { ProtoCode = NetDefine.CMD_EnemyPositionSyncCode, Data = ret.ToByteString() };
+        BasePackage pkg = new BasePackage
+            { ProtoCode = NetDefine.CMD_EnemyPositionSyncCode, Data = ret.ToByteString() };
         foreach (var player in PlayerSceneMgr.Instance.GetOtherPlayersInScene(req.RoleId))
         {
             SessionMgr.Instance.GetSession(player.SessionId).SendData(pkg);
@@ -358,7 +412,8 @@ public class LoginCtrl : IContainer
     {
         PlayerVfxNtf ntf = PlayerVfxNtf.Parser.ParseFrom(basePackage.Data);
         PlayerSceneMgr.Instance.BroadcastPlayerVfx(ntf);
-        LogMsg.Info($"[Login]VFX同步: roleId={ntf.RoleId} config={ntf.SkillConfigIndex} atk={ntf.AttackIndex} vfx={ntf.VfxIndex}");
+        LogMsg.Info(
+            $"[Login]VFX同步: roleId={ntf.RoleId} config={ntf.SkillConfigIndex} atk={ntf.AttackIndex} vfx={ntf.VfxIndex}");
     }
 
     // 敌人生成-在服务端创建并广播给所有客户端
@@ -379,6 +434,22 @@ public class LoginCtrl : IContainer
         GetRewardReq req = GetRewardReq.Parser.ParseFrom(basePackage.Data);
         serverBase._Client.SendData(basePackage);
         LogMsg.Info("[Login]收到获得奖励请求:" + req);
+    }
+
+    // 任务进度上报转发（LoginServer 透传给 CenterServer 处理）
+    private void OnTaskProgressHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        TaskProgressNtf ntf = TaskProgressNtf.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到任务进度上报转发:" + ntf);
+    }
+
+    // 任务进度拉取转发
+    private void OnTaskProgressReqHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        TaskProgressReq req = TaskProgressReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到任务进度拉取转发:" + req);
     }
 
     // 位置同步处理（LoginServer直接广播，不经过CenterServer）
@@ -410,7 +481,8 @@ public class LoginCtrl : IContainer
                 RotationY = req.RotationY
             };
             // 创建新包发送给其他玩家
-            BasePackage broadcastPkg = new BasePackage { ProtoCode = NetDefine.CMD_PositionSyncCode, Data = ntf.ToByteString() };
+            BasePackage broadcastPkg = new BasePackage
+                { ProtoCode = NetDefine.CMD_PositionSyncCode, Data = ntf.ToByteString() };
             otherSession.SendData(broadcastPkg);
         });
 
@@ -426,7 +498,8 @@ public class LoginCtrl : IContainer
                 PosY = req.PosY,
                 PosZ = req.PosZ
             };
-            BasePackage enterPkg = new BasePackage { ProtoCode = NetDefine.CMD_PlayerEnterSceneCode, Data = enterNtf.ToByteString() };
+            BasePackage enterPkg = new BasePackage
+                { ProtoCode = NetDefine.CMD_PlayerEnterSceneCode, Data = enterNtf.ToByteString() };
             PlayerSceneMgr.Instance.GetOtherPlayersInScene(roleId).ForEach(other =>
             {
                 Session otherSession = SessionMgr.Instance.GetSession(other.SessionId);
@@ -445,7 +518,8 @@ public class LoginCtrl : IContainer
                     PosY = other.PosY,
                     PosZ = other.PosZ,
                 };
-                BasePackage existPkg = new BasePackage { ProtoCode = NetDefine.CMD_PlayerEnterSceneCode, Data = existNtf.ToByteString() };
+                BasePackage existPkg = new BasePackage
+                    { ProtoCode = NetDefine.CMD_PlayerEnterSceneCode, Data = existNtf.ToByteString() };
                 selfSession.SendData(existPkg);
             }
 
@@ -505,6 +579,7 @@ public class LoginCtrl : IContainer
             serverBase.SendError(basePackage, code);
             return;
         }
+
         LogMsg.Info($"[Login]房主开始游戏: roleId={req.RoleId}");
     }
 

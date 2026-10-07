@@ -112,6 +112,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <!-- 服务端启动时 LubanMgr.init() 需要读取这些 bytes，显式复制到 CenterServer 输出目录（LubanManager/Tb 子目录） -->
+    <Content Include="..\Network\LubanManager\Tb\tbskillinfo.bytes">
+      <Link>LubanManager\Tb\tbskillinfo.bytes</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\Network\LubanManager\Tb\tbtaskdata.bytes">
+      <Link>LubanManager\Tb\tbtaskdata.bytes</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Network\Network.csproj">
       <Project>{e695f887-4879-41c0-85f3-d86a91150282}</Project>
       <Name>Network</Name>

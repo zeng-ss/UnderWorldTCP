@@ -83,12 +83,12 @@ public enum TaskState
 public class TaskDataRuntime
 {
     public readonly int TaskId;
-    public string TaskDesc;
+    public readonly string TaskDesc;
     public TaskState State;
-    public TaskType TaskType;
-    public int TargetCount;
+    public readonly TaskType TaskType;
+    public readonly int TargetCount;
     public int CurrentCount;
-    public TaskReward TaskReward;
+    public readonly TaskReward TaskReward;
 
     public bool IsUnlock => State != TaskState.Locked;
     public bool IsFinished => State == TaskState.Claimed;

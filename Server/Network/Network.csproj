@@ -57,6 +57,9 @@
     <Compile Include="Common\Singleton.cs" />
     <Compile Include="LubanManager\Codes\SkillInfo.cs" />
     <Compile Include="LubanManager\Codes\Tables.cs" />
+    <Compile Include="LubanManager\Codes\TaskType.cs" />
+    <Compile Include="LubanManager\Codes\taskData.cs" />
+    <Compile Include="LubanManager\Codes\TbtaskData.cs" />
     <Compile Include="LubanManager\Codes\TbSkillInfo.cs" />
     <Compile Include="LubanManager\LubanLib\BeanBase.cs" />
     <Compile Include="LubanManager\LubanLib\ByteBuf.cs" />
@@ -79,7 +82,12 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="LubanManager\Tb\tbskillinfo.bytes" />
+    <Content Include="LubanManager\Tb\tbskillinfo.bytes">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="LubanManager\Tb\tbtaskdata.bytes">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
