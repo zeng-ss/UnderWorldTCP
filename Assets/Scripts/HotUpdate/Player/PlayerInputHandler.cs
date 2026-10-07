@@ -107,18 +107,10 @@ public class PlayerInputHandler
             return;
         }
 
-        // 非攻击状态：
-        // 已在重击表 → 右键起手进入攻击（等价 Idle/Move 里「重击状态下右键」）
-        // 不在重击表 → 仅切重击表，不立即攻击
-        if (_skillCombo.IsCurrent(ComboSet.Heavy))
-        {
-            TryEnterAttack();
-            _skillCombo.EnqueueAttackInput(AttackInput.Heavy);
-        }
-        else
-        {
-            _skillCombo.UpdateSkillConfig(ComboSet.Heavy);
-        }
+        // 非攻击状态：右键直接切重击表并立即出手重击，不需要先切表再点第二次。
+        // 起手直接打重击第一段，不再入队 Heavy
+        _skillCombo.UpdateSkillConfig(ComboSet.Heavy);
+        TryEnterAttack();
     }
 
     private void OnMouse2()

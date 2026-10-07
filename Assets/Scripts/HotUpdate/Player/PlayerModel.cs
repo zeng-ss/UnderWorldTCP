@@ -97,6 +97,8 @@ public class PlayerModel : MonoBehaviour
         }
 
         if (!(Random.value >= 0.5f) || Time.time - _lastTime <= 1f) return;
+        // 攻击语音列表未配置（null 或空）时跳过，避免 NRE / 越界
+        if (AppContext.Sound.PlayerAttackSpeaks is not { Count: > 0 }) return;
         int speakIndex = Random.Range(0, AppContext.Sound.PlayerAttackSpeaks.Count);
         _audioSource.PlayOneShot(AppContext.Sound.PlayerAttackSpeaks[speakIndex]);
         _lastTime = Time.time;

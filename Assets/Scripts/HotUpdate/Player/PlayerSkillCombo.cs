@@ -5,15 +5,11 @@ using UnityEngine;
 // 连招决策（PlayerAttackState）只消费缓冲，不再自己读 Input。
 public enum AttackInput
 {
-    Normal = 0,   // 左键：普通连招接段
-    Heavy = 1,    // 右键：切重击表
+    Normal = 0, // 左键：普通连招接段
+    Heavy = 1, // 右键：切重击表
     HeavyEntry = 2, // 中键：普攻到重击入口段时跳到最后一段收尾
 }
 
-// 技能连招子系统：连招配置切换、攻击段 / 特效段位管理、技能起手与远端特效生成。
-// 配置来源：由 PlayerCtrl 在 Inspector 的 skillConfigList 上赋值后注入，
-// 本类不负责加载、也不持有加载逻辑。
-// 依赖：共享状态（PlayerCore）、表现层（单向依赖）；联网同步直接调 AppContext.Proto。
 public class PlayerSkillCombo
 {
     private readonly PlayerCore _core;
@@ -24,6 +20,22 @@ public class PlayerSkillCombo
     private int _curVFXIndex;
     private int _curSkillIndex;
 
+    // 播放快照：当前「正在播放」的那一段
+    // 快照只在真正起手 / 接段的那一刻更新，动画播放期间保持不变，
+    // 供 PlayerAttackState 判断「这一段播完没 / 收招是什么 / 下一段跳哪」而不受提前切表影响。
+    public SkillConfig PlayingConfig { get; private set; }
+    public int PlayingIndex { get; private set; } = -1;
+
+    // 当前「正在播放」的段数据；表或段位越界时为 null
+    public AttackData PlayingAttackData
+    {
+        get
+        {
+            if (PlayingConfig == null || PlayingIndex < 0) return null;
+            return PlayingConfig.GetAttackData(PlayingIndex);
+        }
+    }
+
     // 输入缓冲：记录「按键类型 + 按下时间戳」，解决手速快于/慢于可切换窗口那一帧导致的吞键。
     // 过期输入会被丢弃；CanSwitchSkill 为 true 时消费最早一条。
     private struct BufferedInput
@@ -33,7 +45,7 @@ public class PlayerSkillCombo
     }
 
     private readonly Queue<BufferedInput> _inputBuffer = new();
-    private float _inputBufferWindow = 0.3f; // 缓冲有效期（秒），超过视为误触丢弃
+    private const float InputBufferWindow = 0.3f; // 缓冲有效期（秒），超过视为误触丢弃
 
     public int CurVFXIndex
     {
@@ -57,7 +69,6 @@ public class PlayerSkillCombo
         set
         {
             SkillConfig config = CurSkillConfig;
-            // 配置缺失时不做越界判断（避免 NRE），原样写入
             _curAttackIndex = config != null && value >= config.Count ? 0 : value;
         }
     }
@@ -142,6 +153,11 @@ public class PlayerSkillCombo
     {
         if (CurrentAttackData == null) return;
 
+        // 起手 / 接段：把「意图」快照成「播放」—— 动画播放期间播放快照保持不变，
+        // 即使后续 CurSkillConfig 被按键提前切走，PlayerAttackState 也按快照判断这一段。
+        PlayingConfig = CurSkillConfig;
+        PlayingIndex = CurAttackIndex;
+
         CurVFXIndex = 0;
         CanSwitchSkill = false;
         _presentation.PlayAnimation(CurrentAttackData.attackAnimationName, 0.1f);
@@ -198,7 +214,7 @@ public class PlayerSkillCombo
 
     #region 攻击输入缓冲
 
-    // 采集一次攻击键按下（由 PlayerInputHandler 走 InputManager 的回调调用）
+    // 采集一次攻击键按下
     public void EnqueueAttackInput(AttackInput input)
     {
         _inputBuffer.Enqueue(new BufferedInput { Input = input, Time = Time.unscaledTime });
@@ -208,9 +224,8 @@ public class PlayerSkillCombo
     public bool TryConsumeAttackInput(out AttackInput input)
     {
         input = default;
-        // 先清掉过期输入（用 unscaledTime，避免顿帧的 timeScale 影响判定）
-        while (_inputBuffer.Count > 0 &&
-               Time.unscaledTime - _inputBuffer.Peek().Time > _inputBufferWindow)
+        // 先清掉过期输入
+        while (_inputBuffer.Count > 0 && Time.unscaledTime - _inputBuffer.Peek().Time > InputBufferWindow)
         {
             _inputBuffer.Dequeue();
         }

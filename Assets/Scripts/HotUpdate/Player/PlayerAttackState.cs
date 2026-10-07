@@ -1,29 +1,37 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 public class PlayerAttackState : PlayerState
 {
+    #region 攻击生命周期阶段
+
+    private enum AttackPhase
+    {
+        Active, // 攻击进行中：播攻击动画、消费连招输入接段、距离锁定、旋转
+        Recovery, // 收招：播收招动画，播完 / 空配置 / 有移动输入则回 Idle
+    }
+
+    private AttackPhase _phase;
+
+    #endregion
+
     #region 数据
 
-    private bool _isPlayingEndAni; // 是否正在播放结束收招动画
-    private int _playingAttackIndex; // 记录当前正在播放动画的攻击下标
-    private SkillConfig _cacheSkillConfig; // 缓存切换连招前的旧配置表
-
-    // 攻击目标与距离控制参数（可在Inspector面板调整）
-    [Header("攻击目标配置")] private float _attackDetectRange = 15f; // 敌人检测范围
-    private float _normalAttackRange = 1.5f; // 普通攻击有效距离
-    private float _rushAttackRange = 8f; // 冲刺杀检测范围
-    private float _rushMoveSpeed = 18f; // 冲刺位移速度
-    private float _lockAttackDistance = 2f; // 攻击锁定距离（角色-敌人）
+    // 攻击目标与距离控制参数
+    private const float AttackDetectRange = 15f; // 敌人检测范围
+    private const float NormalAttackRange = 1.5f; // 普通攻击有效距离
+    private const float RushAttackRange = 8f; // 冲刺杀检测范围
+    private const float RushMoveSpeed = 18f; // 冲刺位移速度
+    private const float LockAttackDistance = 2f; // 攻击锁定距离（角色-敌人）
 
     private Transform _targetEnemy; // 锁定的最近敌人
     private bool _isDistanceLocked; // 是否已到达攻击范围并锁定距离
     private bool _isRushAttack; // 当前段是否是配置里标的冲刺杀
 
-    // 当前正在播放的段数据（缓存表 + 播放下标），越界为 null
-    private AttackData CachedAttackData => _cacheSkillConfig?.GetAttackData(_playingAttackIndex);
+    // 当前正在播放的段数据：从 PlayerSkillCombo 的「播放快照」读取（唯一真相源），
+    // 不再在 PlayerAttackState 里自存 _cacheSkillConfig / _playingAttackIndex（双份状态已收敛）。
+    private AttackData CachedAttackData => Player.SkillCombo.PlayingAttackData;
 
     #endregion
 
@@ -37,8 +45,7 @@ public class PlayerAttackState : PlayerState
         }
 
         Player.playerModel.SetRootMotionAction(OnRootMotion);
-        _playingAttackIndex = Player.SkillCombo.CurAttackIndex; // 初始化播放下标
-        _cacheSkillConfig = Player.SkillCombo.CurSkillConfig;
+        _phase = AttackPhase.Active; // 进入攻击状态默认从「攻击进行」阶段开始
         // 初始化攻击目标参数
         _targetEnemy = FindNearestEnemyByTag();
         _isDistanceLocked = false;
@@ -60,7 +67,7 @@ public class PlayerAttackState : PlayerState
             return;
         }
 
-        // 顿帧逻辑优先处理（最高优先级）
+        // 顿帧逻辑优先处理（最高优先级，独立守卫，不属于 phase）
         if (IsInHitStop)
         {
             HandleHitStop();
@@ -71,28 +78,7 @@ public class PlayerAttackState : PlayerState
         float v = Input.GetAxis("Vertical");
         bool hasInput = h != 0 || v != 0;
 
-        // 如果正在播放 EndAni ，只检测是否播完，不再执行其他逻辑
-        if (_isPlayingEndAni)
-        {
-            // 收招逻辑用缓存的旧配置表 + 播放下标，避免访问新配置表越界
-            AttackData endData = CachedAttackData;
-            if (endData == null)
-            {
-                Player.StateMachine.ChangeTo(PlayerStateType.Idle);
-                return;
-            }
-
-            // 配置里没写收招动画 → 直接收招回 Idle（等价于原先 endName == "-1"）
-            string endName = endData.endAnimationName;
-            if (string.IsNullOrEmpty(endName) || IsAnimationFinished(endName) || hasInput)
-            {
-                Player.StateMachine.ChangeTo(PlayerStateType.Idle);
-            }
-
-            return;
-        }
-
-        // 判断当前攻击动画是否播放完毕 攻击动画判断用缓存的旧配置表 + 播放下标
+        // 当前段数据越界 → 直接回 Idle
         AttackData currentData = CachedAttackData;
         if (currentData == null)
         {
@@ -100,73 +86,59 @@ public class PlayerAttackState : PlayerState
             return;
         }
 
+        // 轻量版 phase 状态机：按当前生命周期阶段分派，各阶段职责单一
+        switch (_phase)
+        {
+            case AttackPhase.Recovery:
+                UpdateRecovery(currentData, hasInput);
+                break;
+
+            case AttackPhase.Active:
+                UpdateActive(currentData, h, v, hasInput);
+                break;
+        }
+    }
+
+    // 收招阶段
+    private void UpdateRecovery(AttackData endData, bool hasInput)
+    {
+        string endName = endData.endAnimationName;
+        if (string.IsNullOrEmpty(endName) || IsAnimationFinished(endName) || hasInput)
+        {
+            Player.StateMachine.ChangeTo(PlayerStateType.Idle);
+        }
+    }
+
+    // 攻击进行阶段
+    private void UpdateActive(AttackData currentData, float h, float v, bool hasInput)
+    {
         string currentAttackAnim = currentData.attackAnimationName;
+
+        // 攻击动画播完 → 有收招动画转 Recovery，没配直接回 Idle
         if (IsAnimationFinished(currentAttackAnim))
         {
-            // 攻击动画结束 → 接着播收招动画（没配就直接回 Idle）
             if (string.IsNullOrEmpty(currentData.endAnimationName))
             {
                 Player.StateMachine.ChangeTo(PlayerStateType.Idle);
                 return;
             }
 
-            Player.PlayAnimation(currentData.endAnimationName);
-            _isPlayingEndAni = true; // 标记进入 EndAni 等待逻辑
+            Player.PlayAnimation(currentData.endAnimationName); // 播放收招动画
+            TransitionTo(AttackPhase.Recovery);
             return;
         }
 
         // 配置标了「可被移动打断」的段：播到可打断时间后，有移动输入就直接收招
-        if (hasInput && currentData.canBeInterruptedByMove &&
-            IsAnimationMoreThanTime(currentAttackAnim, currentData.interruptibleTime))
+        if (hasInput && currentData.canBeInterruptedByMove && IsAnimationMoreThanTime(currentAttackAnim, currentData.interruptibleTime))
         {
             Player.StateMachine.ChangeTo(PlayerStateType.Idle);
             return;
         }
 
-        // 连招决策：消费输入缓冲（按键已由 PlayerInputHandler 走 InputManager 采集入队），
-        // 只在 CanSwitchSkill（可切换窗口）内消费，缓冲解决手速快于/慢于窗口那一帧导致的吞键。
-        if (Player.SkillCombo.CanSwitchSkill &&
-            Player.SkillCombo.TryConsumeAttackInput(out AttackInput attackInput))
+        // 连招决策：消费输入缓冲
+        if (Player.SkillCombo.CanSwitchSkill && Player.SkillCombo.TryConsumeAttackInput(out AttackInput attackInput))
         {
-            switch (attackInput)
-            {
-                // 中键重击：配置标了 isHeavyEntry 的段，按中键直接跳到最后一段
-                case AttackInput.HeavyEntry when currentData.isHeavyEntry:
-                    Player.SkillCombo.CurAttackIndex = _cacheSkillConfig.Count - 1;
-                    _playingAttackIndex = Player.SkillCombo.CurAttackIndex;
-                    _isDistanceLocked = false;
-                    CheckRushAttack();
-                    Attack();
-                    return;
-
-                // 右键切重击表（重击入口段自身除外）
-                case AttackInput.Heavy:
-                {
-                    SkillConfig heavyConfig = Player.SkillCombo.GetSkillConfig(ComboSet.Heavy);
-                    if (heavyConfig == null || currentData.isHeavyEntry) break;
-                    Player.SkillCombo.CurAttackIndex++; // 重击配置表第一段
-                    _cacheSkillConfig = heavyConfig;
-                    _playingAttackIndex = Player.SkillCombo.CurAttackIndex;
-                    _isDistanceLocked = false;
-                    Attack();
-                    return;
-                }
-
-                // 左键正常连招：按配置里的 nextAttackIndex 衔接
-                case AttackInput.Normal when !Player.SkillCombo.IsCurrent(ComboSet.Heavy):
-                    // nextAttackIndex >= 0：跳到指定段（Attack04 配 0 即「跳过重击回第一段」）
-                    // nextAttackIndex == -1：自增到下一段（超过最后一段会自动回到第一段）
-                    Player.SkillCombo.CurAttackIndex = currentData.nextAttackIndex >= 0
-                        ? currentData.nextAttackIndex
-                        : Player.SkillCombo.CurAttackIndex + 1;
-
-                    _playingAttackIndex = Player.SkillCombo.CurAttackIndex;
-                    _cacheSkillConfig = Player.SkillCombo.CurSkillConfig;
-                    _isDistanceLocked = false;
-                    CheckRushAttack();
-                    Attack();
-                    return;
-            }
+            if (HandleComboInput(attackInput, currentData)) return;
         }
 
         // 距离锁定后：强制保持与敌人的距离 + 面向，忽略移动输入
@@ -177,9 +149,68 @@ public class PlayerAttackState : PlayerState
             return;
         }
 
-        // 旋转逻辑（仅无敌人/未锁定时生效，有敌人时强制面向）
+        // 旋转逻辑
         HandRotate(h, v, hasInput);
     }
+
+    // 连招决策：消费一条缓冲输入并执行对应动作。返回 true 表示已处理（本帧到此为止），
+    // false 表示该输入不满足任何分支（如重击表为空），继续走后续的距离锁定 / 旋转逻辑。
+    private bool HandleComboInput(AttackInput attackInput, AttackData currentData)
+    {
+        switch (attackInput)
+        {
+            // 中键重击：配置标了 isHeavyEntry 的段，按中键直接跳到最后一段
+            case AttackInput.HeavyEntry when currentData.isHeavyEntry:
+                Player.SkillCombo.CurAttackIndex = Player.SkillCombo.PlayingConfig.Count - 1;
+                _isDistanceLocked = false;
+                CheckRushAttack();
+                Attack();
+                return true;
+
+            // 右键重击：已切到重击表则按 nextAttackIndex 接段（自增到下一段，触发第二段），
+            // 尚未切到重击表则先切表、从第一段起手
+            case AttackInput.Heavy:
+            {
+                SkillConfig heavyConfig = Player.SkillCombo.GetSkillConfig(ComboSet.Heavy);
+                if (heavyConfig == null || currentData.isHeavyEntry) return false;
+
+                if (Player.SkillCombo.IsCurrent(ComboSet.Heavy))
+                {
+                    // 已在重击连招中：按 nextAttackIndex 衔接（-1 = 自增到下一段，即第二段）
+                    Player.SkillCombo.CurAttackIndex = currentData.nextAttackIndex >= 0
+                        ? currentData.nextAttackIndex
+                        : Player.SkillCombo.CurAttackIndex + 1;
+                }
+                else
+                {
+                    // 从其他表切入：切重击表，段位归 0（重击第一段）
+                    Player.SkillCombo.UpdateSkillConfig(ComboSet.Heavy);
+                }
+
+                _isDistanceLocked = false;
+                Attack();
+                return true;
+            }
+
+            // 左键正常连招：按配置里的 nextAttackIndex 衔接
+            case AttackInput.Normal when !Player.SkillCombo.IsCurrent(ComboSet.Heavy):
+                // nextAttackIndex >= 0：跳到指定段（Attack04 配 0 即「跳过重击回第一段」）
+                // nextAttackIndex == -1：自增到下一段（超过最后一段会自动回到第一段）
+                Player.SkillCombo.CurAttackIndex = currentData.nextAttackIndex >= 0
+                    ? currentData.nextAttackIndex
+                    : Player.SkillCombo.CurAttackIndex + 1;
+
+                _isDistanceLocked = false;
+                CheckRushAttack();
+                Attack();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    private void TransitionTo(AttackPhase phase) => _phase = phase;
 
     #region 顿帧
 
@@ -236,6 +267,7 @@ public class PlayerAttackState : PlayerState
                 Player.playerModel.Animator.Update(0);
                 _hitStopEndTime = Time.unscaledTime + _hitStopDuration;
             }
+
             return;
         }
 
@@ -249,7 +281,7 @@ public class PlayerAttackState : PlayerState
 
     private void Attack()
     {
-        _isPlayingEndAni = false;
+        TransitionTo(AttackPhase.Active); // 起手新段：回到「攻击进行」阶段
         if (Player.SkillCombo.CurAttackIndex == -1) Player.SkillCombo.CurAttackIndex = 0;
         Player.SkillCombo.StartSkill();
     }
@@ -309,7 +341,7 @@ public class PlayerAttackState : PlayerState
         float distanceToEnemy = toEnemy.magnitude;
 
         // 到达攻击范围：锁定距离+触发击退，停止根运动
-        if (distanceToEnemy <= _normalAttackRange)
+        if (distanceToEnemy <= NormalAttackRange)
         {
             _isDistanceLocked = true;
             return;
@@ -340,7 +372,7 @@ public class PlayerAttackState : PlayerState
             _isRushAttack = true;
             // 敌人在冲刺范围内：启动冲刺协程，跳过根运动
             if (_targetEnemy != null &&
-                Vector3.Distance(Player.transform.position, _targetEnemy.position) <= _rushAttackRange)
+                Vector3.Distance(Player.transform.position, _targetEnemy.position) <= RushAttackRange)
             {
                 _rushToEnemyCoroutine = MonoManager.Instance.StartCoroutine(RushToEnemyCoroutine());
             }
@@ -356,11 +388,11 @@ public class PlayerAttackState : PlayerState
     {
         Player.playerModel.ClearRootMotionAction(); // 关闭根运动，避免冲突
         while (_targetEnemy != null &&
-               Vector3.Distance(Player.transform.position, _targetEnemy.position) > _lockAttackDistance)
+               Vector3.Distance(Player.transform.position, _targetEnemy.position) > LockAttackDistance)
         {
             Vector3 dir = (_targetEnemy.position - Player.transform.position).normalized;
             dir.y = 0;
-            Player.CharacterController.Move(dir * (_rushMoveSpeed * Time.deltaTime));
+            Player.CharacterController.Move(dir * (RushMoveSpeed * Time.deltaTime));
             FaceToEnemy(); // 冲刺中始终面向敌人
             yield return null;
         }
@@ -372,10 +404,12 @@ public class PlayerAttackState : PlayerState
         }
     }
 
-    // 是不是配置里标了「冲刺杀」的起手段
+    // 是不是配置里标了「冲刺杀」的起手段。
+    // 这里用「意图段位」CurAttackIndex 判断（此时尚未起手，意图 == 即将播放的段），
+    // 而非播放快照 PlayingIndex（要等 StartSkill 才更新，时序上赶不及 CheckRushAttack 前置调用）。
     private bool CheckRushOrPowerAttack()
     {
-        return _playingAttackIndex == 0 && CachedAttackData?.isRushAttack == true;
+        return Player.SkillCombo.CurAttackIndex == 0 && Player.SkillCombo.CurrentAttackData?.isRushAttack == true;
     }
 
     #endregion
@@ -399,7 +433,7 @@ public class PlayerAttackState : PlayerState
         Vector3 toEnemy = _targetEnemy.position - Player.transform.position;
         toEnemy.y = 0;
         // 计算目标位置：敌人位置 - 朝向角色的单位向量 * 锁定距离
-        Vector3 targetPos = _targetEnemy.position - toEnemy.normalized * _lockAttackDistance;
+        Vector3 targetPos = _targetEnemy.position - toEnemy.normalized * LockAttackDistance;
         targetPos.y = Player.transform.position.y;
         Player.transform.position = Vector3.Lerp(Player.transform.position, targetPos, Time.deltaTime * 15f);
     }
@@ -415,7 +449,7 @@ public class PlayerAttackState : PlayerState
         foreach (GameObject enemyObj in allEnemies)
         {
             float dis = Vector3.Distance(Player.transform.position, enemyObj.transform.position);
-            if (dis < minDistance && dis <= _attackDetectRange)
+            if (dis < minDistance && dis <= AttackDetectRange)
             {
                 minDistance = dis;
                 nearestEnemy = enemyObj.transform;
@@ -429,7 +463,7 @@ public class PlayerAttackState : PlayerState
 
     public override void Exit()
     {
-        _isPlayingEndAni = false;
+        TransitionTo(AttackPhase.Active); // 重置阶段，避免下次进入残留 Recovery
         Player.SkillCombo.CurAttackIndex = 0;
         Player.SkillCombo.ClearAttackInput(); // 离开攻击状态时清掉残留的缓冲按键
         if (_rushToEnemyCoroutine != null)
