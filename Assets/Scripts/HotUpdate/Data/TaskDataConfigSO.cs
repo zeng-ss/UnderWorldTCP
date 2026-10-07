@@ -68,29 +68,42 @@ public class TaskDataSo
     [Header("任务奖励")] public TaskReward taskReward; // 奖励内容
 }
 
+// 任务状态机：任务的完整生命周期状态。
+// 用显式枚举替换原来的 IsUnlock / IsFinished 双 bool，状态迁移集中到 TaskService，
+// 杜绝「解锁了但没完成」「完成了但没领奖」这类靠 bool 组合推断的歧义。
+public enum TaskState
+{
+    Locked = 0, // 未解锁
+    InProgress = 1, // 已接取，进行中
+    Completed = 2, // 条件达成，待领奖
+    Claimed = 3, // 已领奖，任务结束
+}
+
 // TaskDataRuntime.cs - 运行时任务数据 使用运行时 TaskDataSO 的副本
 public class TaskDataRuntime
 {
-    public int TaskId;
+    public readonly int TaskId;
     public string TaskDesc;
-    public bool IsUnlock;
-    public bool IsFinished;
+    public TaskState State;
     public TaskType TaskType;
     public int TargetCount;
     public int CurrentCount;
     public TaskReward TaskReward;
 
+    public bool IsUnlock => State != TaskState.Locked;
+    public bool IsFinished => State == TaskState.Claimed;
+
     public TaskDataRuntime()
     {
     }
 
-    // 从 SO创建运行时数据
+    // 从 SO创建运行时数据（默认进入 Locked 状态，由服务端进度决定是否已解锁）
     public TaskDataRuntime(TaskDataSo so)
     {
         TaskId = so.taskID;
         TaskDesc = so.taskDesc;
-        IsUnlock = so.isUnlock;
-        IsFinished = so.isFinished;
+        // 初始状态：SO 里 isUnlock 默认 true 的任务直接进入 InProgress
+        State = so.isUnlock ? TaskState.InProgress : TaskState.Locked;
         TaskType = so.taskType;
         TargetCount = so.targetCount;
         CurrentCount = so.currentCount;

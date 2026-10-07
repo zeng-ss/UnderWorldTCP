@@ -33,6 +33,12 @@ public enum GameEvent
     //任务数据变化（解锁/进度/完成）
     TaskChanged,
 
+    //击败一个敌人（任务进度事件化：战斗系统发事件，任务系统订阅推进）
+    EnemyKilled,
+
+    //某个驱动盘升到指定等级（任务进度事件化：背包系统发事件）
+    DriverDiskLevelUp,
+
     //材料数量变化
     MaterialNumChanged,
 

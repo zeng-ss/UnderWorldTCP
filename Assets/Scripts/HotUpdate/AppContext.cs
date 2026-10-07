@@ -30,10 +30,8 @@ public class AppContext
     #region Controller
 
     private readonly DepotController _depotUI;
-    private readonly TaskController _taskUI;
 
     public static DepotController DepotUI => _current._depotUI;
-    public static TaskController TaskUI => _current._taskUI;
 
     #endregion
 
@@ -109,7 +107,6 @@ public class AppContext
         _story = new StoryService();
         _chat = new ChatService();
         _depotUI = new DepotController();
-        _taskUI = new TaskController();
     }
 
     /// <summary>由 GameManager 在 Awake 里调用，整个进程只应执行一次</summary>
@@ -121,7 +118,7 @@ public class AppContext
     /// <summary>释放所有跨面板协调者持有的监听（热更重载 / 退出时调用）</summary>
     public void Dispose()
     {
-        _taskUI.Dispose();
+        _task.Clear();
         _chat.Clear();
         _events.Clear();
         _resMgr.ReleaseAll();

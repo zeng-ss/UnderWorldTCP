@@ -309,7 +309,8 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IStateMachineOwner
     private void OnEnemyDead()
     {
         Instances.Remove(serverInstanceId);
-        AppContext.Task.UpdateProgress(TaskType.击败第一个敌人);
+        // 事件化：不再直接调任务系统的 UpdateProgress，改为广播「击败敌人」事件，由 TaskService 订阅推进
+        AppContext.Events.EventTrigger(GameEvent.EnemyKilled);
         _capsuleCollider.enabled = false;
         tag = "Untagged";
         ChangeState(EnemyStateType.Dead);

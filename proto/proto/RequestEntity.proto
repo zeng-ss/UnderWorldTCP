@@ -164,3 +164,23 @@ message SyncEnemyAniReq{
   int32 role_id = 1;
   string animation_name = 2;
 }
+
+// ========== 任务进度持久化 ==========
+
+// 单条任务进度
+message TaskProgressData{
+  int32 task_id = 1;        // 任务唯一 id（对应客户端 TaskDataSo.taskID）
+  int32 state = 2;          // 任务状态：0=Locked 1=InProgress 2=Completed 3=Claimed（对应 TaskState 枚举）
+  int32 current_count = 3;  // 当前进度
+}
+
+// 上报任务进度请求（状态迁移 / 进度变化时客户端主动上报）
+message TaskProgressNtf{
+  int32 role_id = 1;
+  repeated TaskProgressData progress_list = 2; // 本次变化的进度集合（支持批量）
+}
+
+// 拉取全量任务进度请求（登录 / 进入游戏时）
+message TaskProgressReq{
+  int32 role_id = 1;
+}

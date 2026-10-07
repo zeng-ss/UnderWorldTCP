@@ -54,7 +54,6 @@ public class GameManager : UnitySingleTonMono<GameManager>
     private void RegisterGlobalHotkeys()
     {
         InputManager.Instance.RegisterKeyDown(KeyCode.Escape, OnEscapePressed);
-        AppContext.TaskUI.Initialize();
     }
 
     private void OnEscapePressed()

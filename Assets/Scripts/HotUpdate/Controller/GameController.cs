@@ -20,7 +20,7 @@ public class GameController : MonoBehaviour
         InputManager.Instance.RegisterKeyDown(KeyCode.Alpha5, DebugFillImprove);
 
         // 预加载任务面板，避免首次按 Tab 时才加载造成卡顿
-        AppContext.TaskUI.Preload();
+        AppContext.Ui.OpenPanel<TaskPanel>(_ => AppContext.Ui.ClosePanel<TaskPanel>());
     }
 
     private void OnDestroy()

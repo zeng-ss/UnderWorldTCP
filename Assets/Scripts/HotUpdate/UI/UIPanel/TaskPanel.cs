@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
@@ -6,20 +5,21 @@ using DG.Tweening;
 [PanelPath("TaskPanel")]
 public class TaskPanel : BasePanel
 {
-    [Header("任务面板UI组件")]
-    public Transform taskContent;       // 任务项父物体
-    
+    private TaskController _taskController;
+    [Header("任务面板UI组件")] public Transform taskContent; // 任务项父物体
+
     // DOTween动画配置 
-    Tweener _openTweener;
-    private float _panelShowDuration = 0.3f;  // 面板打开/关闭动画时长
-    private Ease _panelEase = Ease.OutQuad;   // 面板动画曲线，丝滑回弹
-    
-    private float _itemDelayInterval = 0.1f;  // 任务项逐个弹出的间隔
-    private CanvasGroup _taskCanvasGroup;     // 面板显隐用 CanvasGroup
+    private Tweener _openTween;
+    private const float PanelShowDuration = 0.3f; // 面板打开/关闭动画时长
+    private const Ease PanelEase = Ease.OutQuad; // 面板动画曲线，丝滑回弹
+    private const float ItemDelayInterval = 0.1f; // 任务项逐个弹出的间隔
+    private CanvasGroup _taskCanvasGroup; // 面板显隐用 CanvasGroup
 
     protected override void Awake()
     {
         base.Awake();
+        _taskController = new TaskController();
+        _taskController.Initialize();
         _taskCanvasGroup = GetComponent<CanvasGroup>();
         // 初始状态 - Y轴缩放为0（卷起状态）
         transform.localScale = new Vector3(1, 0, 1);
@@ -37,8 +37,8 @@ public class TaskPanel : BasePanel
         _taskCanvasGroup.alpha = 0;
         // 卷轴打开动画：Y轴从0到1 + 淡入
         Sequence sequence = DOTween.Sequence();
-        sequence.Join(transform.DOScaleY(1, _panelShowDuration).SetEase(_panelEase));
-        sequence.Join(_taskCanvasGroup.DOFade(1, _panelShowDuration).SetEase(_panelEase));
+        sequence.Join(transform.DOScaleY(1, PanelShowDuration).SetEase(PanelEase));
+        sequence.Join(_taskCanvasGroup.DOFade(1, PanelShowDuration).SetEase(PanelEase));
 
         // Model → View：数据一变自己刷新，不需要 Controller 反过来调面板
         AppContext.Events.AddEventListener(GameEvent.TaskChanged, OnTaskChanged);
@@ -57,15 +57,12 @@ public class TaskPanel : BasePanel
 
     public void ClosePanel()
     {
-        _openTweener?.Kill();
+        _openTween?.Kill();
         // 卷轴关闭动画：Y轴从1到0 + 淡出
         Sequence sequence = DOTween.Sequence();
-        sequence.Join(transform.DOScaleY(0, _panelShowDuration).SetEase(_panelEase));
-        sequence.Join(_taskCanvasGroup.DOFade(0, _panelShowDuration).SetEase(_panelEase));
-        sequence.OnComplete(() =>
-        {
-            AppContext.Ui.ClosePanel<TaskPanel>();
-        });
+        sequence.Join(transform.DOScaleY(0, PanelShowDuration).SetEase(PanelEase));
+        sequence.Join(_taskCanvasGroup.DOFade(0, PanelShowDuration).SetEase(PanelEase));
+        sequence.OnComplete(() => { AppContext.Ui.ClosePanel<TaskPanel>(); });
     }
 
     /// <summary>
@@ -83,9 +80,7 @@ public class TaskPanel : BasePanel
             // 跳过已完成/未解锁的任务
             if (task.IsFinished || !task.IsUnlock) continue;
             // 延迟创建，实现逐个弹出的效果
-            DOVirtual.DelayedCall(_itemDelayInterval * index, ()=>{
-                CreateTaskItem(task);
-            });
+            DOVirtual.DelayedCall(ItemDelayInterval * index, () => { CreateTaskItem(task); });
         }
     }
 
@@ -94,13 +89,14 @@ public class TaskPanel : BasePanel
     /// </summary>
     private void CreateTaskItem(TaskDataRuntime task)
     {
-        AppContext.Res.LoadAndInstantiateAsync("TaskItem", taskContent,(itemObj =>
+        AppContext.Res.LoadAndInstantiateAsync("TaskItem", taskContent, (itemObj =>
         {
             if (itemObj == null)
             {
                 Debug.LogError("加载任务项预制体失败：UI/UIItem/TaskItem");
                 return;
             }
+
             itemObj.name = "TaskItem_" + task.TaskId;
             TaskItem taskItem = itemObj.GetComponent<TaskItem>();
             taskItem.OnFinishRequested += RaiseTaskFinishRequested;
@@ -109,10 +105,7 @@ public class TaskPanel : BasePanel
     }
 
     /// <summary>只上报意图，能不能完成、发什么奖励由 Controller 判定</summary>
-    private void RaiseTaskFinishRequested(TaskDataRuntime task)
-    {
-        AppContext.TaskUI.RequestFinish(task);
-    }
+    private void RaiseTaskFinishRequested(TaskDataRuntime task) => _taskController.RequestFinish(task);
 
     /// <summary>
     /// 清空所有任务项
@@ -127,5 +120,10 @@ public class TaskPanel : BasePanel
             Destroy(taskContent.GetChild(i).gameObject);
         }
     }
-    
+
+    protected override void OnDestroy()
+    {
+        _openTween?.Kill();
+        _taskController.Dispose();
+    }
 }

@@ -52,10 +52,11 @@ public class NpcCtrl : MonoBehaviour
     private void GetTask(EventArgs args)
     {
         int dialogueId = ((DialogueEndArgs)args).DialogueId;
+        // 走 TaskService.Unlock 做状态迁移（Locked → InProgress），不再直接改字段
         foreach (var task in AppContext.Task.Tasks.Where(task =>
                      dialogueDatas[AppContext.Story.DialogueIndex].taskIds.Contains(task.TaskId)))
         {
-            task.IsUnlock = true; // 解锁对应任务
+            AppContext.Task.Unlock(task.TaskId);
         }
 
         if (dialogueId != 2)

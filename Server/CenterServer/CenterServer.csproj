@@ -103,6 +103,7 @@
     <Compile Include="DB\Table\GameServerTable.cs" />
     <Compile Include="DB\Table\RoleBagInfo.cs" />
     <Compile Include="DB\Table\RoleTable.cs" />
+    <Compile Include="DB\Table\RoleTaskProgress.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

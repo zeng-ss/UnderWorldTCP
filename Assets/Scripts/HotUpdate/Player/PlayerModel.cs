@@ -20,7 +20,7 @@ public class PlayerModel : MonoBehaviour
     {
         if (!player.Core.IsLocalPlayer) return;
         _audioSource = player.GetComponent<AudioSource>();
-        this._skillOwner = skillOwner;
+        _skillOwner = skillOwner;
     }
 
     #region 音效相关

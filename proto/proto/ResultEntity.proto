@@ -1,6 +1,8 @@
 //返回的信息   
 
 syntax = "proto3";//指定proto使用proto3语法  
+import "RequestEntity.proto";//引用请求侧消息定义（TaskProgressData 等）
+
 //信息码   
 enum CmdCode{
   Succeed = 0;//请求成功  
@@ -220,6 +222,19 @@ message EnemyPositionSyncRet{
 message EnemySyncAniRet{
   string animation_name = 1;
   int32 role_id = 2;
+}
+
+// ========== 任务进度持久化 ==========
+
+// 上报任务进度回包
+message TaskProgressRet{
+  CmdCode cmd_code = 1;
+}
+
+// 拉取全量任务进度回包
+message TaskProgressListRet{
+  CmdCode cmd_code = 1;
+  repeated TaskProgressData progress_list = 2; // 该角色全部任务的进度（TaskProgressData 定义在 RequestEntity.proto）
 }
 
 

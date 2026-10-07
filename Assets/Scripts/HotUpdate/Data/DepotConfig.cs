@@ -94,7 +94,11 @@ public class DriverDiskDataRuntime
         while (CurLevelFillValue >= CurLevelMaxFill)
         {
             Level++;
-            if (Level == 2) AppContext.Task.UpdateProgress(TaskType.给每一个驱动盘都升一级);
+            if (Level == 2)
+            {
+                // 事件化：不再直接调任务系统的 UpdateProgress，改为广播事件，由 TaskService 订阅推进
+                AppContext.Events.EventTrigger(GameEvent.DriverDiskLevelUp);
+            }
             CurLevelFillValue -= CurLevelMaxFill;
             CurLevelMaxFill = (int)Random.Range(CurLevelMaxFill + 200, CurLevelMaxFill + 500);
             // 升级时提升属性

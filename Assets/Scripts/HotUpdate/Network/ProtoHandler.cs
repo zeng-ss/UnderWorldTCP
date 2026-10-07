@@ -297,6 +297,18 @@ public class ProtoHandler
         NetClientMgr.Instance.Send(NetDefine.CMD_GetRewardCode, req.ToByteString());
     }
 
+    /// <summary>
+    /// 保存任务进度到服务端（任务状态机迁移时调用）。
+    /// 注意：TaskProgressReq / TaskProgressRet 协议类尚未生成，本方法当前为桩实现，
+    /// 等 proto 定义 TaskProgressReq 并重新编译后，再补上真实的网络发送。
+    /// </summary>
+    public void RequestSaveTaskProgress(int taskId, int state, int currentCount, Action<GetRewardRet> callback)
+    {
+        // TODO(任务持久化)：等 proto 生成 TaskProgressReq 后，替换为真实发送。
+        // 当前仅记录日志，保证客户端状态机逻辑可独立编译运行。
+        Debug.Log($"[Task] 保存任务进度 taskId={taskId} state={state} count={currentCount}（桩，未联网）");
+    }
+
     public void RequestCreateRoom(int roleId, string roomName, string nickname,
         Action<CreateRoomRet> callback)
     {

@@ -1,16 +1,23 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
-/// 任务服务。持有运行时任务列表，负责解锁 / 推进进度 / 判定完成与发放奖励。
+/// 任务服务：持有运行时任务列表，负责状态迁移 / 进度推进 / 完成与领奖。
 ///
-/// 原先这些逻辑写在一个 MonoBehaviour Manager 里，而且直接操作 GameManager 的
-/// 字段并顺手弹 UI 面板；现在这里只做数据层的事，UI 与网络由 Controller 负责。
-/// 数据变化统一广播 GameEvent.TaskChanged。
+/// 设计要点：
+///   1. 状态机驱动 —— 每个任务用 TaskState 枚举表达完整生命周期（Locked → InProgress → Completed → Claimed），
+///      状态迁移集中在 Transition 方法，杜绝「解锁 / 完成 / 领奖」靠 bool 组合推断的歧义。
+///   2. 事件化 —— 进度推进不再暴露 UpdateProgress(TaskType) 给外部直接调，而是订阅战斗 / 背包的领域事件
+///      （EnemyKilled、DriverDiskLevelUp），由本服务判断哪些任务该推进。加任务不碰战斗代码。
+///   3. 持久化 —— 进度变化与领奖统一走服务端（AppContext.Proto），启动时从服务端恢复。
+///   4. 数据变化统一广播 GameEvent.TaskChanged，UI 监听刷新。
 /// </summary>
 public class TaskService
 {
     /// <summary>当前所有任务的运行时数据</summary>
     public List<TaskDataRuntime> Tasks { get; } = new List<TaskDataRuntime>();
+
+    private bool _registered;
 
     public void Init(TaskDataConfigSo config)
     {
@@ -21,6 +28,25 @@ public class TaskService
         {
             if (taskSo != null) Tasks.Add(new TaskDataRuntime(taskSo));
         }
+
+        RegisterEvents();
+    }
+
+    // 订阅领域事件，进度推进由事件驱动
+    private void RegisterEvents()
+    {
+        if (_registered) return;
+        _registered = true;
+        AppContext.Events.AddEventListener(GameEvent.EnemyKilled, OnEnemyKilled);
+        AppContext.Events.AddEventListener(GameEvent.DriverDiskLevelUp, OnDriverDiskLevelUp);
+    }
+
+    private void UnregisterEvents()
+    {
+        if (!_registered) return;
+        _registered = false;
+        AppContext.Events.RemoveEventListener(GameEvent.EnemyKilled, OnEnemyKilled);
+        AppContext.Events.RemoveEventListener(GameEvent.DriverDiskLevelUp, OnDriverDiskLevelUp);
     }
 
     public TaskDataRuntime GetById(int taskId)
@@ -33,15 +59,74 @@ public class TaskService
         return null;
     }
 
-    #region 解锁 / 进度
+    #region 领域事件 → 状态机推进
 
-    /// <summary>解锁指定 id 的任务，返回是否真的发生了变化</summary>
+    private void OnEnemyKilled(EventArgs args)
+    {
+        AdvanceByType(TaskType.击败第一个敌人);
+    }
+
+    private void OnDriverDiskLevelUp(EventArgs args)
+    {
+        AdvanceByType(TaskType.给每一个驱动盘都升一级);
+    }
+
+    // 推进指定类型的所有「进行中」任务；返回是否有任务发生变化
+    private bool AdvanceByType(TaskType taskType)
+    {
+        bool changed = false;
+        int changedTaskId = -1;
+        foreach (var task in Tasks)
+        {
+            if (task.State != TaskState.InProgress || task.TaskType != taskType) continue;
+
+            int oldCount = task.CurrentCount;
+            task.CurrentCount = Mathf.Min(task.CurrentCount + 1, task.TargetCount);
+            if (task.CurrentCount == oldCount) continue;
+
+            changed = true;
+            changedTaskId = task.TaskId;
+            // 进度达标 → 自动迁移到 Completed（待领奖）
+            if (task.CurrentCount >= task.TargetCount) Transition(task, TaskState.Completed);
+        }
+
+        if (changed) NotifyTaskChanged(changedTaskId);
+        return changed;
+    }
+
+    #endregion
+
+    #region 状态迁移
+
+    /// <summary>
+    /// 集中管理状态迁移。返回是否真的发生了变化。
+    /// 只允许向「更后」的状态单向迁移，非法迁移直接忽略并告警。
+    /// </summary>
+    private bool Transition(TaskDataRuntime task, TaskState to)
+    {
+        if (task == null) return false;
+        if ((int)to <= (int)task.State)
+        {
+            Debug.LogWarning($"[TaskService] 非法状态迁移：任务 {task.TaskId} 从 {task.State} 迁到 {to}，已忽略");
+            return false;
+        }
+
+        task.State = to;
+        return true;
+    }
+
+    #endregion
+
+    #region 解锁
+
+    /// <summary>解锁指定 id 的任务（Locked → InProgress），返回是否真的发生了变化</summary>
     public bool Unlock(int taskId)
     {
         var task = GetById(taskId);
-        if (task == null || task.IsUnlock) return false;
-        task.IsUnlock = true;
+        if (task == null || task.State != TaskState.Locked) return false;
+        Transition(task, TaskState.InProgress);
         NotifyTaskChanged(taskId);
+        SaveProgress(task); // 解锁状态也持久化
         return true;
     }
 
@@ -58,54 +143,24 @@ public class TaskService
         return changed;
     }
 
-    /// <summary>
-    /// 推进指定类型任务的进度。返回进度是否真的发生了变化。
-    /// </summary>
-    public bool UpdateProgress(TaskType taskType, int addCount = 1)
-    {
-        bool changed = false;
-        int changedTaskId = -1;
-
-        foreach (var task in Tasks)
-        {
-            if (task.IsFinished || !task.IsUnlock || task.TaskType != taskType) continue;
-
-            int oldCount = task.CurrentCount;
-            task.CurrentCount += addCount;
-            if (task.CurrentCount > task.TargetCount) task.CurrentCount = task.TargetCount;
-
-            if (task.CurrentCount != oldCount)
-            {
-                changed = true;
-                changedTaskId = task.TaskId;
-            }
-        }
-
-        if (changed) NotifyTaskChanged(changedTaskId);
-        return changed;
-    }
-
     #endregion
 
-    #region 完成与奖励
+    #region 完成与领奖
 
-    public bool CanFinish(TaskDataRuntime task)
+    public bool CanClaim(TaskDataRuntime task)
     {
-        return task != null && !task.IsFinished && task.CurrentCount >= task.TargetCount;
+        return task != null && task.State == TaskState.Completed;
     }
 
     /// <summary>
-    /// 标记任务完成并发放奖励。UI 弹窗与联网由调用方（Controller）处理。
+    /// 领奖：Completed → Claimed，发放奖励。UI 弹窗与联网由调用方（Controller）处理。
     /// </summary>
-    /// <param name="task">要完成的任务</param>
-    /// <param name="rewardDescription">返回给 UI 展示的奖励文本</param>
-    /// <returns>是否完成成功</returns>
-    public bool Finish(TaskDataRuntime task, out string rewardDescription)
+    public bool Claim(TaskDataRuntime task, out string rewardDescription)
     {
         rewardDescription = string.Empty;
-        if (!CanFinish(task)) return false;
+        if (!CanClaim(task)) return false;
 
-        task.IsFinished = true;
+        Transition(task, TaskState.Claimed);
         AppContext.Story.Advance();
 
         // 首个主线任务固定给 1 个驱动盘，其余随机给 1~2 个
@@ -119,7 +174,31 @@ public class TaskService
 
         rewardDescription = des;
         NotifyTaskChanged(task.TaskId);
+        SaveProgress(task);
         return true;
+    }
+
+    #endregion
+
+    #region 持久化
+
+    /// <summary>把单个任务的进度与状态持久化到服务端</summary>
+    private void SaveProgress(TaskDataRuntime task)
+    {
+        AppContext.Proto.RequestSaveTaskProgress(task.TaskId, (int)task.State, task.CurrentCount, null);
+    }
+
+    /// <summary>
+    /// 用服务端返回的进度恢复任务状态（联机时在 StartGame 后调用）。
+    /// 服务端没有该任务记录时保持默认状态。
+    /// </summary>
+    public void RestoreProgress(int taskId, int state, int currentCount)
+    {
+        var task = GetById(taskId);
+        if (task == null) return;
+
+        task.State = (TaskState)state;
+        task.CurrentCount = currentCount;
     }
 
     #endregion
@@ -127,5 +206,12 @@ public class TaskService
     private void NotifyTaskChanged(int changedTaskId)
     {
         AppContext.Events.EventTrigger(GameEvent.TaskChanged, new TaskChangedArgs(Tasks, changedTaskId));
+    }
+
+    // 释放订阅（热更重载 / 退出时调用）
+    public void Clear()
+    {
+        UnregisterEvents();
+        Tasks.Clear();
     }
 }

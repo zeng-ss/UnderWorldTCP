@@ -35,6 +35,8 @@
     public const ushort CMD_PlayerVfxCode = 11230;
     public const ushort CMD_SyneEnemyAniCode = 11240;
     public const ushort CMD_EnemyPositionSyncCode = 11250; // 位置同步
+    public const ushort CMD_TaskProgressCode = 11260; // 任务进度上报
+    public const ushort CMD_TaskProgressReqCode = 11270; // 任务进度拉取
 
     //...定义新的一些指令
 }
