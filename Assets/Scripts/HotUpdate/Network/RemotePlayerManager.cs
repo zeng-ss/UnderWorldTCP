@@ -2,16 +2,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-// 管理其他玩家的创建、位置更新、销毁
-// 通过 ProtoHandler 事件驱动，不直接依赖网络层。
-// 普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.RemotePlayer。
 public class RemotePlayerManager
 {
-    private Dictionary<int, RemotePlayer> _remotePlayers = new();
-    private Dictionary<int, RemoteEnemy> _remoteEnemys = new();
-
-    // 场景/预制体里可能存在多个实例，只保留最早 Awake 的一个
-    private static RemotePlayerManager _live;
+    private readonly Dictionary<int, RemotePlayer> _remotePlayers = new();
+    private readonly Dictionary<int, RemoteEnemy> _remoteEnemys = new();
 
     public void Init()
     {
@@ -69,7 +63,8 @@ public class RemotePlayerManager
         }
     }
 
-    public void OnSyncAni(SyncAniRet ret)
+    // 服务端广播「别人」的动画同步（请求者自己收不到回包，因此只由事件触发）
+    private void OnSyncAni(SyncAniRet ret)
     {
         if (_remotePlayers.TryGetValue(ret.RoleId, out RemotePlayer rp))
         {
@@ -162,7 +157,6 @@ public class RemotePlayerManager
 
     public void Clear()
     {
-        // AppContext 可能已先一步 Dispose（退出流程）
         if (!AppContext.IsAlive) return;
 
         AppContext.Proto.OnPlayerEnterScene -= OnPlayerEnterScene;
@@ -173,67 +167,5 @@ public class RemotePlayerManager
         AppContext.Proto.OnPlayerVfxReceived -= OnPlayerVfxReceived;
         AppContext.Proto.OnEnemyPositionSyncReceived -= OnEnemyPositionSync;
         AppContext.Proto.OnEnemySyncAniReceived -= OnSyncEnemyAni;
-    }
-}
-
-// 远程玩家组件：挂载在其他玩家的GameObject上，处理位置平滑插值
-public class RemotePlayer : MonoBehaviour
-{
-    public int RoleId { get; private set; }
-    public string Nickname { get; private set; }
-    [FormerlySerializedAs("TargetPos")] public Vector3 targetPos;
-
-    [FormerlySerializedAs("TargetRotation")]
-    public Quaternion targetRotation;
-
-    public float smoothSpeed = 10f;
-    private Transform _modelTransform;
-    public PlayerCtrl Ctrl { get; private set; }
-
-    public void Init(int roleId, string nickname, Vector3 pos)
-    {
-        RoleId = roleId;
-        Nickname = nickname;
-        targetPos = pos;
-        targetRotation = Quaternion.identity;
-        Ctrl = GetComponent<PlayerCtrl>();
-
-        // 找模型子节点（Character 预制体的 root/playerModel）
-        _modelTransform = GetComponentInChildren<PlayerModel>().transform;
-    }
-
-    private void Update()
-    {
-        transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed * Time.deltaTime);
-        Transform rotTarget = _modelTransform ? _modelTransform : transform;
-        rotTarget.rotation = Quaternion.Slerp(rotTarget.rotation, targetRotation, smoothSpeed * Time.deltaTime);
-    }
-}
-
-// 远程敌人组件：挂载在其他敌人的GameObject上，处理位置平滑插值
-public class RemoteEnemy : MonoBehaviour
-{
-    public int RoleId { get; private set; }
-    public Vector3 targetPos;
-    public Quaternion targetRotation;
-    public float smoothSpeed = 10f;
-    private Transform _modelTransform;
-
-    public void Init(int roleId, int serverInstanceId, Vector3 pos)
-    {
-        RoleId = roleId;
-        targetPos = pos;
-        targetRotation = Quaternion.identity;
-        GetComponent<EnemyCtrl>();
-
-        // 找模型子节点（Character 预制体的 root/playerModel）
-        _modelTransform = GetComponentInChildren<EnemyModel>().transform;
-    }
-
-    private void Update()
-    {
-        transform.position = Vector3.Lerp(transform.position, targetPos, smoothSpeed * Time.deltaTime);
-        Transform rotTarget = _modelTransform ? _modelTransform : transform;
-        rotTarget.rotation = Quaternion.Slerp(rotTarget.rotation, targetRotation, smoothSpeed * Time.deltaTime);
     }
 }

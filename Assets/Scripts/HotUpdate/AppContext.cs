@@ -112,7 +112,6 @@ public class AppContext
     /// <summary>由 GameManager 在 Awake 里调用，整个进程只应执行一次</summary>
     public static AppContext Create() => _current ??= new AppContext();
 
-    /// <summary>AppContext 是否仍然有效（Dispose 之后为 false，供 OnDestroy 里的延迟清理做防御）</summary>
     public static bool IsAlive => _current != null;
 
     /// <summary>释放所有跨面板协调者持有的监听（热更重载 / 退出时调用）</summary>

@@ -162,7 +162,7 @@ public class PlayerSkillCombo
         CanSwitchSkill = false;
         _presentation.PlayAnimation(CurrentAttackData.attackAnimationName, 0.1f);
         AppContext.Proto.RequestSyncAni(AppContext.Session.RoleId, CurrentAttackData.attackAnimationName,
-            _curSkillIndex, ret => AppContext.RemotePlayer.OnSyncAni(ret));
+            _curSkillIndex);
 
         if (CurrentAttackData.vfxDataList is { Count: > 0 })
         {

@@ -48,6 +48,11 @@ public class GameManager : UnitySingleTonMono<GameManager>
         AppContext.PlayerData.ApplyEquipped(AppContext.Depot.Equipped);
     }
 
+    private void Update()
+    {
+        AppContext.Proto.Tick();
+    }
+
     /// <summary>
     /// 注册在任何场景下都生效的全局快捷键。
     /// </summary>

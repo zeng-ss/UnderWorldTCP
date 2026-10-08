@@ -91,8 +91,7 @@ public class PlayerCtrl : MonoBehaviour, IStateMachineOwner, ISkillOwner, IHurt
     public void PlayAnimation(string animationName, float fixedTransitionTime = 0.1f)
     {
         Presentation.PlayAnimation(animationName, fixedTransitionTime);
-        AppContext.Proto.RequestSyncAni(AppContext.Session.RoleId, animationName, SkillCombo.CurSkillIndex,
-            ret => AppContext.RemotePlayer.OnSyncAni(ret));
+        AppContext.Proto.RequestSyncAni(AppContext.Session.RoleId, animationName, SkillCombo.CurSkillIndex);
     }
 
     // 接口实现

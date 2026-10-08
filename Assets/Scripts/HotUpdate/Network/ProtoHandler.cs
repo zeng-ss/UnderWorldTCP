@@ -14,7 +14,6 @@ public class ProtoHandler
     private Transform _syncTarget;
     private Transform _syncRotationTarget;
     private float _syncTimer;
-    private const float SyncInterval = 0.001f;
     private string _syncNickname;
     private int _syncRoleId;
 
@@ -57,8 +56,6 @@ public class ProtoHandler
     private Action<TaskProgressListRet> _taskProgressListCallback;
     private Action<CreateRoomRet> _createRoomCallback;
     private Action<JoinRoomRet> _joinRoomCallback;
-    private Action<SyncAniRet> _syncAniCallback;
-    private Action<EnemySyncAniRet> _syncEAniCallback;
 
     #endregion
 
@@ -101,13 +98,17 @@ public class ProtoHandler
         AppContext.Events.AddNetHandler(NetDefine.CMD_SyneEnemyAniCode, OnEnemyAniSyncResult);
     }
 
-    private void Update()
+    // 由 GameManager.Update 每帧驱动
+    private const float SyncInterval = 0.05f; // 20 次/秒，位置同步足够平滑
+
+    public void Tick()
     {
         _syncTimer += Time.deltaTime;
         if (!(_syncTimer >= SyncInterval)) return;
         _syncTimer = 0;
 
-        if (_syncETarget)
+        // 玩家位置上报
+        if (_syncTarget)
         {
             NetClientMgr.Instance.Send(NetDefine.CMD_PositionSyncCode, new PositionSyncReq
             {
@@ -115,24 +116,10 @@ public class ProtoHandler
                 PosX = _syncTarget.position.x,
                 PosY = _syncTarget.position.y,
                 PosZ = _syncTarget.position.z,
-                RotationY = _syncRotationTarget.eulerAngles.y,
+                RotationY = _syncRotationTarget ? _syncRotationTarget.eulerAngles.y : 0f,
                 NikeName = _syncNickname
             }.ToByteString());
         }
-
-        /*
-        if (_syncETarget)
-        {
-            NetClientMgr.Instance.Send(NetDefine.CMD_EnemyPositionSyncCode, new EnemyPositionSyncReq
-            {
-                RoleId = _syncRoleId,
-                PosX = _syncETarget.position.x,
-                PosY = _syncETarget.position.y,
-                PosZ = _syncETarget.position.z,
-                RotationY = _syncERotationTarget.eulerAngles.y
-            }.ToByteString());
-        }
-        */
     }
 
     #endregion
@@ -179,19 +166,19 @@ public class ProtoHandler
 
     #region 请求方法
 
-    public void RequestSyncAni(int roleId, string aniName, int skillConfigIndex, Action<SyncAniRet> callback)
+    // 玩家动画同步：单向广播（服务端只转发给其他人，不给请求者回包），fire-and-forget。
+    public void RequestSyncAni(int roleId, string aniName, int skillConfigIndex)
     {
-        _syncAniCallback = callback;
         SyncAniReq req = new SyncAniReq
             { RoleId = roleId, AnimationName = aniName, SkillConfigIndex = skillConfigIndex };
         NetClientMgr.Instance.Send(NetDefine.CMD_SyneAniCode, req.ToByteString());
     }
 
-    public void RequestSyncEnemyAni(int roleId, string aniName, Action<SyncAniRet> callback)
+    // 敌人动画同步：单向广播，fire-and-forget。
+    public void RequestSyncEnemyAni(int roleId, string aniName)
     {
-        _syncAniCallback = callback;
-        SyncAniReq req = new SyncAniReq { RoleId = roleId, AnimationName = aniName };
-        NetClientMgr.Instance.Send(NetDefine.CMD_SyneAniCode, req.ToByteString());
+        EnemySyncAniRet req = new EnemySyncAniRet { RoleId = roleId, AnimationName = aniName };
+        NetClientMgr.Instance.Send(NetDefine.CMD_SyneEnemyAniCode, req.ToByteString());
     }
 
     public void RequestSyncVfx(PlayerVfxNtf ntf)
@@ -549,15 +536,7 @@ public class ProtoHandler
     {
         SyncAniRet ret = SyncAniRet.Parser.ParseFrom(data);
         Debug.Log($"ProtoHandler: 同步动画 ：{ret.AnimationName}");
-        if (_syncAniCallback != null)
-        {
-            _syncAniCallback.Invoke(ret);
-            _syncAniCallback = null;
-        }
-        else
-        {
-            OnSyncAniReceived?.Invoke(ret);
-        }
+        OnSyncAniReceived?.Invoke(ret);
     }
 
     private void OnPlayerVfxResult(ByteString data)
@@ -578,15 +557,7 @@ public class ProtoHandler
     {
         EnemySyncAniRet ret = EnemySyncAniRet.Parser.ParseFrom(data);
         Debug.Log($"ProtoHandler: 同步动画 ：{ret.AnimationName}");
-        if (_syncEAniCallback != null)
-        {
-            _syncEAniCallback.Invoke(ret);
-            _syncEAniCallback = null;
-        }
-        else
-        {
-            OnEnemySyncAniReceived?.Invoke(ret);
-        }
+        OnEnemySyncAniReceived?.Invoke(ret);
     }
 
     #endregion

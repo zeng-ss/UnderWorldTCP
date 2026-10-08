@@ -161,8 +161,7 @@ public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IStateMachineOwner
     public void PlayAnimation(string animationName, float fixedTransitionTime = 0.1f)
     {
         enemyModel.Animator.CrossFadeInFixedTime(animationName, fixedTransitionTime, 0, 0f);
-        AppContext.Proto.RequestSyncEnemyAni(AppContext.Session.RoleId, animationName,
-            ret => { AppContext.RemotePlayer.OnSyncAni(ret); });
+        AppContext.Proto.RequestSyncEnemyAni(AppContext.Session.RoleId, animationName);
     }
 
     private void EnemyAudio(AudioClip audioClip) => _audioSource.PlayOneShot(audioClip);
