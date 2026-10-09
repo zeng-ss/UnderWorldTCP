@@ -1,6 +1,5 @@
-using System;
 using System.Collections.Generic;
-using DG.Tweening;
+using HotUpdate.Controller;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,8 +24,9 @@ public class ImprovePanel : BasePanel
     public GameObject iconsContainer;
 
     #endregion
-    /// <summary>当前正在强化的驱动盘</summary>
-    public DriverDiskDataRuntime CurrentData => _currentDriverDiskData;
+
+    // 本面板的 Controller
+    private DepotController _ctrl;
 
     /// <summary>强化面板打开时要锁住角色操作</summary>
     public override bool BlocksGameplayInput => true;
@@ -65,11 +65,11 @@ public class ImprovePanel : BasePanel
     private void RaiseUpgradeRequested()
     {
         if (_currentDriverDiskData == null) return;
-        AppContext.DepotUI.Upgrade(_currentDriverDiskData);
+        _ctrl.Upgrade(_currentDriverDiskData);
     }
 
     /// <summary>按当前数据整体重绘（等级、经验条、材料数量）</summary>
-    public void Refresh()
+    private void Refresh()
     {
         if (_currentDriverDiskData == null) return;
         fillImage.fillAmount = _currentDriverDiskData.GetLevelProgress();
@@ -77,13 +77,18 @@ public class ImprovePanel : BasePanel
         depotLevelText.text = $"等级：{_currentDriverDiskData.Level}/15";
         UpdateMaterialNum();
     }
+
     // 更新面板信息
-    public void UpdateData(DriverDiskDataRuntime driverDiskData)
+    public void UpdateData(DriverDiskDataRuntime driverDiskData, DepotController ctrl)
     {
+        _ctrl = ctrl;
         _currentDriverDiskData = driverDiskData;
         depotName.text = driverDiskData.DepotName;
         AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.DepotIconName}",
-            sprite => { if (depotIcon) depotIcon.sprite = sprite; });
+            sprite =>
+            {
+                if (depotIcon) depotIcon.sprite = sprite;
+            });
         depotLevelText.text = $"等级：{driverDiskData.Level.ToString()}/15";
         depotBaseTypeText.text = GetDepotType(driverDiskData.DepotDriverDiskValue.driverDiskType);
         depotBaseText.text = driverDiskData.DepotDriverDiskValue.baseValue.ToString();
@@ -95,6 +100,7 @@ public class ImprovePanel : BasePanel
         fillText.text = $"{driverDiskData.CurLevelFillValue}/{driverDiskData.CurLevelMaxFill}";
         CreateMaterialIcon();
     }
+
     private string GetDepotType(DriverDiskType driverDiskType)
     {
         return driverDiskType switch
@@ -107,12 +113,21 @@ public class ImprovePanel : BasePanel
         };
     }
 
-    private Dictionary<int, TextMeshProUGUI> _materialNumTextDict = new();
+    private readonly Dictionary<int, TextMeshProUGUI> _materialNumTextDict = new();
+
     private void CreateMaterialIcon()
     {
-        if (_currentDriverDiskData == null) { return; }
+        if (_currentDriverDiskData == null)
+        {
+            return;
+        }
+
         _materialNumTextDict.Clear();
-        for (int i = 0; i < iconsContainer.transform.childCount; i++) { Destroy(iconsContainer.transform.GetChild(i).gameObject); }
+        for (int i = 0; i < iconsContainer.transform.childCount; i++)
+        {
+            Destroy(iconsContainer.transform.GetChild(i).gameObject);
+        }
+
         foreach (var item in AppContext.Material.RuntimeData)
         {
             if (!_currentDriverDiskData.MaterialsId.Contains(item.Key)) continue;
@@ -121,19 +136,22 @@ public class ImprovePanel : BasePanel
             string iconName = AppContext.Material.RuntimeData[item.Key].MaterialIconName;
             Image materialIcon = obj.GetComponent<Image>();
             AppContext.Res.LoadSpriteAsync($"Res/{iconName}",
-                sprite => { if (materialIcon) materialIcon.sprite = sprite; });
+                sprite =>
+                {
+                    if (materialIcon) materialIcon.sprite = sprite;
+                });
             // 创建数量文本
             GameObject countTextObject = new GameObject("CountText");
             countTextObject.transform.SetParent(obj.transform);
-        
+
             // 添加 TextMeshPro组件显示数量
             TextMeshProUGUI countText = countTextObject.AddComponent<TextMeshProUGUI>();
             countText.text = AppContext.Material.GetCount(item.Key).ToString();
             countText.fontSize = 25;
-            countText.enableWordWrapping = false;
+            countText.textWrappingMode = TextWrappingModes.NoWrap;
             countText.color = Color.white;
             countText.alignment = TextAlignmentOptions.TopRight;
-        
+
             // 设置数量文本的位置（右上角）
             RectTransform countRect = countTextObject.GetComponent<RectTransform>();
             countRect.anchorMin = new Vector2(1, 1);
@@ -144,6 +162,7 @@ public class ImprovePanel : BasePanel
             _materialNumTextDict.Add(item.Key, countText);
         }
     }
+
     private void UpdateMaterialNum()
     {
         foreach (var item in _materialNumTextDict)
@@ -151,10 +170,7 @@ public class ImprovePanel : BasePanel
             item.Value.text = AppContext.Material.GetCount(item.Key).ToString();
         }
     }
-    /// <summary>
-    /// 强化面板关闭时连带关闭角色属性面板，保持原有行为；
-    /// 逻辑放在这里而不是基类，避免基类反向依赖具体子类。
-    /// </summary>
+
     protected override void OnCloseClicked()
     {
         AppContext.Ui.ClosePanel<ImprovePanel>();

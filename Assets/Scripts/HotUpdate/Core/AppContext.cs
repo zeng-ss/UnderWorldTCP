@@ -1,3 +1,4 @@
+using HotUpdate.Service;
 using UnityEngine;
 
 /// <summary>
@@ -24,14 +25,6 @@ public class AppContext
     public static TaskService Task => _current._task;
     public static StoryService Story => _current._story;
     public static ChatService Chat => _current._chat;
-
-    #endregion
-
-    #region Controller
-
-    private readonly DepotController _depotUI;
-
-    public static DepotController DepotUI => _current._depotUI;
 
     #endregion
 
@@ -106,7 +99,6 @@ public class AppContext
         _task = new TaskService();
         _story = new StoryService();
         _chat = new ChatService();
-        _depotUI = new DepotController();
     }
 
     /// <summary>由 GameManager 在 Awake 里调用，整个进程只应执行一次</summary>

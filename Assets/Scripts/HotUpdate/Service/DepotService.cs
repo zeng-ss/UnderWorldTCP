@@ -2,20 +2,17 @@ using System.Collections.Generic;
 
 /// <summary>
 /// 驱动盘（仓库）服务。拥有「已拥有」和「已装备」两份列表，并对外广播变化。
-///
-/// 原先这两份状态分别在 GameManager.haveDepotList 和 DepotPanel.equipedDepotList（View 里！），
-/// 现在统一收归到这里，View 只负责渲染。
 /// </summary>
 public class DepotService
 {
     /// <summary>装备槽数量，对应 DepotPanel 上 contentList 的格子数</summary>
-    public const int MaxEquipSlots = 5;
+    private const int MaxEquipSlots = 5;
 
     /// <summary>已拥有的驱动盘</summary>
-    public List<DriverDiskDataRuntime> Owned { get; } = new List<DriverDiskDataRuntime>();
+    public List<DriverDiskDataRuntime> Owned { get; } = new();
 
     /// <summary>已装备的驱动盘</summary>
-    public List<DriverDiskDataRuntime> Equipped { get; } = new List<DriverDiskDataRuntime>();
+    public List<DriverDiskDataRuntime> Equipped { get; } = new();
 
     /// <summary>静态配置引用，发放奖励时需要按 id 找到模板</summary>
     public DepotConfig Config { get; private set; }
@@ -61,7 +58,7 @@ public class DepotService
         return true;
     }
 
-    public DriverDiskData FindTemplate(int depotId)
+    private DriverDiskData FindTemplate(int depotId)
     {
         if (Config == null || Config.depots == null) return null;
         foreach (var depot in Config.depots)

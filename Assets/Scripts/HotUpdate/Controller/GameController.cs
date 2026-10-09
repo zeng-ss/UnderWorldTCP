@@ -86,7 +86,7 @@ public class GameController : MonoBehaviour
     /// <summary>调试快捷键：给当前强化中的驱动盘加经验</summary>
     private void DebugFillImprove()
     {
-        AppContext.DepotUI.DebugFill(100f);
+        //AppContext.DepotUI.DebugFill(100f);
     }
 
     #endregion

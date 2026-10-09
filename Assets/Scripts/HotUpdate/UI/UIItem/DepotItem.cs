@@ -1,43 +1,30 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotUpdate.Controller;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 仓库里的单个驱动盘（纯 View）。
-///
-/// 只负责显示与上报用户意图（装备 / 卸下 / 强化 / 悬停查看详情），
-/// 不再自己去找 DepotPanel、PlayerDataPanel 或者去改玩家属性。
+/// 仓库里的单个驱动盘
 /// </summary>
 public class DepotItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     // UI组件
-    public Image depotItemImage;
-    public Image equipTipImage;
+    public Image depotItemImage, equipTipImage, tipKuangImage;
     public TMP_Text equipBtnText;
-    [Header("装备强化面板")]
-    public GameObject improveOrEquipPanel;
-    public Button improveBtn;
-    public Button equipBtn;
-    [Header("提示框")]
-    public Image tipKuangImage;
+    [Header("装备强化面板")] public GameObject improveOrEquipPanel;
+    public Button improveBtn, equipBtn;
 
-    /// <summary>点击「装备」</summary>
-    public event Action<DriverDiskDataRuntime> OnEquipClicked;
-    /// <summary>点击「卸下」</summary>
-    public event Action<DriverDiskDataRuntime> OnUnequipClicked;
-    /// <summary>点击「强化」</summary>
-    public event Action<DriverDiskDataRuntime> OnImproveClicked;
     /// <summary>鼠标悬停，请求展示详情</summary>
     public event Action<DriverDiskDataRuntime> OnHover;
 
     [NonSerialized] public DriverDiskDataRuntime CurrentDriverDiskData;
 
-    private bool _isHover;
     private bool _isEquipped;
+    private DepotController _ctrl;
 
     private void Start()
     {
@@ -50,30 +37,36 @@ public class DepotItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         // 不再用 Update 每帧轮询输入，改为在 InputManager 上一次性注册
         InputManager.Instance.RegisterKeyDown(KeyCode.R, ClosePopup);
         InputManager.Instance.RegisterMouseDown(0, ClosePopupIfClickedOutside);
+        InputManager.Instance.RegisterMouseDown(1, OpenPopupAtMouse);
     }
 
     private void OnDisable()
     {
         InputManager.Instance.UnregisterKeyDown(KeyCode.R, ClosePopup);
         InputManager.Instance.UnregisterMouseDown(0, ClosePopupIfClickedOutside);
+        InputManager.Instance.UnregisterMouseDown(1, OpenPopupAtMouse);
         improveOrEquipPanel.SetActive(false);
     }
 
     #region 渲染
 
-    public void UpdateData(DriverDiskDataRuntime driverDiskData)
+    public void UpdateData(DriverDiskDataRuntime driverDiskData, DepotController ctrl)
     {
+        _ctrl = ctrl;
         CurrentDriverDiskData = driverDiskData;
         AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.DepotIconName}",
-            sprite => { if (depotItemImage) depotItemImage.sprite = sprite; });
+            sprite =>
+            {
+                if (depotItemImage) depotItemImage.sprite = sprite;
+            });
     }
 
     /// <summary>由 DepotPanel 在装备状态变化时同步过来</summary>
     public void SetEquipped(bool equipped)
     {
         _isEquipped = equipped;
-        if (equipBtnText != null) equipBtnText.text = equipped ? "卸下" : "装备";
-        if (equipTipImage != null) equipTipImage.gameObject.SetActive(equipped);
+        equipBtnText.text = equipped ? "卸下" : "装备";
+        equipTipImage.gameObject.SetActive(equipped);
     }
 
     #endregion
@@ -85,14 +78,14 @@ public class DepotItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         if (CurrentDriverDiskData == null) return;
         improveOrEquipPanel.SetActive(false);
 
-        if (_isEquipped) OnUnequipClicked?.Invoke(CurrentDriverDiskData);
-        else OnEquipClicked?.Invoke(CurrentDriverDiskData);
+        if (_isEquipped) _ctrl.Unequip(CurrentDriverDiskData);
+        else _ctrl.Equip(CurrentDriverDiskData);
     }
 
     private void OnImproveBtnClick()
     {
         improveOrEquipPanel.SetActive(false);
-        if (CurrentDriverDiskData != null) OnImproveClicked?.Invoke(CurrentDriverDiskData);
+        if (CurrentDriverDiskData != null) _ctrl.RequestImprove(CurrentDriverDiskData);
     }
 
     /// <summary>右键呼出操作面板</summary>
@@ -134,14 +127,12 @@ public class DepotItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     public void OnPointerEnter(PointerEventData eventData)
     {
         tipKuangImage.enabled = true;
-        _isHover = true;
         if (CurrentDriverDiskData != null) OnHover?.Invoke(CurrentDriverDiskData);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         tipKuangImage.enabled = false;
-        _isHover = false;
     }
 
     #endregion

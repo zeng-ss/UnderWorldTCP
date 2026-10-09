@@ -1,16 +1,12 @@
-using System;
 using System.Collections.Generic;
+using HotUpdate.Controller;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 仓库面板（纯 View）。
-///
-/// 只做三件事：渲染列表、渲染详情、把用户操作作为事件抛给 DepotController。
-/// 不再持有「已装备列表」这类业务状态（已归于 DepotService），
-/// 也不再直接调用 PlayerDataPanel / PlayerCtrl。
+/// 仓库面板
 /// </summary>
 [PanelPath("DepotPanel")]
 public class DepotPanel : BasePanel
@@ -31,11 +27,12 @@ public class DepotPanel : BasePanel
 
     // 仓库列表容器
     public GameObject content;
+
     // 装备槽容器
     public List<GameObject> contentList;
 
-    /// <summary>本面板的 Controller，由 AppContext 提供，生命周期不跟随面板</summary>
-    private DepotController Ctrl => AppContext.DepotUI;
+    // 本面板的 Controller
+    private readonly DepotController _ctrl = new();
 
     private DriverDiskDataRuntime _currentDetail;
 
@@ -74,7 +71,7 @@ public class DepotPanel : BasePanel
     }
 
     /// <summary>重建整个仓库列表与装备槽</summary>
-    public void Refresh()
+    private void Refresh()
     {
         for (int i = content.transform.childCount - 1; i >= 0; i--)
         {
@@ -88,19 +85,17 @@ public class DepotPanel : BasePanel
             {
                 if (obj == null) return;
                 var depotItem = obj.GetComponent<DepotItem>();
-                if (depotItem == null) { Destroy(obj); return; }
+                if (depotItem == null)
+                {
+                    Destroy(obj);
+                    return;
+                }
 
-                depotItem.OnEquipClicked -= RaiseEquipRequested;
-                depotItem.OnEquipClicked += RaiseEquipRequested;
-                depotItem.OnUnequipClicked -= RaiseUnequipRequested;
-                depotItem.OnUnequipClicked += RaiseUnequipRequested;
-                depotItem.OnImproveClicked -= RaiseImproveRequested;
-                depotItem.OnImproveClicked += RaiseImproveRequested;
-                // 悬停看详情纯粹是面板内部的渲染行为，不必惊动 Controller
+                // 悬停看详情纯粹是面板内部的渲染行为，不必动 Controller
                 depotItem.OnHover -= ShowDetail;
                 depotItem.OnHover += ShowDetail;
 
-                depotItem.UpdateData(data);
+                depotItem.UpdateData(data, _ctrl);
                 depotItem.SetEquipped(AppContext.Depot.IsEquipped(data));
             });
         }
@@ -152,16 +147,19 @@ public class DepotPanel : BasePanel
 
             var image = obj.GetComponent<Image>();
             AppContext.Res.LoadSpriteAsync($"Res/{data.DepotIconName}",
-                sprite => { if (image) image.sprite = sprite; });
+                sprite =>
+                {
+                    if (image) image.sprite = sprite;
+                });
 
             // 右键卸下
             var trigger = obj.AddComponent<EventTrigger>();
             var entry = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
             entry.callback.AddListener(eventData =>
             {
-                if (eventData is PointerEventData pointerData && pointerData.button == PointerEventData.InputButton.Right)
+                if (eventData is PointerEventData { button: PointerEventData.InputButton.Right })
                 {
-                    RaiseUnequipRequested(data);
+                    _ctrl.Unequip(data);
                 }
             });
             trigger.triggers.Add(entry);
@@ -170,7 +168,7 @@ public class DepotPanel : BasePanel
     }
 
     /// <summary>显示某个驱动盘的详情</summary>
-    public void ShowDetail(DriverDiskDataRuntime driverDiskData)
+    private void ShowDetail(DriverDiskDataRuntime driverDiskData)
     {
         if (driverDiskData == null) return;
         _currentDetail = driverDiskData;
@@ -185,16 +183,11 @@ public class DepotPanel : BasePanel
         depotBaoJiText.text = $"{driverDiskData.DepotDriverDiskValue.baoJiPercent}%";
 
         AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.DepotIconName}",
-            sprite => { if (depotIcon) depotIcon.sprite = sprite; });
+            sprite =>
+            {
+                if (depotIcon) depotIcon.sprite = sprite;
+            });
     }
-
-    #endregion
-
-    #region View → Controller
-
-    private void RaiseEquipRequested(DriverDiskDataRuntime data) => Ctrl.Equip(data);
-    private void RaiseUnequipRequested(DriverDiskDataRuntime data) => Ctrl.Unequip(data);
-    private void RaiseImproveRequested(DriverDiskDataRuntime data) => Ctrl.RequestImprove(data);
 
     #endregion
 
