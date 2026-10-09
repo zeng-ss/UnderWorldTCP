@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using HotUpdate.Controller;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
 using HotUpdate.Manager;
 using HotUpdate.UI.UIItem;
 using TMPro;
@@ -20,15 +19,8 @@ namespace HotUpdate.UI.UIPanel
     {
         #region 详情界面UI组件
 
-        public TMP_Text depotName;
         public Image depotIcon;
-        public TMP_Text depotLevelText;
-        public TMP_Text depotBaseTypeText;
-        public TMP_Text depotBaseText;
-        public TMP_Text depotAttackText;
-        public TMP_Text depotHealthText;
-        public TMP_Text depotDefenseText;
-        public TMP_Text depotBaoJiText;
+        public TMP_Text depotName, depotLevelText, depotBaseTypeText, depotBaseText, depotAttackText, depotHealthText, depotDefenseText, depotBaoJiText;
 
         #endregion
 
@@ -51,34 +43,21 @@ namespace HotUpdate.UI.UIPanel
         private void OnEnable()
         {
             Refresh();
-            AppContext.Events.AddEventListener(GameEvent.DepotChanged, OnDepotChanged);
-            AppContext.Events.AddEventListener(GameEvent.EquippedChanged, OnEquippedChanged);
-        }
-
-        private void OnDisable()
-        {
-            AppContext.Events.RemoveEventListener(GameEvent.DepotChanged, OnDepotChanged);
-            AppContext.Events.RemoveEventListener(GameEvent.EquippedChanged, OnEquippedChanged);
         }
 
         #endregion
 
         #region Model → View
 
-        private void OnDepotChanged(EventArgs args)
-        {
-            Refresh();
-        }
-
-        private void OnEquippedChanged(EventArgs args)
+        public void OnEquippedChanged()
         {
             RefreshEquippedIcons();
             RefreshItemStates();
             if (_currentDetail != null) ShowDetail(_currentDetail);
         }
 
-        /// <summary>重建整个仓库列表与装备槽</summary>
-        private void Refresh()
+        /// <summary>重建整个仓库列表与装备槽。仓库列表变化时由 DepotService 直接调用（同模块 data→view）</summary>
+        public void Refresh()
         {
             for (int i = content.transform.childCount - 1; i >= 0; i--)
             {

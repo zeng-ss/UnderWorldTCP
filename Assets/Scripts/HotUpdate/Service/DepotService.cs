@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.Event;
+using HotUpdate.UI.UIPanel;
 
 namespace HotUpdate.Service
 {
@@ -10,6 +11,7 @@ namespace HotUpdate.Service
     /// </summary>
     public class DepotService
     {
+        private DepotPanel _depotPanel;
         /// <summary>装备槽数量，对应 DepotPanel 上 contentList 的格子数</summary>
         private const int MaxEquipSlots = 5;
 
@@ -42,7 +44,7 @@ namespace HotUpdate.Service
                 Owned.Add(new DriverDiskDataRuntime(template));
             }
 
-            NotifyDepotChanged();
+            RefreshDepotPanel();
         }
 
         /// <summary>按配置 id 发放，找不到模板直接返回 0</summary>
@@ -59,7 +61,7 @@ namespace HotUpdate.Service
             if (item == null) return false;
             Unequip(item);
             if (!Owned.Remove(item)) return false;
-            NotifyDepotChanged();
+            RefreshDepotPanel();
             return true;
         }
 
@@ -109,14 +111,18 @@ namespace HotUpdate.Service
 
         #endregion
 
-        private void NotifyDepotChanged()
+        // 同模块 data→view：仓库列表变化直接通知仓库面板刷新；面板没开就跳过（下次 OnEnable 会重建）
+        private void RefreshDepotPanel()
         {
-            AppContext.Events.EventTrigger(GameEvent.DepotChanged);
+            _depotPanel ??= AppContext.Ui.GetPanel<DepotPanel>();
+            _depotPanel.Refresh();
         }
 
         private void NotifyEquippedChanged()
         {
-            AppContext.Events.EventTrigger(GameEvent.EquippedChanged);
+            AppContext.PlayerData.ApplyEquipped(AppContext.Depot.Equipped);
+            _depotPanel ??= AppContext.Ui.GetPanel<DepotPanel>();
+            _depotPanel.OnEquippedChanged();
         }
     }
 }

@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using HotUpdate.Controller;
-using HotUpdate.Core;
-using HotUpdate.Event;
 using HotUpdate.Manager;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -16,7 +14,7 @@ namespace HotUpdate.UI.UIPanel
     /// 网络请求、校验、建角色、跳面板全部在 Controller 里。
     ///
     /// 依赖方向是单向的：本面板持有 Controller 实例（自己 new），
-    /// Controller 不认识本面板，服务器列表通过 ServerListChanged 事件送回来。
+    /// Controller 通过 AppContext.Ui.GetPanel&lt;LoginPanel&gt;() 直接把服务器列表写回来。
     /// </summary>
     [PanelPath("LoginPanel")]
     public class LoginPanel : BasePanel
@@ -45,31 +43,25 @@ namespace HotUpdate.UI.UIPanel
 
         private void OnEnable()
         {
-            AppContext.Events.AddEventListener(GameEvent.ServerListChanged, OnServerListChanged);
             _controller.OnPanelShown();
-        }
-
-        private void OnDisable()
-        {
-            AppContext.Events.RemoveEventListener(GameEvent.ServerListChanged, OnServerListChanged);
         }
 
         #region 渲染（Model → View）
 
-        private void OnServerListChanged(EventArgs args)
+        /// <summary>由 LoginController 直接调用，渲染服务器下拉框与运行状态</summary>
+        public void RefreshServerList(IReadOnlyList<string> serverNames, int selectedIndex, string runStateText,
+            Color stateColor)
         {
-            if (args is not ServerListArgs a) return;
-
-            var options = new List<Dropdown.OptionData>(a.ServerNames.Count);
-            foreach (var name in a.ServerNames) options.Add(new Dropdown.OptionData(name));
+            var options = new List<Dropdown.OptionData>(serverNames.Count);
+            foreach (var name in serverNames) options.Add(new Dropdown.OptionData(name));
             dropdown.options = options;
 
             _syncingDropdown = true;
-            dropdown.value = a.SelectedIndex;
+            dropdown.value = selectedIndex;
             _syncingDropdown = false;
 
-            stateText.text = a.StateText;
-            stateText.color = a.StateColor;
+            stateText.text = runStateText;
+            stateText.color = stateColor;
         }
 
         #endregion

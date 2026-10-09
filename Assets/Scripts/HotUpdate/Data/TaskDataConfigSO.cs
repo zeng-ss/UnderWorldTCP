@@ -24,7 +24,7 @@ namespace HotUpdate.Data
             string des = "";
             var materialService = AppContext.Material;
 
-            // 先快照要处理的 key，Add 会触发 MaterialNumChanged 事件，避免边遍历边改
+            // 先快照要处理的 key，Add 会改动 Counts（并直接刷新强化面板），避免边遍历边改
             List<int> needUpdateKeys = materialsId.Where(id => materialService.Counts.ContainsKey(id)).ToList();
             foreach (var key in needUpdateKeys)
             {

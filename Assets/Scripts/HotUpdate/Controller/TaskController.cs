@@ -6,11 +6,12 @@ using UnityEngine;
 namespace HotUpdate.Controller
 {
     /// <summary>
-    /// 任务 Controller。
+    /// 任务 Controller
     /// </summary>
     public class TaskController
     {
         private bool _initialized;
+        private TaskPanel _taskPanel;
 
         public void Initialize()
         {
@@ -30,10 +31,10 @@ namespace HotUpdate.Controller
 
         private void TogglePanel()
         {
-            var panel = AppContext.Ui.GetPanel<TaskPanel>();
-            if (panel != null && panel.gameObject.activeInHierarchy)
+            _taskPanel ??= AppContext.Ui.GetPanel<TaskPanel>();
+            if (_taskPanel.gameObject.activeInHierarchy)
             {
-                panel.ClosePanel();
+                _taskPanel.ClosePanel();
                 return;
             }
 
@@ -44,7 +45,6 @@ namespace HotUpdate.Controller
         public void RequestFinish(TaskDataRuntime task)
         {
             if (!AppContext.Task.Claim(task, out string rewardText)) return;
-
             NotifyServer(task, rewardText);
         }
 

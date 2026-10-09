@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using HotUpdate.Core;
-using HotUpdate.Event;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
@@ -13,13 +12,15 @@ namespace HotUpdate.Manager
     public class SceneMgr
     {
         private bool _isLoading;
+        private LoadPanel _loadPanel;
 
         public void LoadScene(string sceneName)
         {
             _isLoading = true;
-            AppContext.Ui.OpenPanel<LoadPanel>(_ =>
+            AppContext.Ui.OpenPanel<LoadPanel>(panel =>
             {
                 Debug.Log("Starting LoadScene: " + sceneName);
+                _loadPanel = panel;
                 MonoManager.Instance.StartCoroutine(TrackLoadingProgress(sceneName));
             });
         }
@@ -41,7 +42,7 @@ namespace HotUpdate.Manager
                 var realProgress = handle.PercentComplete / 0.9f;
                 float timeProgress = Mathf.Clamp01(elapsedTime / minLoadTime);
                 displayProgress = Mathf.Min(realProgress, timeProgress);
-                AppContext.Events.EventTrigger(GameEvent.LoadProgress, new LoadProgressArgs(displayProgress));
+                _loadPanel.UpdateProgress(displayProgress);
                 yield return null;
             }
 
@@ -55,11 +56,11 @@ namespace HotUpdate.Manager
                 float t = Mathf.Clamp01(smoothElapsed / smoothDuration);
                 float easeT = t * (2 - t);
                 displayProgress = Mathf.Lerp(startProgress, 1f, easeT);
-                AppContext.Events.EventTrigger(GameEvent.LoadProgress, new LoadProgressArgs(displayProgress));
+                _loadPanel.UpdateProgress(displayProgress);
                 yield return null;
             }
 
-            AppContext.Events.EventTrigger(GameEvent.LoadProgress, new LoadProgressArgs(1f));
+            _loadPanel.UpdateProgress(1f);
             yield return new WaitForSeconds(0.3f);
             handle.Result.ActivateAsync();
             yield return handle;
@@ -83,7 +84,6 @@ namespace HotUpdate.Manager
                     AppContext.Res.LoadAndInstantiateAsync("GameController");
                     // 联机时从服务端恢复任务进度（离线调试内部会跳过）
                     AppContext.Task.LoadFromServer();
-                    AppContext.Events.EventTrigger(GameEvent.GameStart);
                     break;
             }
 

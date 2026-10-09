@@ -1,6 +1,4 @@
 using DG.Tweening;
-using HotUpdate.Core;
-using HotUpdate.Event;
 using HotUpdate.Manager;
 using TMPro;
 using UnityEngine;
@@ -25,15 +23,15 @@ namespace HotUpdate.UI.UIPanel
         private void OnEnable() { ResetProgress(); }
         private void Start()
         {
-            AppContext.Events.AddEventListener(GameEvent.LoadProgress, UpdateProgress);
             // 初始化
             loadingBar.fillAmount = 0f;
             UpdateProgressText(0f);
             UpdatePivotPosition(0f);
         }
-        private void UpdateProgress(EventArgs args)
+
+        /// <summary>由 SceneMgr 直接调用推送加载进度（同模块 data→view，不再走全局事件）</summary>
+        public void UpdateProgress(float progress)
         {
-            float progress = ((LoadProgressArgs)args).Progress;
             _targetProgress = Mathf.Clamp01(progress);
             // 终止正在进行的动画
             // 进度条动画
@@ -72,11 +70,6 @@ namespace HotUpdate.UI.UIPanel
             localPos.x = -775; // 重置到最左边
             pivot.transform.localPosition = localPos;
             _targetProgress = 0f;
-        }
-        protected override void OnDestroy()
-        {
-            base.OnDestroy();
-            AppContext.Events.RemoveEventListener(GameEvent.LoadProgress, UpdateProgress);
         }
     }
 }

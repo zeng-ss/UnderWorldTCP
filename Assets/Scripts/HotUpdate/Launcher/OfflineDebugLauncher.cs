@@ -1,6 +1,5 @@
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
 using HotUpdate.Service;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,8 +7,6 @@ using UnityEngine.SceneManagement;
 namespace HotUpdate.Launcher
 {
     // 离线调试引导：直接运行 GameScene 时跳过「登录 → 创建房间 → 大厅 → 进入游戏」整条联网链路，
-    // 补齐 AppContext 初始化 + 伪造 Session 数据，然后按 SceneMgr.OnSceneLoaded("GameScene") 的同样逻辑加载战斗资源。
-    // 仅在编辑器下生效（#if UNITY_EDITOR），不影响真机打包与正常联网流程。
     public static class OfflineDebugLauncher
     {
         // 离线调试用的假角色 id / 昵称
@@ -48,7 +45,6 @@ namespace HotUpdate.Launcher
             AppContext.Res.LoadAndInstantiateAsync("Character");
             AppContext.Res.LoadAndInstantiateAsync("NPC");
             AppContext.Res.LoadAndInstantiateAsync("GameController");
-            AppContext.Events.EventTrigger(GameEvent.GameStart);
 
             Debug.Log("[OfflineDebugLauncher] 离线战斗场景就绪");
     #endif

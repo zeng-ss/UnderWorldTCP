@@ -31,12 +31,6 @@ namespace HotUpdate.Manager
             _appContext = AppContext.Create();
             _appContext.InitAll(materialData, depotConfig, taskConfigSo, _basePlayerValueData);
             RegisterGlobalHotkeys();
-            AppContext.Events.AddEventListener(GameEvent.EquippedChanged, OnEquippedChanged);
-        }
-
-        private void OnEquippedChanged(EventArgs args)
-        {
-            AppContext.PlayerData.ApplyEquipped(AppContext.Depot.Equipped);
         }
 
         private void Update()
@@ -60,7 +54,6 @@ namespace HotUpdate.Manager
 
         private void OnDestroy()
         {
-            AppContext.Events.RemoveEventListener(GameEvent.EquippedChanged, OnEquippedChanged);
             InputManager.Instance.UnregisterKeyDown(KeyCode.Escape, OnEscapePressed);
             _appContext.Dispose();
         }

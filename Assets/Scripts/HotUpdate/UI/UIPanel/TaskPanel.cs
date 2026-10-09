@@ -3,7 +3,6 @@ using DG.Tweening;
 using HotUpdate.Controller;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
 using HotUpdate.Manager;
 using HotUpdate.UI.UIItem;
 using UnityEngine;
@@ -48,18 +47,6 @@ namespace HotUpdate.UI.UIPanel
             sequence.Join(transform.DOScaleY(1, PanelShowDuration).SetEase(PanelEase));
             sequence.Join(_taskCanvasGroup.DOFade(1, PanelShowDuration).SetEase(PanelEase));
 
-            // Model → View：数据一变自己刷新，不需要 Controller 反过来调面板
-            AppContext.Events.AddEventListener(GameEvent.TaskChanged, OnTaskChanged);
-            RefreshTaskUI(AppContext.Task.Tasks);
-        }
-
-        private void OnDisable()
-        {
-            AppContext.Events.RemoveEventListener(GameEvent.TaskChanged, OnTaskChanged);
-        }
-
-        private void OnTaskChanged(EventArgs args)
-        {
             RefreshTaskUI(AppContext.Task.Tasks);
         }
 
@@ -74,9 +61,9 @@ namespace HotUpdate.UI.UIPanel
         }
 
         /// <summary>
-        /// 刷新任务面板UI（核心方法）
+        /// 刷新任务面板UI
         /// </summary>
-        public void RefreshTaskUI(List<TaskDataRuntime> taskList)
+        public void RefreshTaskUI(IReadOnlyList<TaskDataRuntime> taskList)
         {
             // 清空旧 Item
             ClearAllTaskItem();
@@ -97,7 +84,7 @@ namespace HotUpdate.UI.UIPanel
         /// </summary>
         private void CreateTaskItem(TaskDataRuntime task)
         {
-            AppContext.Res.LoadAndInstantiateAsync("TaskItem", taskContent, (itemObj =>
+            AppContext.Res.LoadAndInstantiateAsync("TaskItem", taskContent, itemObj =>
             {
                 if (itemObj == null)
                 {
@@ -109,7 +96,7 @@ namespace HotUpdate.UI.UIPanel
                 TaskItem taskItem = itemObj.GetComponent<TaskItem>();
                 taskItem.OnFinishRequested += RaiseTaskFinishRequested;
                 taskItem.UpdateData(task);
-            }));
+            });
         }
 
         /// <summary>只上报意图，能不能完成、发什么奖励由 Controller 判定</summary>

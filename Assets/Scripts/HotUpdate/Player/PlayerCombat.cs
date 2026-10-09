@@ -4,7 +4,6 @@ using HotUpdate.Enemy;
 using HotUpdate.Event;
 using UnityEngine;
 using AppContext = HotUpdate.Core.AppContext;
-using EventArgs = HotUpdate.Event.EventArgs;
 
 namespace HotUpdate.Player
 {
@@ -50,17 +49,13 @@ namespace HotUpdate.Player
 
         public void RegisterDataListener()
         {
-            AppContext.Events.AddEventListener(GameEvent.PlayerDataChanged, OnPlayerDataChanged);
+            AppContext.PlayerData.Current.OnValueChanged -= ApplyPlayerData;
+            AppContext.PlayerData.Current.OnValueChanged += ApplyPlayerData;
         }
 
         public void UnregisterDataListener()
         {
-            AppContext.Events.RemoveEventListener(GameEvent.PlayerDataChanged, OnPlayerDataChanged);
-        }
-
-        private void OnPlayerDataChanged(EventArgs args)
-        {
-            ApplyPlayerData(((PlayerDataChangedArgs)args).PlayerValueData);
+            AppContext.PlayerData.Current.OnValueChanged -= ApplyPlayerData;
         }
 
         /// <summary>

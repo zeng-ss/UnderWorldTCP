@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using HotUpdate.Core;
-using HotUpdate.Event;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
 
@@ -11,6 +10,7 @@ namespace HotUpdate.Controller
     /// </summary>
     public class LoginController
     {
+        private LoginPanel _loginPanel;
         private const int DefaultJobId = 1;
 
         private readonly List<GameServer> _servers = new();
@@ -79,18 +79,18 @@ namespace HotUpdate.Controller
             else BroadcastServerList();
         }
 
-        /// <summary>拼好界面需要的一切，一次性广播出去；面板在不在都无所谓</summary>
+        /// <summary>同模块 data→view：把界面需要的一切直接交给登录面板；面板没开就跳过（下次 OnEnable 会重新拉取）</summary>
         private void BroadcastServerList()
         {
             var names = new List<string>(_servers.Count);
             foreach (var server in _servers) names.Add(server.ServerName);
 
             int index = _selectedServer != null ? _servers.IndexOf(_selectedServer) : 0;
-            bool busy = _selectedServer != null && _selectedServer.RunState == 1;
+            bool busy = _selectedServer is { RunState: 1 };
 
-            AppContext.Events.EventTrigger(GameEvent.ServerListChanged,
-                new ServerListArgs(names, index, GetRunStateText(_selectedServer?.RunState ?? 0),
-                    busy ? Color.red : Color.green));
+            _loginPanel ??= AppContext.Ui.GetPanel<LoginPanel>();
+            _loginPanel?.RefreshServerList(
+                names, index, GetRunStateText(_selectedServer?.RunState ?? 0), busy ? Color.red : Color.green);
         }
 
         private string GetRunStateText(int runState)

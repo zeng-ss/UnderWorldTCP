@@ -3,6 +3,7 @@ using System.Linq;
 using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.Event;
+using HotUpdate.UI.UIPanel;
 using UnityEngine;
 
 namespace HotUpdate.Service
@@ -17,6 +18,7 @@ namespace HotUpdate.Service
 
         private bool _registered;
         private bool _persistEnabled; // 是否联网持久化（离线调试传 null config 时关闭）
+        private TaskPanel _taskPanel;
 
         public void Init(TaskDataConfigSo config)
         {
@@ -38,37 +40,23 @@ namespace HotUpdate.Service
         {
             if (_registered) return;
             _registered = true;
-            AppContext.Events.AddEventListener(GameEvent.EnemyKilled, OnEnemyKilled);
-            AppContext.Events.AddEventListener(GameEvent.DriverDiskLevelUp, OnDriverDiskLevelUp);
         }
 
         private void UnregisterEvents()
         {
             if (!_registered) return;
             _registered = false;
-            AppContext.Events.RemoveEventListener(GameEvent.EnemyKilled, OnEnemyKilled);
-            AppContext.Events.RemoveEventListener(GameEvent.DriverDiskLevelUp, OnDriverDiskLevelUp);
         }
 
         private TaskDataRuntime GetById(int taskId) => Tasks.FirstOrDefault(task => task.TaskId == taskId);
 
-        #region 领域事件 → 状态机推进
-
-        private void OnEnemyKilled(EventArgs args)
-        {
-            AdvanceByType(TaskType.击败第一个敌人);
-        }
-
-        private void OnDriverDiskLevelUp(EventArgs args)
-        {
-            AdvanceByType(TaskType.给每一个驱动盘都升一级);
-        }
-
-        // 推进指定类型的所有「进行中」任务；返回是否有任务发生变化
-        private bool AdvanceByType(TaskType taskType)
+        /// <summary>
+        /// 推进指定任务
+        /// </summary>
+        /// <param name="taskType">任务类型</param>
+        public void AdvanceByType(TaskType taskType)
         {
             bool changed = false;
-            int changedTaskId = -1;
             foreach (var task in Tasks)
             {
                 if (task.State != TaskState.InProgress || task.TaskType != taskType) continue;
@@ -78,28 +66,23 @@ namespace HotUpdate.Service
                 if (task.CurrentCount == oldCount) continue;
 
                 changed = true;
-                changedTaskId = task.TaskId;
-                // 进度达标 → 自动迁移到 Completed（待领奖）
+                // 进度达标 → 自动迁移到 Completed
                 if (task.CurrentCount >= task.TargetCount) Transition(task, TaskState.Completed);
             }
 
-            if (changed) NotifyTaskChanged(changedTaskId);
-            return changed;
+            if (changed) NotifyTaskChanged();
         }
 
-        #endregion
-
-        private bool Transition(TaskDataRuntime task, TaskState to)
+        private void Transition(TaskDataRuntime task, TaskState to)
         {
-            if (task == null) return false;
+            if (task == null) return;
             if ((int)to <= (int)task.State)
             {
                 Debug.LogWarning($"[TaskService] 非法状态迁移：任务 {task.TaskId} 从 {task.State} 迁到 {to}，已忽略");
-                return false;
+                return;
             }
 
             task.State = to;
-            return true;
         }
 
         #region 解锁
@@ -110,22 +93,16 @@ namespace HotUpdate.Service
             var task = GetById(taskId);
             if (task == null || task.State != TaskState.Locked) return false;
             Transition(task, TaskState.InProgress);
-            NotifyTaskChanged(taskId);
+            NotifyTaskChanged();
             SaveProgress(task); // 解锁状态也持久化
             return true;
         }
 
-        /// <summary>批量解锁（一段对话配了多个任务时使用）</summary>
-        public bool UnlockAll(IReadOnlyList<int> taskIds)
+        /// <summary>批量解锁</summary>
+        public void UnlockAll(IReadOnlyList<int> taskIds)
         {
-            if (taskIds == null) return false;
-            bool changed = false;
-            foreach (int id in taskIds)
-            {
-                changed |= Unlock(id);
-            }
-
-            return changed;
+            if (taskIds == null) return;
+            foreach (var id in taskIds) Unlock(id);
         }
 
         #endregion
@@ -155,7 +132,7 @@ namespace HotUpdate.Service
             }
 
             rewardDescription = des;
-            NotifyTaskChanged(task.TaskId);
+            NotifyTaskChanged();
             SaveProgress(task);
             return true;
         }
@@ -201,15 +178,16 @@ namespace HotUpdate.Service
                     RestoreProgress(p.TaskId, p.State, p.CurrentCount);
                 }
 
-                NotifyTaskChanged(-1);
+                NotifyTaskChanged();
             });
         }
 
         #endregion
 
-        private void NotifyTaskChanged(int changedTaskId)
+        private void NotifyTaskChanged()
         {
-            AppContext.Events.EventTrigger(GameEvent.TaskChanged, new TaskChangedArgs(Tasks, changedTaskId));
+            _taskPanel = AppContext.Ui.GetPanel<TaskPanel>();
+            _taskPanel.RefreshTaskUI(AppContext.Task.Tasks);
         }
 
         // 释放订阅（热更重载 / 退出时调用）

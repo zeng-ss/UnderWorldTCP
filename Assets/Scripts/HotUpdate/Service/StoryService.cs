@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
 
 namespace HotUpdate.Service
 {
@@ -44,7 +43,6 @@ namespace HotUpdate.Service
         {
             if (!HasDialogue || IsLast) return false;
             DialogueIndex++;
-            NotifyChanged();
             return true;
         }
 
@@ -52,12 +50,6 @@ namespace HotUpdate.Service
         public void Reset()
         {
             DialogueIndex = 0;
-            NotifyChanged();
-        }
-
-        private void NotifyChanged()
-        {
-            AppContext.Events.EventTrigger(GameEvent.StoryChanged);
         }
     }
 }

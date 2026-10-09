@@ -3,7 +3,6 @@ using HotUpdate.Event;
 using HotUpdate.Manager;
 using HotUpdate.Network;
 using HotUpdate.Service;
-using UnityEngine;
 
 namespace HotUpdate.Core
 {

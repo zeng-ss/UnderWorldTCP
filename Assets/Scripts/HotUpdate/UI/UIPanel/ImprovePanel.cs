@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using HotUpdate.Controller;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
 using HotUpdate.Manager;
 using TMPro;
 using UnityEngine;
@@ -46,22 +45,16 @@ namespace HotUpdate.UI.UIPanel
 
         private void OnEnable()
         {
-            AppContext.Events.AddEventListener(GameEvent.MaterialNumChanged, OnMaterialNumChanged);
-            AppContext.Events.AddEventListener(GameEvent.PlayerDataChanged, OnPlayerDataChanged);
+            AppContext.PlayerData.Current.OnValueChanged -= OnPlayerDataChanged;
+            AppContext.PlayerData.Current.OnValueChanged += OnPlayerDataChanged;
         }
 
         private void OnDisable()
         {
-            AppContext.Events.RemoveEventListener(GameEvent.MaterialNumChanged, OnMaterialNumChanged);
-            AppContext.Events.RemoveEventListener(GameEvent.PlayerDataChanged, OnPlayerDataChanged);
+            AppContext.PlayerData.Current.OnValueChanged -= OnPlayerDataChanged;
         }
 
-        private void OnMaterialNumChanged(EventArgs args)
-        {
-            UpdateMaterialNum();
-        }
-
-        private void OnPlayerDataChanged(EventArgs args)
+        private void OnPlayerDataChanged(PlayerValueData valueData)
         {
             // 强化成功后属性会重算，借此顺带刷一次等级与经验条
             Refresh();
@@ -169,7 +162,8 @@ namespace HotUpdate.UI.UIPanel
             }
         }
 
-        private void UpdateMaterialNum()
+        /// <summary>材料数量变化时由 MaterialService 直接调用（同模块 data→view）</summary>
+        public void UpdateMaterialNum()
         {
             foreach (var item in _materialNumTextDict)
             {

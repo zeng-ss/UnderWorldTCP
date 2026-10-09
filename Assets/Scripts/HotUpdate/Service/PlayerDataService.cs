@@ -2,33 +2,30 @@ using System;
 using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
-using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.Service
 {
     /// <summary>
     /// 角色属性服务。持有「基础属性」和「基础 + 已装备驱动盘加成」后的最终属性。
-    /// 对外通过 <see cref="Current"/> 推送变化，View 订阅后自行刷新。
+    /// 对外只暴露 <see cref="Current"/>（BindableProperty），订阅它的 OnValueChanged 即可刷新。
     /// </summary>
     public class PlayerDataService
     {
         /// <summary>不含任何驱动盘加成的基础属性</summary>
         private PlayerValueData _baseValueData;
 
-        /// <summary>当前生效属性。View 应订阅它。</summary>
+        /// <summary>当前生效属性。View / 战斗系统应订阅它。</summary>
         public BindableProperty<PlayerValueData> Current { get; } = new(new PlayerValueData());
 
         public void Init(PlayerValueData baseValueData) => _baseValueData = baseValueData ?? new PlayerValueData();
 
         /// <summary>
-        /// 根据已装备的驱动盘重算当前属性，并广播 PlayerDataChanged。
+        /// 根据已装备的驱动盘重算当前属性。赋值 Current 即触发 OnValueChanged，订阅方自行刷新。
         /// </summary>
         public PlayerValueData ApplyEquipped(IReadOnlyList<DriverDiskDataRuntime> equipped)
         {
             PlayerValueData result = Calculate(_baseValueData, equipped);
             Current.Value = result;
-            AppContext.Events.EventTrigger(GameEvent.PlayerDataChanged, new PlayerDataChangedArgs(result));
             return result;
         }
 

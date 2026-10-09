@@ -61,7 +61,7 @@ namespace HotUpdate.Manager
             InputManager.Instance.UnregisterKeyDown(KeyCode.Space, OnSpacePressed);
             InputManager.Instance.UnregisterKeyDown(KeyCode.Escape, OnEscapePressed);
             InputManager.Instance.UnregisterMouseDown(0, OnLeftClicked);
-            End(fireDialogueEnd: false);
+            End(completeStory: false);
         }
 
         #endregion
@@ -79,7 +79,7 @@ namespace HotUpdate.Manager
             }
 
             // 已有对话在进行：先静默收尾，避免状态残留
-            if (_state != DialogueState.Idle) End(fireDialogueEnd: false);
+            if (_state != DialogueState.Idle) End(completeStory: false);
 
             _dialogue = data;
             _line = null;
@@ -92,7 +92,7 @@ namespace HotUpdate.Manager
                 if (_panel == null)
                 {
                     Debug.LogError("DialogueManager: 对话面板打开失败");
-                    End(fireDialogueEnd: false);
+                    End(completeStory: false);
                     return;
                 }
 
@@ -109,7 +109,7 @@ namespace HotUpdate.Manager
             // -1 表示结束对话
             if (option.nextLineIndex == -1)
             {
-                End(fireDialogueEnd: option.isTriggerEvent);
+                End(completeStory: option.isTriggerEvent);
                 return;
             }
 
@@ -123,7 +123,7 @@ namespace HotUpdate.Manager
             else
             {
                 Debug.LogWarning($"DialogueManager: 无效的对话行索引 {option.nextLineIndex}");
-                End(fireDialogueEnd: false);
+                End(completeStory: false);
             }
         }
 
@@ -136,7 +136,7 @@ namespace HotUpdate.Manager
         {
             if (_dialogue == null)
             {
-                End(fireDialogueEnd: false);
+                End(completeStory: false);
                 return;
             }
 
@@ -153,7 +153,7 @@ namespace HotUpdate.Manager
 
             if (_line == null)
             {
-                End(fireDialogueEnd: false);
+                End(completeStory: false);
                 return;
             }
 
@@ -202,7 +202,7 @@ namespace HotUpdate.Manager
             if (parent == null)
             {
                 Debug.LogError("DialogueManager: 无法获取选项面板");
-                End(fireDialogueEnd: false);
+                End(completeStory: false);
                 return;
             }
 
@@ -220,14 +220,24 @@ namespace HotUpdate.Manager
             }
         }
 
-        /// <summary>结束对话并收尾。fireDialogueEnd 为 true 时广播 DialogueEnd（携带刚结束的对话数据）。</summary>
-        private void End(bool fireDialogueEnd)
+        /// <summary>结束对话并收尾（关闭面板 / 复位状态）。completeStory 为 true 时执行剧情收尾：解锁任务、生成敌人、弹提示。</summary>
+        private void End(bool completeStory)
         {
-            DialogueData ended = _dialogue;
-
-            if (fireDialogueEnd && ended != null)
+            if (completeStory && _dialogue is not null)
             {
-                AppContext.Events.EventTrigger(GameEvent.DialogueEnd, new DialogueEndArgs(ended));
+                // 解锁本段对话配置的任务
+                AppContext.Task.UnlockAll(_dialogue.taskIds);
+
+                // id == 2 为剧情收尾，不生成敌人
+                if (_dialogue.id != 2)
+                {
+                    Vector3 pos = new Vector3(17, -1.6f, -30);
+                    AppContext.Proto.RequestSpawnEnemy(AppContext.Session.RoleId, 1, 20000, pos,
+                        AppContext.RemotePlayer.SpawnEnemy);
+                }
+
+                AppContext.Ui.ShowTip("有新任务了，快去完成吧~");
+                AppContext.Ui.OpenPanel<TaskPanel>(panel => panel.RefreshTaskUI(AppContext.Task.Tasks));
             }
 
             _state = DialogueState.Idle;
@@ -263,13 +273,13 @@ namespace HotUpdate.Manager
         private void OnEscapePressed()
         {
             if (_state == DialogueState.Idle) return;
-            if (_dialogue != null && _dialogue.canSkip) End(fireDialogueEnd: false);
+            if (_dialogue != null && _dialogue.canSkip) End(completeStory: false);
         }
 
         private void OnLeftClicked()
         {
             if (_state != DialogueState.WaitingEnd) return;
-            End(fireDialogueEnd: true);
+            End(completeStory: true);
         }
 
         #endregion

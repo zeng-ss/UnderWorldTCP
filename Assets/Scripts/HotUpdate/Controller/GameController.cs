@@ -10,6 +10,7 @@ namespace HotUpdate.Controller
     /// </summary>
     public class GameController : MonoBehaviour
     {
+        private PlayerDataPanel _playerDataPanel;
         private bool _wantCursorLocked;
         private bool _forceUnlock;
 
@@ -22,7 +23,6 @@ namespace HotUpdate.Controller
             InputManager.Instance.RegisterKeyDown(KeyCode.C, ToggleChatPanel);
             InputManager.Instance.RegisterKeyDown(KeyCode.V, ToggleDepotPanel);
             InputManager.Instance.RegisterKeyDown(KeyCode.B, TogglePlayerDataPanel);
-            InputManager.Instance.RegisterKeyDown(KeyCode.Alpha5, DebugFillImprove);
 
             // 预加载任务面板，避免首次按 Tab 时才加载造成卡顿
             AppContext.Ui.OpenPanel<TaskPanel>(_ => AppContext.Ui.ClosePanel<TaskPanel>());
@@ -37,7 +37,6 @@ namespace HotUpdate.Controller
             InputManager.Instance.UnregisterKeyDown(KeyCode.C, ToggleChatPanel);
             InputManager.Instance.UnregisterKeyDown(KeyCode.V, ToggleDepotPanel);
             InputManager.Instance.UnregisterKeyDown(KeyCode.B, TogglePlayerDataPanel);
-            InputManager.Instance.UnregisterKeyDown(KeyCode.Alpha5, DebugFillImprove);
         }
 
         #region 光标
@@ -81,17 +80,10 @@ namespace HotUpdate.Controller
 
         private void TogglePlayerDataPanel()
         {
-            var panel = AppContext.Ui.GetPanel<PlayerDataPanel>();
-            if (panel != null && panel.isAnimating) return;
-
-            if (panel == null || !panel.gameObject.activeInHierarchy) AppContext.Ui.OpenPanel<PlayerDataPanel>();
+            _playerDataPanel ??= AppContext.Ui.GetPanel<PlayerDataPanel>();
+            if (_playerDataPanel.isAnimating) return;
+            if (!_playerDataPanel.gameObject.activeInHierarchy) AppContext.Ui.OpenPanel<PlayerDataPanel>();
             else AppContext.Ui.ClosePanel<PlayerDataPanel>();
-        }
-
-        /// <summary>调试快捷键：给当前强化中的驱动盘加经验</summary>
-        private void DebugFillImprove()
-        {
-            //AppContext.DepotUI.DebugFill(100f);
         }
 
         #endregion

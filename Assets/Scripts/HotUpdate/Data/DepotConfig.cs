@@ -100,7 +100,7 @@ namespace HotUpdate.Data
                 if (Level == 2)
                 {
                     // 事件化：不再直接调任务系统的 UpdateProgress，改为广播事件，由 TaskService 订阅推进
-                    AppContext.Events.EventTrigger(GameEvent.DriverDiskLevelUp);
+                    AppContext.Task.AdvanceByType(TaskType.给每一个驱动盘都升一级);
                 }
                 CurLevelFillValue -= CurLevelMaxFill;
                 CurLevelMaxFill = (int)Random.Range(CurLevelMaxFill + 200, CurLevelMaxFill + 500);

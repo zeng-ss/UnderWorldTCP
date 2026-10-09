@@ -2,14 +2,12 @@ using System;
 using DG.Tweening;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
 using HotUpdate.Manager;
 using HotUpdate.UI.UIItem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using AppContext = HotUpdate.Core.AppContext;
-using EventArgs = HotUpdate.Event.EventArgs;
 
 namespace HotUpdate.UI.UIPanel
 {
@@ -39,7 +37,6 @@ namespace HotUpdate.UI.UIPanel
         {
             InputManager.Instance.RegisterKeyDown(KeyCode.Return, OnEnterPressed);
             InputManager.Instance.RegisterKeyDown(KeyCode.KeypadEnter, OnEnterPressed);
-            AppContext.Events.AddEventListener(GameEvent.ChatMessageReceived, OnChatMessageReceived);
 
             // 补上打开面板前就已经收到的消息
             foreach (var message in AppContext.Chat.Messages) AddChatItem(message, false);
@@ -49,12 +46,11 @@ namespace HotUpdate.UI.UIPanel
         {
             InputManager.Instance.UnregisterKeyDown(KeyCode.Return, OnEnterPressed);
             InputManager.Instance.UnregisterKeyDown(KeyCode.KeypadEnter, OnEnterPressed);
-            AppContext.Events.RemoveEventListener(GameEvent.ChatMessageReceived, OnChatMessageReceived);
         }
 
-        private void OnChatMessageReceived(EventArgs args)
+        /// <summary>收到一条聊天消息（由 ChatService 直接调用，不再走全局事件）</summary>
+        public void OnMessageReceived(MessageData message)
         {
-            var message = ((ChatMessageArgs)args).Message;
             bool isSelf = message != null && message.SenderClientId == 0;
             AddChatItem(message, isSelf);
         }

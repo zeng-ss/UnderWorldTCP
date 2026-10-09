@@ -1,12 +1,14 @@
 using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
+using HotUpdate.UI.UIPanel;
 
 namespace HotUpdate.Service
 {
     public class ChatService
     {
+        private ChatPanel _chatPanel;
+
         /// <summary>本局累计的所有聊天消息</summary>
         public List<MessageData> Messages { get; } = new();
 
@@ -41,7 +43,9 @@ namespace HotUpdate.Service
         private void Publish(MessageData message)
         {
             Messages.Add(message);
-            AppContext.Events.EventTrigger(GameEvent.ChatMessageReceived, new ChatMessageArgs(message));
+            // 同模块 data→view：直接通知聊天面板。面板没开则跳过，下次打开会补上历史消息
+            _chatPanel ??= AppContext.Ui.GetPanel<ChatPanel>();
+            _chatPanel.OnMessageReceived(message);
         }
     }
 }

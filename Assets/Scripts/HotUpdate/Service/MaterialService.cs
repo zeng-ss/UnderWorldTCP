@@ -1,18 +1,19 @@
 using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
+using HotUpdate.UI.UIPanel;
 
 namespace HotUpdate.Service
 {
     /// <summary>
-    /// 材料数据服务
-    /// 数量变化时广播 GameEvent.MaterialNumChanged，View 自行刷新。
+    /// 材料数据服务。
+    /// 数量变化时直接通知强化面板刷新（同模块 data→view），不再走全局事件。
     /// </summary>
     public class MaterialService
     {
         private readonly Dictionary<int, MaterialDataRuntime> _runtime = new();
         private readonly Dictionary<int, int> _counts = new();
+        private ImprovePanel _improvePanel;
 
         /// <summary>材料静态配置（id → 名称 / 图标 / 数值）</summary>
         public IReadOnlyDictionary<int, MaterialDataRuntime> RuntimeData => _runtime;
@@ -58,7 +59,9 @@ namespace HotUpdate.Service
         {
             if (total < 0) total = 0;
             _counts[materialId] = total;
-            AppContext.Events.EventTrigger(GameEvent.MaterialNumChanged, new MaterialNumChangedArgs(materialId, total));
+            // 同模块 data→view：直接让强化面板刷新数量；面板没开则跳过
+            _improvePanel = AppContext.Ui.GetPanel<ImprovePanel>();
+            _improvePanel.UpdateMaterialNum();
         }
 
         /// <summary>扣除升级消耗；不足时返回 false 且不改变数量</summary>

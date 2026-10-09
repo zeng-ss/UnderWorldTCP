@@ -314,8 +314,7 @@ namespace HotUpdate.Enemy
         private void OnEnemyDead()
         {
             Instances.Remove(serverInstanceId);
-            // 事件化：不再直接调任务系统的 UpdateProgress，改为广播「击败敌人」事件，由 TaskService 订阅推进
-            AppContext.Events.EventTrigger(GameEvent.EnemyKilled);
+            AppContext.Task.AdvanceByType(TaskType.击败第一个敌人);
             _capsuleCollider.enabled = false;
             tag = "Untagged";
             ChangeState(EnemyStateType.Dead);

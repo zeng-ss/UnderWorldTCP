@@ -12,7 +12,7 @@ public class NetServer
 {
     private Socket _socket;
 
-    private Dictionary<int, IContainer> _cmdDic = new Dictionary<int, IContainer>();
+    private readonly Dictionary<int, IContainer> _cmdDic = new Dictionary<int, IContainer>();
     private readonly NetClient _client;
 
     public NetServer(NetClient client = null) => _client = client;
