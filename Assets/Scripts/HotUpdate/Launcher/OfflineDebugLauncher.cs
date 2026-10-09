@@ -73,6 +73,7 @@ namespace HotUpdate.Launcher
             AppContext.Sound.Init();
             AppContext.Proto.Init();
             AppContext.RemotePlayer.Init();
+            AppContext.Story.Init();
         }
     }
 }

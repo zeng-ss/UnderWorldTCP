@@ -10,7 +10,7 @@ namespace HotUpdate.Service
     /// </summary>
     public class StoryService
     {
-        private List<DialogueData> _dialogues;
+        private readonly List<DialogueData> _dialogues = new();
 
         // 当前剧情进度下标
         public int DialogueIndex { get; private set; }

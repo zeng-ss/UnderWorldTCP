@@ -12,19 +12,34 @@ namespace HotUpdate.Manager
         public AudioClip FootBackSound;
         public AudioClip WeaponBackSound;
         public AudioClip WeaponEndSound;
-        public List<AudioClip> PlayerAttackSpeaks;
+        public readonly List<AudioClip> PlayerAttackSpeaks = new();
         public AudioClip StartPinSound;
-        public List<AudioClip> ExSounds;
+        public readonly List<AudioClip> ExSounds = new();
 
         #endregion
 
-        private string _poolName = "AudioPrefab";
+        private const string PoolName = "AudioPrefab";
+        private const string SoundPath = "Audio/AnBi/";
+        private const string FootPath = "Audio/FOOT/";
         private GameObject _pool;
 
         public void Init()
         {
             _pool = new GameObject("ActiveAudio");
-            AppContext.Pool.Preload("AudioPrefab", _poolName, 30);
+            AppContext.Pool.Preload("AudioPrefab", PoolName, 30);
+            StartPinSound = Resources.Load<AudioClip>("Audio/拼刀开始");
+            FootSound = Resources.Load<AudioClip>(FootPath + "脚步声");
+            WeaponEndSound = Resources.Load<AudioClip>(SoundPath + "安比入鞘");
+            WeaponBackSound = Resources.Load<AudioClip>(SoundPath + "安比收刀");
+            FootBackSound = Resources.Load<AudioClip>(FootPath + "收脚音1");
+            ExSounds.Add(Resources.Load<AudioClip>(SoundPath + "安比：速清"));
+            ExSounds.Add(Resources.Load<AudioClip>(SoundPath + "安比：处决"));
+            ExSounds.Add(Resources.Load<AudioClip>(SoundPath + "安比：碍事"));
+            ExSounds.Add(Resources.Load<AudioClip>(SoundPath + "安比：消失吧"));
+            ExSounds.Add(Resources.Load<AudioClip>(SoundPath + "安比：锁定目标"));
+            PlayerAttackSpeaks.Add(Resources.Load<AudioClip>(SoundPath + "安比：嘿（攻击）"));
+            PlayerAttackSpeaks.Add(Resources.Load<AudioClip>(SoundPath + "安比：Ye（攻击）"));
+            PlayerAttackSpeaks.Add(Resources.Load<AudioClip>(SoundPath + "安比：Ye轻（攻击）"));
         }
 
 
@@ -39,7 +54,7 @@ namespace HotUpdate.Manager
         {
             if (!clip) return;
             // 从对象池获取播放器
-            AppContext.Pool.GetObj(_poolName, audioPlayer =>
+            AppContext.Pool.GetObj(PoolName, audioPlayer =>
             {
                 audioPlayer.transform.position = position;
                 audioPlayer.transform.SetParent(_pool.transform);
