@@ -1,0 +1,72 @@
+[
+  {
+    "id": 101,
+    "dialogueId": 1,
+    "lineIndex": 0,
+    "speakerName": "NPC",
+    "content": "（打量着你）新来的？看你眼神还有点迷茫，是第一次来吧？",
+    "portrait": "Icon/ability_slash",
+    "voice": "",
+    "endAfterThis": false
+  },
+  {
+    "id": 102,
+    "dialogueId": 1,
+    "lineIndex": 1,
+    "speakerName": "玩家",
+    "content": "是的，我刚来报到。",
+    "portrait": "Icon/ability_shield",
+    "voice": "",
+    "endAfterThis": false
+  },
+  {
+    "id": 103,
+    "dialogueId": 1,
+    "lineIndex": 2,
+    "speakerName": "NPC",
+    "content": "很好，勇气可嘉。不过光有勇气可不够，在这地方，得靠实力说话。",
+    "portrait": "Icon/ability_slash",
+    "voice": "",
+    "endAfterThis": false
+  },
+  {
+    "id": 104,
+    "dialogueId": 1,
+    "lineIndex": 3,
+    "speakerName": "NPC",
+    "content": "看到前面那些训练假人了吗？它们虽然不会动，但正好让你练练手。",
+    "portrait": "Icon/ability_slash",
+    "voice": "",
+    "endAfterThis": false
+  },
+  {
+    "id": 201,
+    "dialogueId": 2,
+    "lineIndex": 0,
+    "speakerName": "NPC",
+    "content": "（点头赞许）不错不错，动作虽然生疏，但底子还行。",
+    "portrait": "Icon/ability_slash",
+    "voice": "",
+    "endAfterThis": false
+  },
+  {
+    "id": 202,
+    "dialogueId": 2,
+    "lineIndex": 1,
+    "speakerName": "玩家",
+    "content": "谢谢老铁！",
+    "portrait": "Icon/ability_shield",
+    "voice": "",
+    "endAfterThis": false
+  },
+  {
+    "id": 203,
+    "dialogueId": 2,
+    "lineIndex": 2,
+    "speakerName": "NPC",
+    "content": "别急着谢，这才刚刚开始。你的驱动盘还太弱了，得想办法提升它们。",
+    "portrait": "Icon/ability_slash",
+    "voice": "",
+    "endAfterThis": true
+  }
+]

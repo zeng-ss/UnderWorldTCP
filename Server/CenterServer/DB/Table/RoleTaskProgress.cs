@@ -14,7 +14,7 @@ public class RoleTaskProgress
 
     public int RoleId { get; set; }
 
-    // 任务唯一 id（对应客户端 TaskDataSo.taskID）
+    // 任务唯一 id（对应服务端 Luban taskData.TaskID；客户端不再有自己的任务配置）
     public int TaskId { get; set; }
 
     // 任务状态：TaskState 枚举值

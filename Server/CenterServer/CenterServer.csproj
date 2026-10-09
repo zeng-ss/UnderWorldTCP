@@ -98,6 +98,7 @@
   <ItemGroup>
     <Compile Include="Ctrl\Center_LoginCtrl.cs" />
     <Compile Include="DB\DBMgr.cs" />
+    <Compile Include="DB\ItemCatalog.cs" />
     <Compile Include="DB\Modle\LoginModle.cs" />
     <Compile Include="DB\Table\AccountTable.cs" />
     <Compile Include="DB\Table\GameServerTable.cs" />

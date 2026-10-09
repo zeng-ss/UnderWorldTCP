@@ -7,6 +7,8 @@ public class LubanMgr : Singleton<LubanMgr>
     // 各张配置表的字典缓存
     private Dictionary<int, SkillInfo> _skillInfoDic;
     private Dictionary<int, taskData> _taskDataDic;
+    private Dictionary<int, materialData> _materialDic;
+    private Dictionary<int, driverDisk> _driverDiskDic;
 
     public void Init()
     {
@@ -15,6 +17,8 @@ public class LubanMgr : Singleton<LubanMgr>
 
         _skillInfoDic = tables.TbSkillInfo.DataMap;
         _taskDataDic = tables.TbtaskData.DataMap;
+        _materialDic = tables.TbmaterialData.DataMap;
+        _driverDiskDic = tables.TbdriverDisk.DataMap;
     }
 
     // 读取单张 byte 表的完整路径：优先在可执行文件所在目录下查找，找不到再向上级目录回退
@@ -113,9 +117,47 @@ public class LubanMgr : Singleton<LubanMgr>
 
     #endregion
 
-    #region 对话相关的方法（预留，后续对话表接入后填充）
+    #region 物品相关的方法（材料 / 驱动盘）
 
-    // TODO: 对话系统表接入后，在此添加对话数据加载与查询接口
+    // 获取所有材料配置
+    public Dictionary<int, materialData> GetMaterialDatas()
+    {
+        return _materialDic;
+    }
+
+    // 通过编号获取材料配置
+    public materialData GetMaterialById(int materialId)
+    {
+        if (_materialDic != null && _materialDic.TryGetValue(materialId, out var materialById))
+        {
+            return materialById;
+        }
+
+        return null;
+    }
+
+    // 获取所有驱动盘配置
+    public Dictionary<int, driverDisk> GetDriverDisks()
+    {
+        return _driverDiskDic;
+    }
+
+    // 通过编号获取驱动盘配置
+    public driverDisk GetDriverDiskById(int depotId)
+    {
+        if (_driverDiskDic != null && _driverDiskDic.TryGetValue(depotId, out var diskById))
+        {
+            return diskById;
+        }
+
+        return null;
+    }
+
+    #endregion
+
+    #region 对话相关的方法（预留，后续服务端校验对话解锁时填充）
+
+    // TODO: 服务端需要校验对话解锁时，在此添加对话数据查询接口
 
     #endregion
 }

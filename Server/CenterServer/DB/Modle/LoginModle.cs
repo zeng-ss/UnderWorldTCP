@@ -352,7 +352,7 @@ public class LoginModle
             // 加载背包物品
             foreach (var bagInfo in roleBagInfo)
             {
-                if (bagInfo.ItemType == "驱动盘")
+                if (bagInfo.ItemType == ItemCatalog.DriverDiskType)
                 {
                     DriverDiskInfo diskInfo = new DriverDiskInfo
                     {
@@ -450,58 +450,99 @@ public class LoginModle
     }
     
     /// <summary>
-    /// 处理并返回获得奖励相关的数据  
+    /// 处理并返回获得奖励相关的数据。
+    /// 任务奖励（reward_type=1）：奖励内容以服务端 Luban taskData 为权威，按 task_id 取 DepotIds / MaterialsId 发放；
+    /// 发放明细写入 role_bag_item（存在则累加），并把明细与展示文案回给客户端。
     /// </summary>
     public GetRewardRet GetReward(GetRewardReq req)
     {
         GetRewardRet ret = new GetRewardRet();
-        var nameMap = new Dictionary<int, string>
+        if (req.RoleId <= 0)
         {
-            { 1, "混沌重金属" },
-            { 2, "啄木鸟电音" },
-            { 3, "原始朋克" },
-            { 4, "灵魂摇滚" },
-            { 5, "金币" },
-            { 6, "攻击驱动" },
-            { 7, "生命驱动" },
-            { 8, "防御驱动" },
-            { 9, "暴击驱动" }
-        };
-        // rewardMap: key=物品id, value=增加数量
-        switch (req.RewardType)
-        {
-            case 1:
-                ret.RewardMap.Add(1, 1);
-                ret.RewardMap.Add(2, 1);
-                ret.RewardMap.Add(3, 1);
-                ret.RewardMap.Add(4, 1);
-                ret.RewardMap.Add(5, 800);
-                ret.RewardMap.Add(6, 20);
-                ret.RewardMap.Add(7, 20);
-                ret.RewardMap.Add(8, 20);
-                ret.RewardMap.Add(9, 20);
-                break;
-            case 2:
-                ret.RewardMap.Add(1, 1);
-                ret.RewardMap.Add(2, 1);
-                ret.RewardMap.Add(3, 1);
-                ret.RewardMap.Add(4, 1);
-                ret.RewardMap.Add(5, 1000);
-                ret.RewardMap.Add(6, 20);
-                ret.RewardMap.Add(7, 20);
-                ret.RewardMap.Add(8, 20);
-                ret.RewardMap.Add(9, 20);
-                break;
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
         }
 
-        // 已有物品数据
-        var existingItems = _db.Queryable<RoleBagInfo>().Where(v => v.RoleId == req.RoleId).ToList();
+        switch (req.RewardType)
+        {
+            case 1: // 任务奖励：奖励内容与「能不能领」都由服务端判定，客户端不参与
+                var taskData = LubanMgr.Instance.GetTaskDataById(req.TaskId);
+                if (taskData == null)
+                {
+                    LogMsg.Info($"[Center]任务奖励发放失败：Luban 中找不到任务 {req.TaskId}");
+                    ret.CmdCode = CmdCode.ReqParamError;
+                    return ret;
+                }
 
-        foreach (var kv in ret.RewardMap)
+                RoleTaskProgress progress = _db.Queryable<RoleTaskProgress>()
+                    .Where(v => v.RoleId == req.RoleId && v.TaskId == req.TaskId).First();
+                // 只允许「已接取(1) / 条件达成(2)」的任务领奖；Locked 没资格、Claimed 已领过，直接拒绝以防重复发奖
+                if (progress == null || progress.State < 1 || progress.State > 2)
+                {
+                    int state = progress == null ? -1 : progress.State;
+                    LogMsg.Info($"[Center]任务 {req.TaskId} 当前不可领奖（state={state}）");
+                    ret.CmdCode = CmdCode.ReqParamError;
+                    return ret;
+                }
+
+                foreach (int depotId in taskData.DepotIds)
+                {
+                    AddToRewardMap(ret.RewardMap, depotId, 1);
+                }
+
+                foreach (int materialId in taskData.MaterialsId)
+                {
+                    AddToRewardMap(ret.RewardMap, materialId, GetMaterialRewardCount(materialId));
+                }
+
+                // 发奖即置为已领（3=Claimed），与客户端状态机保持一致
+                progress.State = 3;
+                progress.UpdateDate = DateTime.Now;
+                _db.Updateable(progress).ExecuteCommand();
+                break;
+            default:
+                LogMsg.Info($"[Center]暂不支持的奖励类型: {req.RewardType}");
+                ret.CmdCode = CmdCode.ReqParamError;
+                return ret;
+        }
+
+        if (ret.RewardMap.Count > 0)
+        {
+            GrantToBag(req.RoleId, ret.RewardMap);
+            ret.RewardDesc = BuildRewardDesc(ret.RewardMap);
+        }
+
+        ret.CmdCode = CmdCode.Succeed;
+        return ret;
+    }
+
+    /// <summary>
+    /// 任务奖励里材料的发放数量。金币按大额给，驱动材料按小额给。
+    /// TODO: 待奖励数量也进 Luban 配置后，改为从配置读取。
+    /// </summary>
+    private static int GetMaterialRewardCount(int materialId)
+    {
+        return materialId == ItemCatalog.Gold ? 800 : 20;
+    }
+
+    /// <summary>累加奖励明细（同一 id 在配置里可能出现多次）</summary>
+    private static void AddToRewardMap(IDictionary<int, int> rewardMap, int itemId, int count)
+    {
+        if (itemId <= 0 || count <= 0) return;
+        rewardMap.TryGetValue(itemId, out int current);
+        rewardMap[itemId] = current + count;
+    }
+
+    /// <summary>把奖励明细写进角色背包：已有则累加，没有则新建（物品类型与名称统一走 ItemCatalog）</summary>
+    private void GrantToBag(int roleId, IDictionary<int, int> rewardMap)
+    {
+        List<RoleBagInfo> existingItems = _db.Queryable<RoleBagInfo>().Where(v => v.RoleId == roleId).ToList();
+
+        foreach (var kv in rewardMap)
         {
             int itemId = kv.Key;
             int addCount = kv.Value;
-            var exist = existingItems.Find(v => v.ItemId == itemId);
+            RoleBagInfo exist = existingItems.Find(v => v.ItemId == itemId);
             if (exist != null)
             {
                 exist.Count += addCount;
@@ -510,21 +551,30 @@ public class LoginModle
             }
             else
             {
-                string itemType = itemId <= 4 ? "DriverDisk" : "Material";
                 _db.Insertable(new RoleBagInfo
                 {
-                    RoleId = req.RoleId,
+                    RoleId = roleId,
                     ItemId = itemId,
-                    ItemType = itemType,
-                    ItemName = nameMap[itemId],
+                    ItemType = ItemCatalog.GetItemType(itemId),
+                    ItemName = ItemCatalog.GetName(itemId),
                     Count = addCount,
                     CreateDate = DateTime.Now,
                     UpdateDate = DateTime.Now
                 }).ExecuteCommand();
             }
         }
+    }
 
-        return ret;
+    /// <summary>把奖励明细拼成客户端可直接展示的文本</summary>
+    private static string BuildRewardDesc(IDictionary<int, int> rewardMap)
+    {
+        string des = "获得奖励\n";
+        foreach (var kv in rewardMap)
+        {
+            des += ItemCatalog.GetName(kv.Key) + "×" + kv.Value + "\n";
+        }
+
+        return des;
     }
 
     #region 任务进度持久化
@@ -571,8 +621,9 @@ public class LoginModle
     }
 
     /// <summary>
-    /// 拉取角色的全量任务进度（登录 / 进入游戏时恢复任务状态机）。
-    /// 服务端没有记录的返回空列表，客户端保持默认状态。
+    /// 拉取角色的全量任务（登录 / 进入游戏时）。
+    /// 任务定义以服务端 Luban taskData 为权威，进度取 role_task_progress —— 客户端不再维护任何本地任务配置。
+    /// 该角色尚无进度记录（老角色 / 未初始化）时，按 Luban 的 IsUnlock 给默认状态。
     /// </summary>
     public TaskProgressListRet LoadTaskProgress(TaskProgressReq req)
     {
@@ -583,15 +634,39 @@ public class LoginModle
             return ret;
         }
 
-        var list = _db.Queryable<RoleTaskProgress>().Where(v => v.RoleId == req.RoleId).ToList();
-        foreach (var item in list)
+        var taskDatas = LubanMgr.Instance.GetTaskDatas();
+        if (taskDatas == null || taskDatas.Count == 0)
         {
-            ret.ProgressList.Add(new TaskProgressData
+            LogMsg.Info("LoadTaskProgress：Luban taskData 表为空，返回空任务列表");
+            return ret;
+        }
+
+        // 该角色已有的进度记录（可能缺项，缺的按 Luban 默认状态补）
+        var progressList = _db.Queryable<RoleTaskProgress>().Where(v => v.RoleId == req.RoleId).ToList();
+        Dictionary<int, RoleTaskProgress> progressMap = new Dictionary<int, RoleTaskProgress>();
+        foreach (RoleTaskProgress p in progressList)
+        {
+            progressMap[p.TaskId] = p;
+        }
+
+        foreach (var kv in taskDatas)
+        {
+            var t = kv.Value;
+            progressMap.TryGetValue(t.TaskID, out RoleTaskProgress progress);
+
+            TaskInfo info = new TaskInfo
             {
-                TaskId = item.TaskId,
-                State = item.State,
-                CurrentCount = item.CurrentCount
-            });
+                TaskId = t.TaskID,
+                TaskDesc = t.TaskDesc,
+                TaskType = (int)t.TaskType,
+                TargetCount = t.TargetCount,
+                // 1=InProgress 0=Locked（对应 TaskState 枚举）
+                State = progress != null ? progress.State : (t.IsUnlock ? 1 : 0),
+                CurrentCount = progress != null ? progress.CurrentCount : 0
+            };
+            info.DepotIds.Add(t.DepotIds);
+            info.MaterialsId.Add(t.MaterialsId);
+            ret.TaskList.Add(info);
         }
 
         return ret;

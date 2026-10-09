@@ -121,10 +121,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84199a7a2c1c6ce43b2acac02dbf4ba7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  dialogueDatas:
-  - {fileID: 11400000, guid: 87a668f62886add409d5043bb7e85040, type: 2}
-  - {fileID: 11400000, guid: 6b1514d3c8d99334c858f287a5189163, type: 2}
-  isEnter: 0
 --- !u!135 &6633393783975254513
 SphereCollider:
   m_ObjectHideFlags: 0

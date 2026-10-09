@@ -1,0 +1,13 @@
+<module name="">
+    <!-- 驱动盘类型：value 与客户端 DriverDiskType 枚举一一对应
+         0 = 攻击（Attack）
+         1 = 防御（Defense）
+         2 = 生命（Health）
+         3 = 暴击（BaoJi） -->
+    <enum name="DriverDiskType">
+        <var name="Attack" alias="攻击" value="0"/>
+        <var name="Defense" alias="防御" value="1"/>
+        <var name="Health" alias="生命" value="2"/>
+        <var name="BaoJi" alias="暴击" value="3"/>
+    </enum>
+</module>

@@ -23,7 +23,7 @@ namespace HotUpdate.UI.UIItem
 
         private Color _originalColor;
         private Vector3 _originalScale;
-        private DialogueOption _optionData;
+        private DialogueOptionRuntime _optionData;
         private DialogueManager _dialogueManager;
 
         private void Awake()
@@ -37,11 +37,11 @@ namespace HotUpdate.UI.UIItem
         /// <summary>
         /// 设置选项数据
         /// </summary>
-        public void SetupOption(DialogueOption option, DialogueManager dialogueManager)
+        public void SetupOption(DialogueOptionRuntime option, DialogueManager dialogueManager)
         {
             _dialogueManager = dialogueManager;
             _optionData = option;
-            optionText.text = option.optionText;
+            optionText.text = option.OptionText;
             // 入场动画
             transform.localScale = Vector3.zero;
             _canvasGroup.alpha = 0;

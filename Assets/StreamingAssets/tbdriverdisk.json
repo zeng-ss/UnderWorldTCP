@@ -1,0 +1,70 @@
+[
+  {
+    "depotId": 1,
+    "depotName": "混沌重金属",
+    "iconName": "主攻击",
+    "initLevel": 1,
+    "initMaxFill": 1000,
+    "upgradeMaterials": [
+      5,
+      6
+    ],
+    "diskType": 0,
+    "baseValue": 20,
+    "attackPercent": 10,
+    "defensePercent": 2,
+    "healthPercent": 2,
+    "baoJiPercent": 5
+  },
+  {
+    "depotId": 2,
+    "depotName": "啄木鸟电音",
+    "iconName": "主暴击",
+    "initLevel": 1,
+    "initMaxFill": 1000,
+    "upgradeMaterials": [
+      5,
+      9
+    ],
+    "diskType": 3,
+    "baseValue": 5,
+    "attackPercent": 5,
+    "defensePercent": 2,
+    "healthPercent": 2,
+    "baoJiPercent": 10
+  },
+  {
+    "depotId": 3,
+    "depotName": "原始朋克",
+    "iconName": "主生命",
+    "initLevel": 1,
+    "initMaxFill": 1000,
+    "upgradeMaterials": [
+      5,
+      7
+    ],
+    "diskType": 2,
+    "baseValue": 30,
+    "attackPercent": 4,
+    "defensePercent": 5,
+    "healthPercent": 10,
+    "baoJiPercent": 3
+  },
+  {
+    "depotId": 4,
+    "depotName": "灵魂摇滚",
+    "iconName": "主防御",
+    "initLevel": 1,
+    "initMaxFill": 1000,
+    "upgradeMaterials": [
+      5,
+      8
+    ],
+    "diskType": 1,
+    "baseValue": 50,
+    "attackPercent": 2,
+    "defensePercent": 10,
+    "healthPercent": 4,
+    "baoJiPercent": 2
+  }
+]

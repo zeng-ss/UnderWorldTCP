@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1001,
+    "lineId": 104,
+    "optionIndex": 0,
+    "optionText": "开始吧",
+    "nextLineIndex": -1,
+    "isTriggerEvent": true
+  },
+  {
+    "id": 1002,
+    "lineId": 104,
+    "optionIndex": 1,
+    "optionText": "再等等",
+    "nextLineIndex": -1,
+    "isTriggerEvent": false
+  }
+]

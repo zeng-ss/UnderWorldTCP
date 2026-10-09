@@ -46,61 +46,61 @@ public static partial class ResultEntityReflection {
           "ZENvZGUSGQoRZW5lbXlfaW5zdGFuY2VfaWQYAiABKAUSFAoMZGFtYWdlX2Rl",
           "YWx0GAMgASgCEhUKDWVuZW15X2N1cnJfaHAYBCABKAISFAoMZW5lbXlfbWF4",
           "X2hwGAUgASgCEg8KB2lzX2RlYWQYBiABKAgSEAoIaXNfYmFvamkYByABKAgS",
-          "GAoQYXR0YWNrZXJfcm9sZV9pZBgIIAEoBSKOAQoMR2V0UmV3YXJkUmV0EhoK",
+          "GAoQYXR0YWNrZXJfcm9sZV9pZBgIIAEoBSKjAQoMR2V0UmV3YXJkUmV0EhoK",
           "CGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIwCgpyZXdhcmRfbWFwGAIgAygL",
-          "MhwuR2V0UmV3YXJkUmV0LlJld2FyZE1hcEVudHJ5GjAKDlJld2FyZE1hcEVu",
-          "dHJ5EgsKA2tleRgBIAEoBRINCgV2YWx1ZRgCIAEoBToCOAEiUQoMU3RhcnRH",
-          "YW1lUmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIlCg5tYWluX3Jv",
-          "bGVfaW5mbxgCIAEoCzINLk1haW5Sb2xlSW5mbyIxCgxSb2xlQmFzZUluZm8S",
-          "DwoHcm9sZV9pZBgBIAEoBRIQCghuaWNrbmFtZRgCIAEoCSLmAgoMTWFpblJv",
-          "bGVJbmZvEiAKCWJhc2VfaW5mbxgBIAEoCzINLlJvbGVCYXNlSW5mbxISCgph",
-          "Y2NvdW50X2lkGAIgASgFEhIKCnNjZW5lX25hbWUYByABKAkSEQoJc2VydmVy",
-          "X2lkGAggASgFEjkKD2RyaXZlcl9kaXNrX21hcBgJIAMoCzIgLk1haW5Sb2xl",
-          "SW5mby5Ecml2ZXJEaXNrTWFwRW50cnkSNAoMbWF0ZXJpYWxfbWFwGAogAygL",
-          "Mh4uTWFpblJvbGVJbmZvLk1hdGVyaWFsTWFwRW50cnkaRQoSRHJpdmVyRGlz",
-          "a01hcEVudHJ5EgsKA2tleRgBIAEoBRIeCgV2YWx1ZRgCIAEoCzIPLkRyaXZl",
-          "ckRpc2tJbmZvOgI4ARpBChBNYXRlcmlhbE1hcEVudHJ5EgsKA2tleRgBIAEo",
-          "BRIcCgV2YWx1ZRgCIAEoCzINLk1hdGVyaWFsSW5mbzoCOAEikAIKDkRyaXZl",
-          "ckRpc2tJbmZvEgoKAmlkGAEgASgFEhYKDmRyaXZlcl9kaXNrX2lkGAIgASgF",
-          "EhkKEWRyaXZlcl9kaXNrX2NvdW50GAMgASgFEhgKEGRyaXZlcl9kaXNrX25h",
-          "bWUYBCABKAkSEgoKYmFzZV92YWx1ZRgFIAEoBRISCgphdHRhY2tfcGVyGAYg",
-          "ASgCEhMKC2RlZmVuc2VfcGVyGAcgASgCEhIKCmhlYWx0aF9wZXIYCCABKAIS",
-          "EQoJYmFvSmlfcGVyGAkgASgCEg0KBWxldmVsGAogASgFEhoKEmN1cl9tYXhf",
-          "ZmlsbF92YWx1ZRgLIAEoAhIWCg5jdXJfZmlsbF92YWx1ZRgMIAEoAiJSCgxN",
-          "YXRlcmlhbEluZm8SEwoLbWF0ZXJpYWxfaWQYASABKAUSFgoObWF0ZXJpYWxf",
-          "Y291bnQYAiABKAUSFQoNbWF0ZXJpYWxfbmFtZRgDIAEoCSJ2Cg9Qb3NpdGlv",
-          "blN5bmNOdGYSDwoHcm9sZV9pZBgBIAEoBRINCgVwb3NfeBgCIAEoAhINCgVw",
-          "b3NfeRgDIAEoAhINCgVwb3NfehgEIAEoAhISCgpyb3RhdGlvbl95GAUgASgC",
-          "EhEKCW5pa2VfbmFtZRgGIAEoCSJ5ChNQbGF5ZXJFbnRlclNjZW5lTnRmEg8K",
-          "B3JvbGVfaWQYASABKAUSEAoIbmlja25hbWUYAiABKAkSDQoFcG9zX3gYAyAB",
-          "KAISDQoFcG9zX3kYBCABKAISDQoFcG9zX3oYBSABKAISEgoKc2NlbmVfbmFt",
-          "ZRgGIAEoBSImChNQbGF5ZXJMZWF2ZVNjZW5lTnRmEg8KB3JvbGVfaWQYASAB",
-          "KAUiWAoOUm9vbVBsYXllckluZm8SDwoHcm9sZV9pZBgBIAEoBRIQCghuaWNr",
-          "bmFtZRgCIAEoCRIRCglpc19tYXN0ZXIYAyABKAgSEAoIaXNfcmVhZHkYBCAB",
-          "KAgiXgoNQ3JlYXRlUm9vbVJldBIaCghjbWRfY29kZRgBIAEoDjIILkNtZENv",
-          "ZGUSDwoHcm9vbV9pZBgCIAEoBRIgCgdwbGF5ZXJzGAMgAygLMg8uUm9vbVBs",
-          "YXllckluZm8iXAoLSm9pblJvb21SZXQSGgoIY21kX2NvZGUYASABKA4yCC5D",
-          "bWRDb2RlEg8KB3Jvb21faWQYAiABKAUSIAoHcGxheWVycxgDIAMoCzIPLlJv",
-          "b21QbGF5ZXJJbmZvIkAKC1Jvb21JbmZvTnRmEg8KB3Jvb21faWQYASABKAUS",
-          "IAoHcGxheWVycxgCIAMoCzIPLlJvb21QbGF5ZXJJbmZvIjMKEFJvb21TdGFy",
-          "dEdhbWVOdGYSDwoHcm9vbV9pZBgBIAEoBRIOCgZtYXBfaWQYAiABKAUiUQoK",
-          "U3luY0FuaVJldBIWCg5hbmltYXRpb25fbmFtZRgBIAEoCRIPCgdyb2xlX2lk",
-          "GAIgASgFEhoKEnNraWxsX2NvbmZpZ19pbmRleBgDIAEoBSJkCgxQbGF5ZXJW",
-          "ZnhOdGYSDwoHcm9sZV9pZBgBIAEoBRIaChJza2lsbF9jb25maWdfaW5kZXgY",
-          "AiABKAUSFAoMYXR0YWNrX2luZGV4GAMgASgFEhEKCXZmeF9pbmRleBgEIAEo",
-          "BSJoChRFbmVteVBvc2l0aW9uU3luY1JldBIPCgdyb2xlX2lkGAEgASgFEg0K",
-          "BXBvc194GAIgASgCEg0KBXBvc195GAMgASgCEg0KBXBvc196GAQgASgCEhIK",
-          "CnJvdGF0aW9uX3kYBSABKAIiOgoPRW5lbXlTeW5jQW5pUmV0EhYKDmFuaW1h",
-          "dGlvbl9uYW1lGAEgASgJEg8KB3JvbGVfaWQYAiABKAUiLQoPVGFza1Byb2dy",
-          "ZXNzUmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZSJbChNUYXNrUHJv",
-          "Z3Jlc3NMaXN0UmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIoCg1w",
-          "cm9ncmVzc19saXN0GAIgAygLMhEuVGFza1Byb2dyZXNzRGF0YSrfAQoHQ21k",
-          "Q29kZRILCgdTdWNjZWVkEAASDQoJQWNjdEV4aXN0EAESDwoLU2VydmVyRXJy",
-          "b3IQAhIQCgxBY2N0Tm90RXhpc3QQAxIRCg1QYXNzd29yZEVycm9yEAQSDwoL",
-          "QWNjdERpc2FibGUQBRIRCg1SZXFQYXJhbUVycm9yEAYSEQoNTmlja25hbWVF",
-          "eGlzdBAHEhIKDlVzZXJOYW1lSWxlZ2FsEAgSEgoOcGFzc3dvcmRJbGVnYWwQ",
-          "ChIQCgxSb2xlTm90RXhpc3QQCxIRCg1FbmVteU5vdEV4aXN0EAxiBnByb3Rv",
-          "Mw=="));
+          "MhwuR2V0UmV3YXJkUmV0LlJld2FyZE1hcEVudHJ5EhMKC3Jld2FyZF9kZXNj",
+          "GAMgASgJGjAKDlJld2FyZE1hcEVudHJ5EgsKA2tleRgBIAEoBRINCgV2YWx1",
+          "ZRgCIAEoBToCOAEiUQoMU3RhcnRHYW1lUmV0EhoKCGNtZF9jb2RlGAEgASgO",
+          "MgguQ21kQ29kZRIlCg5tYWluX3JvbGVfaW5mbxgCIAEoCzINLk1haW5Sb2xl",
+          "SW5mbyIxCgxSb2xlQmFzZUluZm8SDwoHcm9sZV9pZBgBIAEoBRIQCghuaWNr",
+          "bmFtZRgCIAEoCSLmAgoMTWFpblJvbGVJbmZvEiAKCWJhc2VfaW5mbxgBIAEo",
+          "CzINLlJvbGVCYXNlSW5mbxISCgphY2NvdW50X2lkGAIgASgFEhIKCnNjZW5l",
+          "X25hbWUYByABKAkSEQoJc2VydmVyX2lkGAggASgFEjkKD2RyaXZlcl9kaXNr",
+          "X21hcBgJIAMoCzIgLk1haW5Sb2xlSW5mby5Ecml2ZXJEaXNrTWFwRW50cnkS",
+          "NAoMbWF0ZXJpYWxfbWFwGAogAygLMh4uTWFpblJvbGVJbmZvLk1hdGVyaWFs",
+          "TWFwRW50cnkaRQoSRHJpdmVyRGlza01hcEVudHJ5EgsKA2tleRgBIAEoBRIe",
+          "CgV2YWx1ZRgCIAEoCzIPLkRyaXZlckRpc2tJbmZvOgI4ARpBChBNYXRlcmlh",
+          "bE1hcEVudHJ5EgsKA2tleRgBIAEoBRIcCgV2YWx1ZRgCIAEoCzINLk1hdGVy",
+          "aWFsSW5mbzoCOAEikAIKDkRyaXZlckRpc2tJbmZvEgoKAmlkGAEgASgFEhYK",
+          "DmRyaXZlcl9kaXNrX2lkGAIgASgFEhkKEWRyaXZlcl9kaXNrX2NvdW50GAMg",
+          "ASgFEhgKEGRyaXZlcl9kaXNrX25hbWUYBCABKAkSEgoKYmFzZV92YWx1ZRgF",
+          "IAEoBRISCgphdHRhY2tfcGVyGAYgASgCEhMKC2RlZmVuc2VfcGVyGAcgASgC",
+          "EhIKCmhlYWx0aF9wZXIYCCABKAISEQoJYmFvSmlfcGVyGAkgASgCEg0KBWxl",
+          "dmVsGAogASgFEhoKEmN1cl9tYXhfZmlsbF92YWx1ZRgLIAEoAhIWCg5jdXJf",
+          "ZmlsbF92YWx1ZRgMIAEoAiJSCgxNYXRlcmlhbEluZm8SEwoLbWF0ZXJpYWxf",
+          "aWQYASABKAUSFgoObWF0ZXJpYWxfY291bnQYAiABKAUSFQoNbWF0ZXJpYWxf",
+          "bmFtZRgDIAEoCSJ2Cg9Qb3NpdGlvblN5bmNOdGYSDwoHcm9sZV9pZBgBIAEo",
+          "BRINCgVwb3NfeBgCIAEoAhINCgVwb3NfeRgDIAEoAhINCgVwb3NfehgEIAEo",
+          "AhISCgpyb3RhdGlvbl95GAUgASgCEhEKCW5pa2VfbmFtZRgGIAEoCSJ5ChNQ",
+          "bGF5ZXJFbnRlclNjZW5lTnRmEg8KB3JvbGVfaWQYASABKAUSEAoIbmlja25h",
+          "bWUYAiABKAkSDQoFcG9zX3gYAyABKAISDQoFcG9zX3kYBCABKAISDQoFcG9z",
+          "X3oYBSABKAISEgoKc2NlbmVfbmFtZRgGIAEoBSImChNQbGF5ZXJMZWF2ZVNj",
+          "ZW5lTnRmEg8KB3JvbGVfaWQYASABKAUiWAoOUm9vbVBsYXllckluZm8SDwoH",
+          "cm9sZV9pZBgBIAEoBRIQCghuaWNrbmFtZRgCIAEoCRIRCglpc19tYXN0ZXIY",
+          "AyABKAgSEAoIaXNfcmVhZHkYBCABKAgiXgoNQ3JlYXRlUm9vbVJldBIaCghj",
+          "bWRfY29kZRgBIAEoDjIILkNtZENvZGUSDwoHcm9vbV9pZBgCIAEoBRIgCgdw",
+          "bGF5ZXJzGAMgAygLMg8uUm9vbVBsYXllckluZm8iXAoLSm9pblJvb21SZXQS",
+          "GgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEg8KB3Jvb21faWQYAiABKAUS",
+          "IAoHcGxheWVycxgDIAMoCzIPLlJvb21QbGF5ZXJJbmZvIkAKC1Jvb21JbmZv",
+          "TnRmEg8KB3Jvb21faWQYASABKAUSIAoHcGxheWVycxgCIAMoCzIPLlJvb21Q",
+          "bGF5ZXJJbmZvIjMKEFJvb21TdGFydEdhbWVOdGYSDwoHcm9vbV9pZBgBIAEo",
+          "BRIOCgZtYXBfaWQYAiABKAUiUQoKU3luY0FuaVJldBIWCg5hbmltYXRpb25f",
+          "bmFtZRgBIAEoCRIPCgdyb2xlX2lkGAIgASgFEhoKEnNraWxsX2NvbmZpZ19p",
+          "bmRleBgDIAEoBSJkCgxQbGF5ZXJWZnhOdGYSDwoHcm9sZV9pZBgBIAEoBRIa",
+          "ChJza2lsbF9jb25maWdfaW5kZXgYAiABKAUSFAoMYXR0YWNrX2luZGV4GAMg",
+          "ASgFEhEKCXZmeF9pbmRleBgEIAEoBSJoChRFbmVteVBvc2l0aW9uU3luY1Jl",
+          "dBIPCgdyb2xlX2lkGAEgASgFEg0KBXBvc194GAIgASgCEg0KBXBvc195GAMg",
+          "ASgCEg0KBXBvc196GAQgASgCEhIKCnJvdGF0aW9uX3kYBSABKAIiOgoPRW5l",
+          "bXlTeW5jQW5pUmV0EhYKDmFuaW1hdGlvbl9uYW1lGAEgASgJEg8KB3JvbGVf",
+          "aWQYAiABKAUiLQoPVGFza1Byb2dyZXNzUmV0EhoKCGNtZF9jb2RlGAEgASgO",
+          "MgguQ21kQ29kZSJPChNUYXNrUHJvZ3Jlc3NMaXN0UmV0EhoKCGNtZF9jb2Rl",
+          "GAEgASgOMgguQ21kQ29kZRIcCgl0YXNrX2xpc3QYAiADKAsyCS5UYXNrSW5m",
+          "byrfAQoHQ21kQ29kZRILCgdTdWNjZWVkEAASDQoJQWNjdEV4aXN0EAESDwoL",
+          "U2VydmVyRXJyb3IQAhIQCgxBY2N0Tm90RXhpc3QQAxIRCg1QYXNzd29yZEVy",
+          "cm9yEAQSDwoLQWNjdERpc2FibGUQBRIRCg1SZXFQYXJhbUVycm9yEAYSEQoN",
+          "Tmlja25hbWVFeGlzdBAHEhIKDlVzZXJOYW1lSWxlZ2FsEAgSEgoOcGFzc3dv",
+          "cmRJbGVnYWwQChIQCgxSb2xlTm90RXhpc3QQCxIRCg1FbmVteU5vdEV4aXN0",
+          "EAxiBnByb3RvMw=="));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { global::RequestEntityReflection.Descriptor, },
         new pbr::GeneratedClrTypeInfo(new[] {typeof(global::CmdCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -115,7 +115,7 @@ public static partial class ResultEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::ChangeSceneRet), global::ChangeSceneRet.Parser, new[]{ "CmdCode" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::SpawnEnemyRet), global::SpawnEnemyRet.Parser, new[]{ "CmdCode", "EnemyInstanceId", "PosX", "PosY", "PosZ", "MaxHp", "CurrHp", "EnemyConfigId", "RoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PlayerAttackRet), global::PlayerAttackRet.Parser, new[]{ "CmdCode", "EnemyInstanceId", "DamageDealt", "EnemyCurrHp", "EnemyMaxHp", "IsDead", "IsBaoji", "AttackerRoleId" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::GetRewardRet), global::GetRewardRet.Parser, new[]{ "CmdCode", "RewardMap" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+          new pbr::GeneratedClrTypeInfo(typeof(global::GetRewardRet), global::GetRewardRet.Parser, new[]{ "CmdCode", "RewardMap", "RewardDesc" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
           new pbr::GeneratedClrTypeInfo(typeof(global::StartGameRet), global::StartGameRet.Parser, new[]{ "CmdCode", "MainRoleInfo" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::RoleBaseInfo), global::RoleBaseInfo.Parser, new[]{ "RoleId", "Nickname" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::MainRoleInfo), global::MainRoleInfo.Parser, new[]{ "BaseInfo", "AccountId", "SceneName", "ServerId", "DriverDiskMap", "MaterialMap" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, }),
@@ -134,7 +134,7 @@ public static partial class ResultEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::EnemyPositionSyncRet), global::EnemyPositionSyncRet.Parser, new[]{ "RoleId", "PosX", "PosY", "PosZ", "RotationY" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::EnemySyncAniRet), global::EnemySyncAniRet.Parser, new[]{ "AnimationName", "RoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressRet), global::TaskProgressRet.Parser, new[]{ "CmdCode" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressListRet), global::TaskProgressListRet.Parser, new[]{ "CmdCode", "ProgressList" }, null, null, null, null)
+          new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressListRet), global::TaskProgressListRet.Parser, new[]{ "CmdCode", "TaskList" }, null, null, null, null)
         }));
   }
   #endregion
@@ -3576,6 +3576,7 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
   public GetRewardRet(GetRewardRet other) : this() {
     cmdCode_ = other.cmdCode_;
     rewardMap_ = other.rewardMap_.Clone();
+    rewardDesc_ = other.rewardDesc_;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -3603,12 +3604,27 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
       = new pbc::MapField<int, int>.Codec(pb::FieldCodec.ForInt32(8, 0), pb::FieldCodec.ForInt32(16, 0), 18);
   private readonly pbc::MapField<int, int> rewardMap_ = new pbc::MapField<int, int>();
   /// <summary>
-  /// 背包内容 id，数量
+  /// 本次实际发放的奖励 id→数量（物品编号见 ItemCatalog）
   /// </summary>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public pbc::MapField<int, int> RewardMap {
     get { return rewardMap_; }
+  }
+
+  /// <summary>Field number for the "reward_desc" field.</summary>
+  public const int RewardDescFieldNumber = 3;
+  private string rewardDesc_ = "";
+  /// <summary>
+  /// 服务端组好的奖励文本，客户端直接弹提示
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public string RewardDesc {
+    get { return rewardDesc_; }
+    set {
+      rewardDesc_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+    }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3628,6 +3644,7 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
     }
     if (CmdCode != other.CmdCode) return false;
     if (!RewardMap.Equals(other.RewardMap)) return false;
+    if (RewardDesc != other.RewardDesc) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -3637,6 +3654,7 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
     int hash = 1;
     if (CmdCode != global::CmdCode.Succeed) hash ^= CmdCode.GetHashCode();
     hash ^= RewardMap.GetHashCode();
+    if (RewardDesc.Length != 0) hash ^= RewardDesc.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -3660,6 +3678,10 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
       output.WriteEnum((int) CmdCode);
     }
     rewardMap_.WriteTo(output, _map_rewardMap_codec);
+    if (RewardDesc.Length != 0) {
+      output.WriteRawTag(26);
+      output.WriteString(RewardDesc);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -3675,6 +3697,10 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
       output.WriteEnum((int) CmdCode);
     }
     rewardMap_.WriteTo(ref output, _map_rewardMap_codec);
+    if (RewardDesc.Length != 0) {
+      output.WriteRawTag(26);
+      output.WriteString(RewardDesc);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -3689,6 +3715,9 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
       size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CmdCode);
     }
     size += rewardMap_.CalculateSize(_map_rewardMap_codec);
+    if (RewardDesc.Length != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeStringSize(RewardDesc);
+    }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
     }
@@ -3705,6 +3734,9 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
       CmdCode = other.CmdCode;
     }
     rewardMap_.MergeFrom(other.rewardMap_);
+    if (other.RewardDesc.Length != 0) {
+      RewardDesc = other.RewardDesc;
+    }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
 
@@ -3732,6 +3764,10 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
           rewardMap_.AddEntriesFrom(input, _map_rewardMap_codec);
           break;
         }
+        case 26: {
+          RewardDesc = input.ReadString();
+          break;
+        }
       }
     }
   #endif
@@ -3757,6 +3793,10 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
         }
         case 18: {
           rewardMap_.AddEntriesFrom(ref input, _map_rewardMap_codec);
+          break;
+        }
+        case 26: {
+          RewardDesc = input.ReadString();
           break;
         }
       }
@@ -9194,7 +9234,7 @@ public sealed partial class TaskProgressRet : pb::IMessage<TaskProgressRet>
 }
 
 /// <summary>
-/// 拉取全量任务进度回包
+/// 拉取全量任务回包：任务定义由服务端 Luban 权威下发 + 该角色的进度，客户端不再有本地任务配置
 /// </summary>
 [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
 public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListRet>
@@ -9232,7 +9272,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public TaskProgressListRet(TaskProgressListRet other) : this() {
     cmdCode_ = other.cmdCode_;
-    progressList_ = other.progressList_.Clone();
+    taskList_ = other.taskList_.Clone();
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -9254,18 +9294,18 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
     }
   }
 
-  /// <summary>Field number for the "progress_list" field.</summary>
-  public const int ProgressListFieldNumber = 2;
-  private static readonly pb::FieldCodec<global::TaskProgressData> _repeated_progressList_codec
-      = pb::FieldCodec.ForMessage(18, global::TaskProgressData.Parser);
-  private readonly pbc::RepeatedField<global::TaskProgressData> progressList_ = new pbc::RepeatedField<global::TaskProgressData>();
+  /// <summary>Field number for the "task_list" field.</summary>
+  public const int TaskListFieldNumber = 2;
+  private static readonly pb::FieldCodec<global::TaskInfo> _repeated_taskList_codec
+      = pb::FieldCodec.ForMessage(18, global::TaskInfo.Parser);
+  private readonly pbc::RepeatedField<global::TaskInfo> taskList_ = new pbc::RepeatedField<global::TaskInfo>();
   /// <summary>
-  /// 该角色全部任务的进度（TaskProgressData 定义在 RequestEntity.proto）
+  /// 该角色全部任务（定义 + 进度，TaskInfo 定义在 RequestEntity.proto）
   /// </summary>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-  public pbc::RepeatedField<global::TaskProgressData> ProgressList {
-    get { return progressList_; }
+  public pbc::RepeatedField<global::TaskInfo> TaskList {
+    get { return taskList_; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9284,7 +9324,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
       return true;
     }
     if (CmdCode != other.CmdCode) return false;
-    if(!progressList_.Equals(other.progressList_)) return false;
+    if(!taskList_.Equals(other.taskList_)) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -9293,7 +9333,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
   public override int GetHashCode() {
     int hash = 1;
     if (CmdCode != global::CmdCode.Succeed) hash ^= CmdCode.GetHashCode();
-    hash ^= progressList_.GetHashCode();
+    hash ^= taskList_.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -9316,7 +9356,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
       output.WriteRawTag(8);
       output.WriteEnum((int) CmdCode);
     }
-    progressList_.WriteTo(output, _repeated_progressList_codec);
+    taskList_.WriteTo(output, _repeated_taskList_codec);
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -9331,7 +9371,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
       output.WriteRawTag(8);
       output.WriteEnum((int) CmdCode);
     }
-    progressList_.WriteTo(ref output, _repeated_progressList_codec);
+    taskList_.WriteTo(ref output, _repeated_taskList_codec);
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -9345,7 +9385,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
     if (CmdCode != global::CmdCode.Succeed) {
       size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CmdCode);
     }
-    size += progressList_.CalculateSize(_repeated_progressList_codec);
+    size += taskList_.CalculateSize(_repeated_taskList_codec);
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
     }
@@ -9361,7 +9401,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
     if (other.CmdCode != global::CmdCode.Succeed) {
       CmdCode = other.CmdCode;
     }
-    progressList_.Add(other.progressList_);
+    taskList_.Add(other.taskList_);
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
 
@@ -9386,7 +9426,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
           break;
         }
         case 18: {
-          progressList_.AddEntriesFrom(input, _repeated_progressList_codec);
+          taskList_.AddEntriesFrom(input, _repeated_taskList_codec);
           break;
         }
       }
@@ -9413,7 +9453,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
           break;
         }
         case 18: {
-          progressList_.AddEntriesFrom(ref input, _repeated_progressList_codec);
+          taskList_.AddEntriesFrom(ref input, _repeated_taskList_codec);
           break;
         }
       }

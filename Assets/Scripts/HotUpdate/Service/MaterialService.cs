@@ -1,19 +1,20 @@
 using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
+using HotUpdate.Data.Config;
 using HotUpdate.UI.UIPanel;
 
 namespace HotUpdate.Service
 {
     /// <summary>
     /// 材料数据服务。
+    /// 静态定义来自 Luban 导出的 tbmaterialdata.json（客户端不再有本地 SO 配置），持有数量属于玩家状态。
     /// 数量变化时直接通知强化面板刷新（同模块 data→view），不再走全局事件。
     /// </summary>
     public class MaterialService
     {
         private readonly Dictionary<int, MaterialDataRuntime> _runtime = new();
         private readonly Dictionary<int, int> _counts = new();
-        private ImprovePanel _improvePanel;
 
         /// <summary>材料静态配置（id → 名称 / 图标 / 数值）</summary>
         public IReadOnlyDictionary<int, MaterialDataRuntime> RuntimeData => _runtime;
@@ -24,19 +25,21 @@ namespace HotUpdate.Service
         /// <summary>
         /// 升级一个驱动盘时消耗的材料数量。
         /// 原先这个魔法判断散落在 ImprovePanel 和 DriverDiskDataRuntime 两处，这里统一。
+        /// 1 个金币抵 10 点，其余驱动材料 1 个抵 1 点。
         /// </summary>
-        private int GetUpgradeCost(int materialId) => materialId == 1 ? 10 : 1;
+        private int GetUpgradeCost(int materialId) => materialId == ItemCatalog.Gold ? 10 : 1;
 
-        public void Init(MaterialDataSo config)
+        /// <summary>从 materialData 配置行重建静态配置，并清零本地持有数量</summary>
+        public void Init(IReadOnlyList<MaterialDataRow> rows)
         {
             _runtime.Clear();
             _counts.Clear();
-            if (config == null) return;
+            if (rows == null) return;
 
-            foreach (var material in config.materials)
+            foreach (MaterialDataRow row in rows)
             {
-                if (material == null) continue;
-                var runtime = new MaterialDataRuntime(material);
+                if (row == null) continue;
+                var runtime = new MaterialDataRuntime(row);
                 _runtime[runtime.ID] = runtime;
                 _counts[runtime.ID] = 0;
             }
@@ -60,8 +63,8 @@ namespace HotUpdate.Service
             if (total < 0) total = 0;
             _counts[materialId] = total;
             // 同模块 data→view：直接让强化面板刷新数量；面板没开则跳过
-            _improvePanel = AppContext.Ui.GetPanel<ImprovePanel>();
-            _improvePanel.UpdateMaterialNum();
+            var panel = AppContext.Ui.GetPanel<ImprovePanel>();
+            if (panel != null) panel.UpdateMaterialNum();
         }
 
         /// <summary>扣除升级消耗；不足时返回 false 且不改变数量</summary>

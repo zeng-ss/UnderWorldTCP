@@ -16,6 +16,7 @@ namespace HotUpdate.Core
         #region Model
 
         private readonly SessionService _session;
+        private readonly ConfigService _config;
         private readonly MaterialService _material;
         private readonly DepotService _depot;
         private readonly PlayerDataService _playerData;
@@ -72,6 +73,7 @@ namespace HotUpdate.Core
             _remotePlayer = new RemotePlayerManager();
 
             _session = new SessionService();
+            _config = new ConfigService();
             _material = new MaterialService();
             _depot = new DepotService();
             _playerData = new PlayerDataService();
@@ -82,20 +84,24 @@ namespace HotUpdate.Core
 
         public static AppContext Create() => _current ??= new AppContext();
 
-        public void InitAll(MaterialDataSo materialData, DepotConfig depotConfig, TaskDataConfigSo taskConfigSo,
-            PlayerValueData basePlayerValueData)
+        /// <summary>
+        /// 初始化全部服务。静态配置 来自 Luban 导出的 Json（StreamingAssets），
+        /// </summary>
+        public void InitAll(PlayerValueData basePlayerValueData)
         {
-            _material.Init(materialData);
-            _depot.Init(depotConfig);
-            _task.Init(taskConfigSo);
             _playerData.Init(basePlayerValueData ?? new PlayerValueData());
-            // 用当前装备先算一次，保证 Current 一开始就有值而不是全 0
-            _playerData.ApplyEquipped(_depot.Equipped);
+            _task.Init(); // 任务内容全部由服务端下发（TaskService.LoadFromServer），这里只清空本地数据
             _uiManager.Init();
             _sound.Init();
             _proto.Init();
-            _story.Init();
             _remotePlayer.Init();
+
+            _config.Load();
+            _material.Init(_config.Materials);
+            _depot.Init(_config.DriverDisks);
+            _story.Init(_config.Dialogues, _config.DialogueLines, _config.DialogueOptions);
+            // 用当前装备先算一次，保证 Current 一开始就有值而不是全 0
+            _playerData.ApplyEquipped(_depot.Equipped);
         }
 
         public static bool IsAlive => _current != null;
@@ -104,6 +110,7 @@ namespace HotUpdate.Core
         {
             _task.Clear();
             _chat.Clear();
+            _config.Clear();
             _events.Clear();
             _resMgr.ReleaseAll();
             _proto.Clear();

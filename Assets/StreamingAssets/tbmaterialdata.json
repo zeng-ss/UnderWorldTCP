@@ -1,0 +1,32 @@
+[
+  {
+    "materialId": 5,
+    "name": "金币",
+    "iconName": "金币",
+    "expValue": 0
+  },
+  {
+    "materialId": 6,
+    "name": "攻击驱动",
+    "iconName": "攻击",
+    "expValue": 100
+  },
+  {
+    "materialId": 7,
+    "name": "生命驱动",
+    "iconName": "生命",
+    "expValue": 100
+  },
+  {
+    "materialId": 8,
+    "name": "防御驱动",
+    "iconName": "防御",
+    "expValue": 100
+  },
+  {
+    "materialId": 9,
+    "name": "暴击驱动",
+    "iconName": "暴击",
+    "expValue": 100
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "taskIds": [
+      1
+    ],
+    "canSkip": true,
+    "autoAdvance": false,
+    "autoAdvanceDelay": 3
+  },
+  {
+    "id": 2,
+    "taskIds": [
+      2
+    ],
+    "canSkip": true,
+    "autoAdvance": false,
+    "autoAdvanceDelay": 3
+  }
+]

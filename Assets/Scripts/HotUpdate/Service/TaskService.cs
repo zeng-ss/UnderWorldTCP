@@ -2,58 +2,78 @@ using System.Collections.Generic;
 using System.Linq;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
 
 namespace HotUpdate.Service
 {
     /// <summary>
-    /// 任务服务：持有运行时任务列表，负责状态迁移 / 进度推进 / 完成与领奖。
+    /// 任务服务：持有服务端下发的任务列表，负责状态迁移 / 进度推进 / 领奖后的状态落地。
+    /// 任务定义（描述 / 类型 / 目标数量 / 奖励）以服务端 Luban 配置为权威，客户端不再有本地任务配置；
+    /// 奖励的发放在服务端完成，本服务只做状态机与上报。
     /// </summary>
     public class TaskService
     {
-        /// <summary>当前所有任务的运行时数据</summary>
+        /// <summary>当前所有任务的运行时数据（进游戏时由服务端全量下发重建）</summary>
         public List<TaskDataRuntime> Tasks { get; } = new();
 
-        private bool _registered;
-        private bool _persistEnabled; // 是否联网持久化（离线调试传 null config 时关闭）
+        private bool _online; // 是否已拿到服务端任务数据；离线调试 / 拉取失败时为 false，不再向服务端上报
         private TaskPanel _taskPanel;
 
-        public void Init(TaskDataConfigSo config)
+        /// <summary>清空本地任务数据。任务内容全部来自服务端，这里没有可初始化的配置。</summary>
+        public void Init()
+        {
+            _online = false;
+            Tasks.Clear();
+        }
+
+        #region 服务端数据
+
+        /// <summary>
+        /// 用服务端下发的全量任务重建列表（进游戏时调用）。
+        /// 回包为空时列表为空，任务系统整体静默。
+        /// </summary>
+        public void ApplyServerTasks(IReadOnlyList<TaskInfo> taskList)
         {
             Tasks.Clear();
-            // 离线调试（OfflineDebugLauncher 传 null）不联网持久化；正常联机才开启
-            _persistEnabled = config != null;
-            if (config == null || config.taskDataList == null) return;
-
-            foreach (var taskSo in config.taskDataList)
+            if (taskList != null)
             {
-                if (taskSo != null) Tasks.Add(new TaskDataRuntime(taskSo));
+                foreach (TaskInfo info in taskList)
+                {
+                    if (info != null) Tasks.Add(new TaskDataRuntime(info));
+                }
             }
 
-            RegisterEvents();
+            // 拿到服务端任务数据才认为在线，后续状态变化才上报
+            _online = Tasks.Count > 0;
+            NotifyTaskChanged();
         }
 
-        // 订阅领域事件，进度推进由事件驱动
-        private void RegisterEvents()
+        /// <summary>
+        /// 从服务端拉取全量任务（定义 + 进度）。联机进 GameScene 时调用。
+        /// 未登录 / 离线调试时不发起请求，列表保持为空。
+        /// </summary>
+        public void LoadFromServer()
         {
-            if (_registered) return;
-            _registered = true;
+            if (!AppContext.IsAlive || AppContext.Session.RoleId <= 0) return;
+
+            AppContext.Proto.RequestLoadTaskProgress(ret =>
+            {
+                if (ret == null || ret.CmdCode != CmdCode.Succeed)
+                {
+                    Debug.LogWarning($"[TaskService] 任务拉取失败：{(ret == null ? "无回包" : ret.CmdCode.ToString())}");
+                    return;
+                }
+
+                ApplyServerTasks(ret.TaskList);
+            });
         }
 
-        private void UnregisterEvents()
-        {
-            if (!_registered) return;
-            _registered = false;
-        }
+        #endregion
 
         private TaskDataRuntime GetById(int taskId) => Tasks.FirstOrDefault(task => task.TaskId == taskId);
 
-        /// <summary>
-        /// 推进指定任务
-        /// </summary>
-        /// <param name="taskType">任务类型</param>
+        /// <summary>推进指定类型的所有进行中任务</summary>
         public void AdvanceByType(TaskType taskType)
         {
             bool changed = false;
@@ -66,8 +86,12 @@ namespace HotUpdate.Service
                 if (task.CurrentCount == oldCount) continue;
 
                 changed = true;
-                // 进度达标 → 自动迁移到 Completed
-                if (task.CurrentCount >= task.TargetCount) Transition(task, TaskState.Completed);
+                // 进度达标 → 自动迁移到 Completed，并立刻上报，服务端据此判定能否领奖
+                if (task.CurrentCount >= task.TargetCount)
+                {
+                    Transition(task, TaskState.Completed);
+                    SaveProgress(task);
+                }
             }
 
             if (changed) NotifyTaskChanged();
@@ -107,31 +131,21 @@ namespace HotUpdate.Service
 
         #endregion
 
-        #region 完成与领奖
+        #region 领奖
 
         public bool CanClaim(TaskDataRuntime task) => task is { State: TaskState.Completed };
 
         /// <summary>
-        /// 领奖：Completed → Claimed，发放奖励。UI 弹窗与联网由调用方（Controller）处理。
+        /// 领奖成功后的状态落地（Completed → Claimed）。
+        /// 奖励本身由服务端发放（TaskController 走 GetReward 请求），本方法只在服务端确认后推进状态并推进剧情。
         /// </summary>
-        public bool Claim(TaskDataRuntime task, out string rewardDescription)
+        public bool Claim(TaskDataRuntime task)
         {
-            rewardDescription = string.Empty;
             if (!CanClaim(task)) return false;
 
             Transition(task, TaskState.Claimed);
             AppContext.Story.Advance();
 
-            // 首个主线任务固定给 1 个驱动盘，其余随机给 1~2 个
-            bool giveFixedCount = task.TaskType == TaskType.击败第一个敌人;
-            string des = "获得奖励\n";
-            if (task.TaskReward != null)
-            {
-                des += task.TaskReward.AddDepotNum(giveFixedCount);
-                des += task.TaskReward.AddMaterialNum();
-            }
-
-            rewardDescription = des;
             NotifyTaskChanged();
             SaveProgress(task);
             return true;
@@ -139,61 +153,29 @@ namespace HotUpdate.Service
 
         #endregion
 
-        #region 持久化
+        #region 上报
 
-        /// <summary>把单个任务的进度与状态持久化到服务端</summary>
+        /// <summary>把单个任务的状态与进度上报服务端</summary>
         private void SaveProgress(TaskDataRuntime task)
         {
-            if (!_persistEnabled) return; // 离线调试模式不联网
+            if (!_online) return; // 离线调试 / 未拿到服务端任务数据时不联网
             AppContext.Proto.RequestSaveTaskProgress(task, null);
-        }
-
-        /// <summary>
-        /// 用服务端返回的进度恢复任务状态（联机时在 StartGame 后调用）。
-        /// 服务端没有该任务记录时保持默认状态。
-        /// </summary>
-        public void RestoreProgress(int taskId, int state, int currentCount)
-        {
-            var task = GetById(taskId);
-            if (task == null) return;
-
-            task.State = (TaskState)state;
-            task.CurrentCount = currentCount;
-        }
-
-        /// <summary>
-        /// 联机时从服务端拉取全量任务进度并恢复状态机。
-        /// 离线（OfflineDebugLauncher）或未登录时跳过，保持本地默认状态。
-        /// </summary>
-        public void LoadFromServer()
-        {
-            if (!_persistEnabled) return; // 离线调试模式不联网
-            if (!AppContext.IsAlive || AppContext.Session.RoleId <= 0) return;
-
-            AppContext.Proto.RequestLoadTaskProgress(ret =>
-            {
-                if (ret == null) return;
-                foreach (var p in ret.ProgressList)
-                {
-                    RestoreProgress(p.TaskId, p.State, p.CurrentCount);
-                }
-
-                NotifyTaskChanged();
-            });
         }
 
         #endregion
 
+        // 同模块 data→view：直接通知任务面板刷新；面板没开就跳过（下次 OnEnable 会自己重建）
         private void NotifyTaskChanged()
         {
-            _taskPanel = AppContext.Ui.GetPanel<TaskPanel>();
-            _taskPanel.RefreshTaskUI(AppContext.Task.Tasks);
+            _taskPanel ??= AppContext.Ui.GetPanel<TaskPanel>();
+            if (_taskPanel == null) return;
+            _taskPanel.RefreshTaskUI(Tasks);
         }
 
-        // 释放订阅（热更重载 / 退出时调用）
+        // 释放本地数据（退出 / 热更重载时调用）
         public void Clear()
         {
-            UnregisterEvents();
+            _online = false;
             Tasks.Clear();
         }
     }

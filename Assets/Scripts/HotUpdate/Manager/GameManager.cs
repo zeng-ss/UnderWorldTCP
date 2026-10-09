@@ -3,7 +3,6 @@ using HotUpdate.Data;
 using HotUpdate.Event;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace HotUpdate.Manager
 {
@@ -13,23 +12,13 @@ namespace HotUpdate.Manager
     public class GameManager : UnitySingleTonMono<GameManager>
     {
         private AppContext _appContext;
-
-        [FormerlySerializedAs("_depotConfig")] [SerializeField]
-        private DepotConfig depotConfig;
-
-        [FormerlySerializedAs("_materialData")] [SerializeField]
-        private MaterialDataSo materialData;
-
-        [FormerlySerializedAs("_taskConfigSo")] [SerializeField]
-        private TaskDataConfigSo taskConfigSo;
-
         private PlayerValueData _basePlayerValueData;
 
         public override void Awake()
         {
             base.Awake();
             _appContext = AppContext.Create();
-            _appContext.InitAll(materialData, depotConfig, taskConfigSo, _basePlayerValueData);
+            _appContext.InitAll(_basePlayerValueData);
             RegisterGlobalHotkeys();
         }
 

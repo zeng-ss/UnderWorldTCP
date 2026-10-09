@@ -10,7 +10,7 @@ namespace HotUpdate.Manager
 {
     /// <summary>
     /// 对话流程管理器
-    /// 对话数据来自 <c>StoryService.Current</c>，本类不再持有对话内容；
+    /// 对话数据来自 <c>StoryService.Current</c>（由 Luban 的对话表组装），本类不再持有对话内容；
     /// </summary>
     public class DialogueManager : MonoBehaviour
     {
@@ -29,8 +29,8 @@ namespace HotUpdate.Manager
 
         private DialogueState _state = DialogueState.Idle;
 
-        private DialogueData _dialogue; // 当前对话数据
-        private DialogueLine _line; // 当前正在展示的行
+        private DialogueDataRuntime _dialogue; // 当前对话数据
+        private DialogueLineRuntime _line; // 当前正在展示的行
         private int _lineIndex = -1; // 当前行下标（-1 表示尚未开始）
         private DialoguePanel _panel;
 
@@ -50,10 +50,10 @@ namespace HotUpdate.Manager
         {
             // 自动前进：只在「等待继续」状态下计时
             if (_state != DialogueState.WaitingAdvance) return;
-            if (_dialogue == null || !_dialogue.autoAdvance) return;
+            if (_dialogue == null || !_dialogue.AutoAdvance) return;
 
             _autoAdvanceTimer += Time.deltaTime;
-            if (_autoAdvanceTimer >= _dialogue.autoAdvanceDelay) AdvanceLine();
+            if (_autoAdvanceTimer >= _dialogue.AutoAdvanceDelay) AdvanceLine();
         }
 
         private void OnDestroy()
@@ -71,8 +71,8 @@ namespace HotUpdate.Manager
         /// <summary>开始播放当前剧情（数据取自 StoryService，不再由外部传入）</summary>
         public void StartDialogue()
         {
-            DialogueData data = AppContext.Story.Current;
-            if (data == null || data.lines == null || data.lines.Count == 0)
+            DialogueDataRuntime data = AppContext.Story.Current;
+            if (data == null || data.Lines.Count == 0)
             {
                 Debug.LogWarning("DialogueManager: 当前没有可播放的剧情对话");
                 return;
@@ -102,27 +102,27 @@ namespace HotUpdate.Manager
         }
 
         /// <summary>选项被选择（由 DialogueOptionItem 回调）</summary>
-        public void OnOptionSelected(DialogueOption option)
+        public void OnOptionSelected(DialogueOptionRuntime option)
         {
             if (option == null || _state != DialogueState.ShowingOptions) return;
 
             // -1 表示结束对话
-            if (option.nextLineIndex == -1)
+            if (option.NextLineIndex == -1)
             {
-                End(completeStory: option.isTriggerEvent);
+                End(completeStory: option.IsTriggerEvent);
                 return;
             }
 
             // 跳转到指定行（AdvanceLine 会自增到该行）
-            if (_dialogue != null && option.nextLineIndex >= 0 && option.nextLineIndex < _dialogue.lines.Count)
+            if (_dialogue != null && option.NextLineIndex >= 0 && option.NextLineIndex < _dialogue.Lines.Count)
             {
                 _panel?.ClearOptions();
-                _lineIndex = option.nextLineIndex - 1;
+                _lineIndex = option.NextLineIndex - 1;
                 AdvanceLine();
             }
             else
             {
-                Debug.LogWarning($"DialogueManager: 无效的对话行索引 {option.nextLineIndex}");
+                Debug.LogWarning($"DialogueManager: 无效的对话行索引 {option.NextLineIndex}");
                 End(completeStory: false);
             }
         }
@@ -142,11 +142,11 @@ namespace HotUpdate.Manager
 
             // 跳过空行
             _line = null;
-            while (++_lineIndex < _dialogue.lines.Count)
+            while (++_lineIndex < _dialogue.Lines.Count)
             {
-                if (_dialogue.lines[_lineIndex] != null)
+                if (_dialogue.Lines[_lineIndex] != null)
                 {
-                    _line = _dialogue.lines[_lineIndex];
+                    _line = _dialogue.Lines[_lineIndex];
                     break;
                 }
             }
@@ -157,16 +157,16 @@ namespace HotUpdate.Manager
                 return;
             }
 
-            bool isPlayer = _line.speakerName == PlayerSpeakerName;
+            bool isPlayer = _line.SpeakerName == PlayerSpeakerName;
             if (_panel != null)
             {
                 _panel.ClearOptions();
                 _panel.HideContinueHint();
-                _panel.SetSpeaker(_line.speakerName, _line.speakerPortrait, isPlayer);
+                _panel.SetSpeaker(_line.SpeakerName, _line.PortraitAddress, isPlayer);
             }
 
             _state = DialogueState.Typing;
-            _panel?.ShowDialogue(_line.content, _line.voiceClip); // 完成后回调 HandleTypingComplete
+            _panel?.ShowDialogue(_line.Content, _line.VoiceAddress); // 完成后回调 HandleTypingComplete
         }
 
         // 打字完成（自然结束或玩家跳过）后的分支
@@ -175,15 +175,15 @@ namespace HotUpdate.Manager
             if (_state != DialogueState.Typing || _line == null) return;
 
             // 有选项 → 展示选项
-            if (_line.options is { Count: > 0 })
+            if (_line.Options.Count > 0)
             {
                 _state = DialogueState.ShowingOptions;
-                ShowOptions(_line.options);
+                ShowOptions(_line.Options);
                 return;
             }
 
             // 本行后结束 → 等待左键结束
-            if (_line.endAfterThis)
+            if (_line.EndAfterThis)
             {
                 _state = DialogueState.WaitingEnd;
                 _panel?.ShowEndHint();
@@ -196,7 +196,7 @@ namespace HotUpdate.Manager
             _panel?.ShowContinueHint();
         }
 
-        private void ShowOptions(List<DialogueOption> options)
+        private void ShowOptions(List<DialogueOptionRuntime> options)
         {
             Transform parent = _panel != null ? _panel.GetCurrentOptionsPanel() : null;
             if (parent == null)
@@ -209,7 +209,7 @@ namespace HotUpdate.Manager
             _panel.ClearOptions();
             for (int i = 0; i < options.Count; i++)
             {
-                DialogueOption option = options[i];
+                DialogueOptionRuntime option = options[i];
                 option.Index = i; // 用于入场动画延迟
                 AppContext.Res.LoadAndInstantiateAsync("DialogueOptionItem", parent, obj =>
                 {
@@ -226,10 +226,10 @@ namespace HotUpdate.Manager
             if (completeStory && _dialogue is not null)
             {
                 // 解锁本段对话配置的任务
-                AppContext.Task.UnlockAll(_dialogue.taskIds);
+                AppContext.Task.UnlockAll(_dialogue.TaskIds);
 
                 // id == 2 为剧情收尾，不生成敌人
-                if (_dialogue.id != 2)
+                if (_dialogue.Id != 2)
                 {
                     Vector3 pos = new Vector3(17, -1.6f, -30);
                     AppContext.Proto.RequestSpawnEnemy(AppContext.Session.RoleId, 1, 20000, pos,
@@ -273,7 +273,7 @@ namespace HotUpdate.Manager
         private void OnEscapePressed()
         {
             if (_state == DialogueState.Idle) return;
-            if (_dialogue != null && _dialogue.canSkip) End(completeStory: false);
+            if (_dialogue != null && _dialogue.CanSkip) End(completeStory: false);
         }
 
         private void OnLeftClicked()

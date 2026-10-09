@@ -1,18 +1,22 @@
 using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Event;
+using HotUpdate.Data.Config;
 using HotUpdate.UI.UIPanel;
 
 namespace HotUpdate.Service
 {
     /// <summary>
     /// 驱动盘（仓库）服务。拥有「已拥有」和「已装备」两份列表，并对外广播变化。
+    /// 驱动盘的静态模板来自 Luban 导出的 tbdriverdisk.json（客户端不再有本地 SO 配置）。
     /// </summary>
     public class DepotService
     {
         private DepotPanel _depotPanel;
-        /// <summary>装备槽数量，对应 DepotPanel 上 contentList 的格子数</summary>
+
+        // 驱动盘模板
+        private readonly Dictionary<int, DriverDiskRow> _templates = new();
+
         private const int MaxEquipSlots = 5;
 
         /// <summary>已拥有的驱动盘</summary>
@@ -21,22 +25,27 @@ namespace HotUpdate.Service
         /// <summary>已装备的驱动盘</summary>
         public List<DriverDiskDataRuntime> Equipped { get; } = new();
 
-        /// <summary>静态配置引用，发放奖励时需要按 id 找到模板</summary>
-        public DepotConfig Config { get; private set; }
-
         public bool HasFreeEquipSlot => Equipped.Count < MaxEquipSlots;
 
-        public void Init(DepotConfig config)
+        /// <summary>重建驱动盘模板表，并清空本地背包</summary>
+        public void Init(IReadOnlyList<DriverDiskRow> rows)
         {
-            Config = config;
+            _templates.Clear();
             Owned.Clear();
             Equipped.Clear();
+
+            if (rows == null) return;
+            foreach (DriverDiskRow row in rows)
+            {
+                if (row == null) continue;
+                _templates[row.depotId] = row;
+            }
         }
 
         #region 拥有列表
 
-        /// <summary>按配置模板发放驱动盘</summary>
-        public void AddByTemplate(DriverDiskData template, int count = 1)
+        /// <summary>按 Luban 模板发放驱动盘</summary>
+        public void AddByTemplate(DriverDiskRow template, int count = 1)
         {
             if (template == null) return;
             for (int i = 0; i < count; i++)
@@ -65,16 +74,7 @@ namespace HotUpdate.Service
             return true;
         }
 
-        private DriverDiskData FindTemplate(int depotId)
-        {
-            if (Config == null || Config.depots == null) return null;
-            foreach (var depot in Config.depots)
-            {
-                if (depot != null && depot.depotId == depotId) return depot;
-            }
-
-            return null;
-        }
+        private DriverDiskRow FindTemplate(int depotId) => _templates.GetValueOrDefault(depotId);
 
         #endregion
 
@@ -114,14 +114,16 @@ namespace HotUpdate.Service
         // 同模块 data→view：仓库列表变化直接通知仓库面板刷新；面板没开就跳过（下次 OnEnable 会重建）
         private void RefreshDepotPanel()
         {
-            _depotPanel ??= AppContext.Ui.GetPanel<DepotPanel>();
+            _depotPanel = AppContext.Ui.GetPanel<DepotPanel>();
+            if (_depotPanel == null) return;
             _depotPanel.Refresh();
         }
 
         private void NotifyEquippedChanged()
         {
-            AppContext.PlayerData.ApplyEquipped(AppContext.Depot.Equipped);
-            _depotPanel ??= AppContext.Ui.GetPanel<DepotPanel>();
+            AppContext.PlayerData.ApplyEquipped(Equipped);
+            _depotPanel = AppContext.Ui.GetPanel<DepotPanel>();
+            if (_depotPanel == null) return;
             _depotPanel.OnEquippedChanged();
         }
     }

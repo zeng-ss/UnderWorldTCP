@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.UI.UIPanel;
@@ -6,7 +7,7 @@ using UnityEngine;
 namespace HotUpdate.Controller
 {
     /// <summary>
-    /// 任务 Controller
+    /// 任务 Controller：负责面板开关与「领奖」流程编排。
     /// </summary>
     public class TaskController
     {
@@ -32,26 +33,44 @@ namespace HotUpdate.Controller
         private void TogglePanel()
         {
             _taskPanel ??= AppContext.Ui.GetPanel<TaskPanel>();
-            if (_taskPanel.gameObject.activeInHierarchy)
+            if (_taskPanel == null)
             {
-                _taskPanel.ClosePanel();
+                AppContext.Ui.OpenPanel<TaskPanel>();
                 return;
             }
 
-            AppContext.Ui.OpenPanel<TaskPanel>();
+            if (_taskPanel.gameObject.activeInHierarchy) _taskPanel.ClosePanel();
+            else AppContext.Ui.OpenPanel<TaskPanel>();
         }
 
-        /// <summary>处理面板上报的「领取奖励」</summary>
+        /// <summary>处理面板上报的「领取奖励」：先请服务端校验并发放，成功后再落地本地状态</summary>
         public void RequestFinish(TaskDataRuntime task)
         {
-            if (!AppContext.Task.Claim(task, out string rewardText)) return;
-            NotifyServer(task, rewardText);
+            if (!AppContext.Task.CanClaim(task)) return;
+
+            AppContext.Proto.RequestGetReward(task.TaskId, ret =>
+            {
+                if (ret == null || ret.CmdCode != CmdCode.Succeed) return;
+
+                GrantRewardsLocally(ret.RewardMap);
+                AppContext.Task.Claim(task);
+                if (!string.IsNullOrEmpty(ret.RewardDesc)) AppContext.Ui.ShowTip(ret.RewardDesc, 4f);
+            });
         }
 
-        private void NotifyServer(TaskDataRuntime task, string rewardText)
+        /// <summary>
+        /// 把服务端下发的奖励明细落到本地背包（驱动盘按模板发放，材料累加数量）。
+        /// TODO: 背包改为完全由服务端下发后，本方法与 DepotService/MaterialService 的本地发放入口一起删除。
+        /// </summary>
+        private static void GrantRewardsLocally(IEnumerable<KeyValuePair<int, int>> rewardMap)
         {
-            int rewardId = task.TaskType == TaskType.击败第一个敌人 ? 1 : 2;
-            AppContext.Proto.RequestGetReward(rewardId, ret => { AppContext.Ui.ShowTip(rewardText, 4f); });
+            foreach (var kv in rewardMap)
+            {
+                int itemId = kv.Key;
+                int count = kv.Value;
+                if (ItemCatalog.IsDriverDisk(itemId)) AppContext.Depot.AddByDepotId(itemId, count);
+                else AppContext.Material.Add(itemId, count);
+            }
         }
     }
 }

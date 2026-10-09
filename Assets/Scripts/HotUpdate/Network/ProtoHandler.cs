@@ -268,7 +268,8 @@ namespace HotUpdate.Network
             NetClientMgr.Instance.Send(NetDefine.CMD_SpawnEnemyCode, req.ToByteString());
         }
 
-        public void RequestPlayerAttack(int roleId, int enemyInstanceId, float damage, float baojiPercent, bool isExAttack,
+        public void RequestPlayerAttack(int roleId, int enemyInstanceId, float damage, float baojiPercent,
+            bool isExAttack,
             Action<PlayerAttackRet> callback)
         {
             int seqId = ++_nextAttackSeqId;
@@ -285,10 +286,18 @@ namespace HotUpdate.Network
             NetClientMgr.Instance.Send(NetDefine.CMD_PlayerAttackCode, req.ToByteString());
         }
 
-        public void RequestGetReward(int rewardType, Action<GetRewardRet> callback)
+        /// <summary>
+        /// 请求发放任务奖励。奖励内容与「能否领奖」都由服务端按 task_id 从 Luban 配置判定，客户端只上报领奖意图。
+        /// </summary>
+        public void RequestGetReward(int taskId, Action<GetRewardRet> callback)
         {
             _getRewardCallback = callback;
-            GetRewardReq req = new GetRewardReq { RoleId = AppContext.Session.RoleId, RewardType = rewardType };
+            GetRewardReq req = new GetRewardReq
+            {
+                RoleId = AppContext.Session.RoleId,
+                RewardType = 1, // 1=任务奖励
+                TaskId = taskId
+            };
             NetClientMgr.Instance.Send(NetDefine.CMD_GetRewardCode, req.ToByteString());
         }
 
@@ -309,7 +318,7 @@ namespace HotUpdate.Network
         }
 
         /// <summary>
-        /// 从服务端拉取全量任务进度（联机时在 StartGame 成功后调用，恢复任务状态机）。
+        /// 从服务端拉取全量任务（定义 + 进度）。任务定义以服务端 Luban 配置为权威，客户端不再有本地任务配置。
         /// </summary>
         public void RequestLoadTaskProgress(Action<TaskProgressListRet> callback)
         {
@@ -495,7 +504,7 @@ namespace HotUpdate.Network
         private void OnTaskProgressListResult(ByteString data)
         {
             TaskProgressListRet ret = TaskProgressListRet.Parser.ParseFrom(data);
-            Debug.Log($"ProtoHandler: 任务进度拉取结果 CmdCode={ret.CmdCode} count={ret.ProgressList.Count}");
+            Debug.Log($"ProtoHandler: 任务拉取结果 CmdCode={ret.CmdCode} count={ret.TaskList.Count}");
             _taskProgressListCallback?.Invoke(ret);
             _taskProgressListCallback = null;
         }

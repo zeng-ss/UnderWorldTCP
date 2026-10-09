@@ -37,6 +37,7 @@ namespace HotUpdate.UI.UIPanel
         private Tween _typingTween;
         private bool _isPlayerSpeaking = true;
         private float _lastSoundTime;
+        private AudioClip _typingSound; // 打字音效（按地址异步加载）
 
         /// <summary>当前是否正在播放打字机效果</summary>
         public bool IsTyping { get; private set; }
@@ -61,23 +62,22 @@ namespace HotUpdate.UI.UIPanel
         }
 
         /// <summary>
-        /// 设置说话者并显示对应侧边
+        /// 设置说话者并显示对应侧边。
+        /// portraitAddress 是立绘的资源地址（Luban 表里只能存地址），为空则不显示立绘。
         /// </summary>
-        public void SetSpeaker(string speakerName, Sprite portrait, bool isPlayer)
+        public void SetSpeaker(string speakerName, string portraitAddress, bool isPlayer)
         {
             _isPlayerSpeaking = isPlayer;
             // 更新UI组件
             if (isPlayer)
             {
                 speakerNameTextL.text = speakerName;
-                speakerPortraitImageL.sprite = portrait;
-                speakerPortraitImageL.gameObject.SetActive(true);
+                SetPortrait(speakerPortraitImageL, portraitAddress);
             }
             else
             {
                 speakerNameTextR.text = speakerName;
-                speakerPortraitImageR.sprite = portrait;
-                speakerPortraitImageR.gameObject.SetActive(true);
+                SetPortrait(speakerPortraitImageR, portraitAddress);
             }
 
             // 通过控制器显示对应侧边
@@ -89,6 +89,25 @@ namespace HotUpdate.UI.UIPanel
                     PlaySpeakerEnterAnimation(isPlayer);
                 });
             }
+        }
+
+        // 按资源地址异步加载立绘；地址为空时直接隐藏
+        private void SetPortrait(Image image, string address)
+        {
+            if (image == null) return;
+            if (string.IsNullOrEmpty(address))
+            {
+                image.sprite = null;
+                image.gameObject.SetActive(false);
+                return;
+            }
+
+            AppContext.Res.LoadSpriteAsync(address, sprite =>
+            {
+                if (image == null) return;
+                image.sprite = sprite;
+                image.gameObject.SetActive(sprite != null);
+            });
         }
 
         /// <summary>
@@ -114,9 +133,9 @@ namespace HotUpdate.UI.UIPanel
         }
 
         /// <summary>
-        /// 显示对话文本并播放打字机效果。播放结束
+        /// 显示对话文本并播放打字机效果。voiceAddress 为打字音效的资源地址（Luban 表里只能存地址），空则无音效。
         /// </summary>
-        public void ShowDialogue(string content, AudioClip typingSound = null)
+        public void ShowDialogue(string content, string voiceAddress = null)
         {
             // 停止之前的打字效果
             _typingTween?.Kill();
@@ -126,6 +145,13 @@ namespace HotUpdate.UI.UIPanel
             {
                 FinishTyping();
                 return;
+            }
+
+            // 语音改为按地址异步加载，加载完成前先静音打字
+            _typingSound = null;
+            if (!string.IsNullOrEmpty(voiceAddress))
+            {
+                AppContext.Res.LoadAssetAsync<AudioClip>(voiceAddress, clip => _typingSound = clip);
             }
 
             // 重置文本
@@ -141,12 +167,12 @@ namespace HotUpdate.UI.UIPanel
                 {
                     targetText.text = content.Substring(0, charCount);
                     // 打字音效
-                    if (typingSound != null && charCount % 3 == 0)
+                    if (_typingSound != null && charCount % 3 == 0)
                     {
                         float currentTime = Time.time;
-                        if (currentTime - _lastSoundTime >= 0.1f)
+                        if (currentTime - _lastSoundTime >= 0.1f && _followCamera != null)
                         {
-                            AudioSource.PlayClipAtPoint(typingSound, _followCamera.transform.position, 0.05f);
+                            AudioSource.PlayClipAtPoint(_typingSound, _followCamera.transform.position, 0.05f);
                             _lastSoundTime = currentTime;
                         }
                     }
@@ -246,6 +272,7 @@ namespace HotUpdate.UI.UIPanel
             _showSequence?.Kill();
             _typingTween?.Kill();
             _typingTween = null;
+            _typingSound = null;
             IsTyping = false;
             Sequence closeSequence = DOTween.Sequence();
             // 隐藏所有侧边

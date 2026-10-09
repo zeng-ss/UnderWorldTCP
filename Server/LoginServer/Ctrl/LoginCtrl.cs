@@ -96,7 +96,7 @@ public class LoginCtrl : IContainer
             return;
         }
 
-        LogMsg.Info("[Login]任务进度拉取结果: 条数=" + ret.ProgressList.Count);
+        LogMsg.Info("[Login]任务拉取结果: 条数=" + ret.TaskList.Count);
         session.SendData(basePackage);
     }
 

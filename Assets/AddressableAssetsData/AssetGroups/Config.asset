@@ -30,31 +30,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6b1514d3c8d99334c858f287a5189163
-    m_Address: DialogueData02
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 6dbbf146cf5d63c449b3c63a1c95152e
-    m_Address: DepotConfig
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 87a668f62886add409d5043bb7e85040
-    m_Address: DialogueData01
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a56e497ec4c3c8f40b791411dd467bb4
-    m_Address: MaterialData
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: c2f26a08f08601646bb70b3b2488f223
-    m_Address: TaskData
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c7222d4512bb75a4f9a1ff3e8825ecab
     m_Address: SkillConfig01
     m_ReadOnly: 0

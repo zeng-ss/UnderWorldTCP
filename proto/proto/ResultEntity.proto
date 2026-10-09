@@ -95,7 +95,8 @@ message PlayerAttackRet{
 //获取奖励返回
 message GetRewardRet{
   CmdCode cmd_code = 1;
-  map<int32,int32> reward_map = 2;// 背包内容 id，数量
+  map<int32,int32> reward_map = 2;// 本次实际发放的奖励 id→数量（物品编号见 ItemCatalog）
+  string reward_desc = 3;         // 服务端组好的奖励文本，客户端直接弹提示
 }
 //开始游戏请求返回数据
 message StartGameRet{
@@ -231,10 +232,10 @@ message TaskProgressRet{
   CmdCode cmd_code = 1;
 }
 
-// 拉取全量任务进度回包
+// 拉取全量任务回包：任务定义由服务端 Luban 权威下发 + 该角色的进度，客户端不再有本地任务配置
 message TaskProgressListRet{
   CmdCode cmd_code = 1;
-  repeated TaskProgressData progress_list = 2; // 该角色全部任务的进度（TaskProgressData 定义在 RequestEntity.proto）
+  repeated TaskInfo task_list = 2; // 该角色全部任务（定义 + 进度，TaskInfo 定义在 RequestEntity.proto）
 }
 
 

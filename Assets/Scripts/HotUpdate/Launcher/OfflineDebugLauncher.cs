@@ -19,7 +19,7 @@ namespace HotUpdate.Launcher
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void OnSceneLoaded()
         {
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
             // 只有当「当前直接就是 GameScene」且「AppContext 尚未初始化」时才走离线引导。
             // 正常流程：StartScene → 热更 → EnterScene(GameManager 建 AppContext) → ... → GameScene，
             // 切到 GameScene 时 AppContext 已存在，不会重复初始化。
@@ -29,8 +29,6 @@ namespace HotUpdate.Launcher
             Debug.Log("[OfflineDebugLauncher] 检测到直接运行 GameScene，进入离线调试模式");
 
             AppContext.Create();
-            BootstrapOffline();
-
             // 伪造服务端角色数据，供 PlayerCtrl.Start 里的 InitializeFromServer / StartPositionSync 使用
             SessionService session = AppContext.Session;
             session.RoleId = DebugRoleId;
@@ -46,30 +44,9 @@ namespace HotUpdate.Launcher
             AppContext.Res.LoadAndInstantiateAsync("NPC");
             AppContext.Res.LoadAndInstantiateAsync("GameController");
 
+            // 注意：任务内容全部来自服务端（TaskService.LoadFromServer），离线调试下任务列表为空。
             Debug.Log("[OfflineDebugLauncher] 离线战斗场景就绪");
-    #endif
-        }
-
-        // 等价于 GameManager.BootstrapServices，但配置一律传 null（各 Service.Init 均容忍 null）
-        private static void BootstrapOffline()
-        {
-            AppContext.Material.Init(null);
-            AppContext.Depot.Init(null);
-            AppContext.Task.Init(null);
-
-            PlayerValueData baseValue = new PlayerValueData
-            {
-                ID = DebugRoleId,
-                MaxHealthValue = DebugMaxHealth
-            };
-            AppContext.PlayerData.Init(baseValue);
-            AppContext.PlayerData.ApplyEquipped(AppContext.Depot.Equipped);
-
-            AppContext.Ui.Init();
-            AppContext.Sound.Init();
-            AppContext.Proto.Init();
-            AppContext.RemotePlayer.Init();
-            AppContext.Story.Init();
+#endif
         }
     }
 }

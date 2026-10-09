@@ -40,28 +40,32 @@ public static partial class RequestEntityReflection {
           "DQoFcG9zX3oYCCABKAIijwEKD1BsYXllckF0dGFja1JlcRIPCgdyb2xlX2lk",
           "GAEgASgFEhkKEWVuZW15X2luc3RhbmNlX2lkGAIgASgFEg4KBmRhbWFnZRgE",
           "IAEoAhIVCg1iYW9qaV9wZXJjZW50GAUgASgCEhQKDGlzX2V4X2F0dGFjaxgG",
-          "IAEoCBITCgtzZXF1ZW5jZV9pZBgHIAEoBSI0CgxHZXRSZXdhcmRSZXESDwoH",
-          "cm9sZV9pZBgBIAEoBRITCgtyZXdhcmRfdHlwZRgCIAEoBSIfCgxTdGFydEdh",
-          "bWVSZXESDwoHcm9sZV9pZBgBIAEoBSIiCg9PcGVuRGlhbG9ndWVSZXESDwoH",
-          "cm9sZV9pZBgBIAEoBSJ2Cg9Qb3NpdGlvblN5bmNSZXESDwoHcm9sZV9pZBgB",
-          "IAEoBRINCgVwb3NfeBgCIAEoAhINCgVwb3NfeRgDIAEoAhINCgVwb3NfehgE",
-          "IAEoAhISCgpyb3RhdGlvbl95GAUgASgCEhEKCW5pa2VfbmFtZRgGIAEoCSJF",
-          "Cg1DcmVhdGVSb29tUmVxEg8KB3JvbGVfaWQYASABKAUSEQoJcm9vbV9uYW1l",
-          "GAIgASgJEhAKCG5pY2tuYW1lGAMgASgJIkEKC0pvaW5Sb29tUmVxEg8KB3Jv",
-          "bGVfaWQYASABKAUSDwoHcm9vbV9pZBgCIAEoBRIQCghuaWNrbmFtZRgDIAEo",
-          "CSIfCgxMZWF2ZVJvb21SZXESDwoHcm9sZV9pZBgBIAEoBSIjChBSb29tU3Rh",
-          "cnRHYW1lUmVxEg8KB3JvbGVfaWQYASABKAUiMwoOUGxheWVyUmVhZHlSZXES",
-          "DwoHcm9sZV9pZBgBIAEoBRIQCghpc19yZWFkeRgCIAEoCCJRCgpTeW5jQW5p",
-          "UmVxEg8KB3JvbGVfaWQYASABKAUSFgoOYW5pbWF0aW9uX25hbWUYAiABKAkS",
-          "GgoSc2tpbGxfY29uZmlnX2luZGV4GAMgASgFImgKFEVuZW15UG9zaXRpb25T",
-          "eW5jUmVxEg8KB3JvbGVfaWQYASABKAUSDQoFcG9zX3gYAiABKAISDQoFcG9z",
-          "X3kYAyABKAISDQoFcG9zX3oYBCABKAISEgoKcm90YXRpb25feRgFIAEoAiI6",
-          "Cg9TeW5jRW5lbXlBbmlSZXESDwoHcm9sZV9pZBgBIAEoBRIWCg5hbmltYXRp",
-          "b25fbmFtZRgCIAEoCSJJChBUYXNrUHJvZ3Jlc3NEYXRhEg8KB3Rhc2tfaWQY",
-          "ASABKAUSDQoFc3RhdGUYAiABKAUSFQoNY3VycmVudF9jb3VudBgDIAEoBSJM",
-          "Cg9UYXNrUHJvZ3Jlc3NOdGYSDwoHcm9sZV9pZBgBIAEoBRIoCg1wcm9ncmVz",
-          "c19saXN0GAIgAygLMhEuVGFza1Byb2dyZXNzRGF0YSIiCg9UYXNrUHJvZ3Jl",
-          "c3NSZXESDwoHcm9sZV9pZBgBIAEoBWIGcHJvdG8z"));
+          "IAEoCBITCgtzZXF1ZW5jZV9pZBgHIAEoBSJFCgxHZXRSZXdhcmRSZXESDwoH",
+          "cm9sZV9pZBgBIAEoBRITCgtyZXdhcmRfdHlwZRgCIAEoBRIPCgd0YXNrX2lk",
+          "GAMgASgFIh8KDFN0YXJ0R2FtZVJlcRIPCgdyb2xlX2lkGAEgASgFIiIKD09w",
+          "ZW5EaWFsb2d1ZVJlcRIPCgdyb2xlX2lkGAEgASgFInYKD1Bvc2l0aW9uU3lu",
+          "Y1JlcRIPCgdyb2xlX2lkGAEgASgFEg0KBXBvc194GAIgASgCEg0KBXBvc195",
+          "GAMgASgCEg0KBXBvc196GAQgASgCEhIKCnJvdGF0aW9uX3kYBSABKAISEQoJ",
+          "bmlrZV9uYW1lGAYgASgJIkUKDUNyZWF0ZVJvb21SZXESDwoHcm9sZV9pZBgB",
+          "IAEoBRIRCglyb29tX25hbWUYAiABKAkSEAoIbmlja25hbWUYAyABKAkiQQoL",
+          "Sm9pblJvb21SZXESDwoHcm9sZV9pZBgBIAEoBRIPCgdyb29tX2lkGAIgASgF",
+          "EhAKCG5pY2tuYW1lGAMgASgJIh8KDExlYXZlUm9vbVJlcRIPCgdyb2xlX2lk",
+          "GAEgASgFIiMKEFJvb21TdGFydEdhbWVSZXESDwoHcm9sZV9pZBgBIAEoBSIz",
+          "Cg5QbGF5ZXJSZWFkeVJlcRIPCgdyb2xlX2lkGAEgASgFEhAKCGlzX3JlYWR5",
+          "GAIgASgIIlEKClN5bmNBbmlSZXESDwoHcm9sZV9pZBgBIAEoBRIWCg5hbmlt",
+          "YXRpb25fbmFtZRgCIAEoCRIaChJza2lsbF9jb25maWdfaW5kZXgYAyABKAUi",
+          "aAoURW5lbXlQb3NpdGlvblN5bmNSZXESDwoHcm9sZV9pZBgBIAEoBRINCgVw",
+          "b3NfeBgCIAEoAhINCgVwb3NfeRgDIAEoAhINCgVwb3NfehgEIAEoAhISCgpy",
+          "b3RhdGlvbl95GAUgASgCIjoKD1N5bmNFbmVteUFuaVJlcRIPCgdyb2xlX2lk",
+          "GAEgASgFEhYKDmFuaW1hdGlvbl9uYW1lGAIgASgJIkkKEFRhc2tQcm9ncmVz",
+          "c0RhdGESDwoHdGFza19pZBgBIAEoBRINCgVzdGF0ZRgCIAEoBRIVCg1jdXJy",
+          "ZW50X2NvdW50GAMgASgFIqYBCghUYXNrSW5mbxIPCgd0YXNrX2lkGAEgASgF",
+          "EhEKCXRhc2tfZGVzYxgCIAEoCRIRCgl0YXNrX3R5cGUYAyABKAUSFAoMdGFy",
+          "Z2V0X2NvdW50GAQgASgFEhEKCWRlcG90X2lkcxgFIAMoBRIUCgxtYXRlcmlh",
+          "bHNfaWQYBiADKAUSDQoFc3RhdGUYByABKAUSFQoNY3VycmVudF9jb3VudBgI",
+          "IAEoBSJMCg9UYXNrUHJvZ3Jlc3NOdGYSDwoHcm9sZV9pZBgBIAEoBRIoCg1w",
+          "cm9ncmVzc19saXN0GAIgAygLMhEuVGFza1Byb2dyZXNzRGF0YSIiCg9UYXNr",
+          "UHJvZ3Jlc3NSZXESDwoHcm9sZV9pZBgBIAEoBWIGcHJvdG8z"));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { },
         new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -75,7 +79,7 @@ public static partial class RequestEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::ChangeSceneReq), global::ChangeSceneReq.Parser, new[]{ "RoleId", "SceneName" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::SpawnEnemyReq), global::SpawnEnemyReq.Parser, new[]{ "RoleId", "TriggerType", "TriggerId", "EnemyConfigId", "MaxHp", "PosX", "PosY", "PosZ" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PlayerAttackReq), global::PlayerAttackReq.Parser, new[]{ "RoleId", "EnemyInstanceId", "Damage", "BaojiPercent", "IsExAttack", "SequenceId" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::GetRewardReq), global::GetRewardReq.Parser, new[]{ "RoleId", "RewardType" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::GetRewardReq), global::GetRewardReq.Parser, new[]{ "RoleId", "RewardType", "TaskId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::StartGameReq), global::StartGameReq.Parser, new[]{ "RoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::OpenDialogueReq), global::OpenDialogueReq.Parser, new[]{ "RoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PositionSyncReq), global::PositionSyncReq.Parser, new[]{ "RoleId", "PosX", "PosY", "PosZ", "RotationY", "NikeName" }, null, null, null, null),
@@ -88,6 +92,7 @@ public static partial class RequestEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::EnemyPositionSyncReq), global::EnemyPositionSyncReq.Parser, new[]{ "RoleId", "PosX", "PosY", "PosZ", "RotationY" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::SyncEnemyAniReq), global::SyncEnemyAniReq.Parser, new[]{ "RoleId", "AnimationName" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressData), global::TaskProgressData.Parser, new[]{ "TaskId", "State", "CurrentCount" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::TaskInfo), global::TaskInfo.Parser, new[]{ "TaskId", "TaskDesc", "TaskType", "TargetCount", "DepotIds", "MaterialsId", "State", "CurrentCount" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressNtf), global::TaskProgressNtf.Parser, new[]{ "RoleId", "ProgressList" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressReq), global::TaskProgressReq.Parser, new[]{ "RoleId" }, null, null, null, null)
         }));
@@ -3065,6 +3070,7 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
   public GetRewardReq(GetRewardReq other) : this() {
     roleId_ = other.roleId_;
     rewardType_ = other.rewardType_;
+    taskId_ = other.taskId_;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -3101,6 +3107,21 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
     }
   }
 
+  /// <summary>Field number for the "task_id" field.</summary>
+  public const int TaskIdFieldNumber = 3;
+  private int taskId_;
+  /// <summary>
+  ///任务奖励时必填：服务端据此从 Luban 配置取该任务的奖励内容
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int TaskId {
+    get { return taskId_; }
+    set {
+      taskId_ = value;
+    }
+  }
+
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public override bool Equals(object other) {
@@ -3118,6 +3139,7 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
     }
     if (RoleId != other.RoleId) return false;
     if (RewardType != other.RewardType) return false;
+    if (TaskId != other.TaskId) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -3127,6 +3149,7 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
     int hash = 1;
     if (RoleId != 0) hash ^= RoleId.GetHashCode();
     if (RewardType != 0) hash ^= RewardType.GetHashCode();
+    if (TaskId != 0) hash ^= TaskId.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -3153,6 +3176,10 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
       output.WriteRawTag(16);
       output.WriteInt32(RewardType);
     }
+    if (TaskId != 0) {
+      output.WriteRawTag(24);
+      output.WriteInt32(TaskId);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -3171,6 +3198,10 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
       output.WriteRawTag(16);
       output.WriteInt32(RewardType);
     }
+    if (TaskId != 0) {
+      output.WriteRawTag(24);
+      output.WriteInt32(TaskId);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -3186,6 +3217,9 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
     }
     if (RewardType != 0) {
       size += 1 + pb::CodedOutputStream.ComputeInt32Size(RewardType);
+    }
+    if (TaskId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(TaskId);
     }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
@@ -3204,6 +3238,9 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
     }
     if (other.RewardType != 0) {
       RewardType = other.RewardType;
+    }
+    if (other.TaskId != 0) {
+      TaskId = other.TaskId;
     }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
@@ -3232,6 +3269,10 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
           RewardType = input.ReadInt32();
           break;
         }
+        case 24: {
+          TaskId = input.ReadInt32();
+          break;
+        }
       }
     }
   #endif
@@ -3257,6 +3298,10 @@ public sealed partial class GetRewardReq : pb::IMessage<GetRewardReq>
         }
         case 16: {
           RewardType = input.ReadInt32();
+          break;
+        }
+        case 24: {
+          TaskId = input.ReadInt32();
           break;
         }
       }
@@ -6104,7 +6149,7 @@ public sealed partial class SyncEnemyAniReq : pb::IMessage<SyncEnemyAniReq>
 }
 
 /// <summary>
-/// 单条任务进度
+/// 单条任务进度（客户端 → 服务端上报用，只带可变状态）
 /// </summary>
 [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
 public sealed partial class TaskProgressData : pb::IMessage<TaskProgressData>
@@ -6157,7 +6202,7 @@ public sealed partial class TaskProgressData : pb::IMessage<TaskProgressData>
   public const int TaskIdFieldNumber = 1;
   private int taskId_;
   /// <summary>
-  /// 任务唯一 id（对应客户端 TaskDataSo.taskID）
+  /// 任务唯一 id（对应服务端 Luban taskData.TaskID）
   /// </summary>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -6388,6 +6433,473 @@ public sealed partial class TaskProgressData : pb::IMessage<TaskProgressData>
 }
 
 /// <summary>
+/// 任务完整数据（服务端 → 客户端下发）：定义来自 Luban，进度来自 role_task_progress。
+/// 客户端不再维护任何本地任务配置，任务描述 / 类型 / 目标数量 / 奖励全部以本消息为准。
+/// </summary>
+[global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+public sealed partial class TaskInfo : pb::IMessage<TaskInfo>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<TaskInfo> _parser = new pb::MessageParser<TaskInfo>(() => new TaskInfo());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pb::MessageParser<TaskInfo> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::RequestEntityReflection.Descriptor.MessageTypes[23]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public TaskInfo() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public TaskInfo(TaskInfo other) : this() {
+    taskId_ = other.taskId_;
+    taskDesc_ = other.taskDesc_;
+    taskType_ = other.taskType_;
+    targetCount_ = other.targetCount_;
+    depotIds_ = other.depotIds_.Clone();
+    materialsId_ = other.materialsId_.Clone();
+    state_ = other.state_;
+    currentCount_ = other.currentCount_;
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public TaskInfo Clone() {
+    return new TaskInfo(this);
+  }
+
+  /// <summary>Field number for the "task_id" field.</summary>
+  public const int TaskIdFieldNumber = 1;
+  private int taskId_;
+  /// <summary>
+  /// 任务唯一 id
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int TaskId {
+    get { return taskId_; }
+    set {
+      taskId_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "task_desc" field.</summary>
+  public const int TaskDescFieldNumber = 2;
+  private string taskDesc_ = "";
+  /// <summary>
+  /// 任务描述（UI 展示）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public string TaskDesc {
+    get { return taskDesc_; }
+    set {
+      taskDesc_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+    }
+  }
+
+  /// <summary>Field number for the "task_type" field.</summary>
+  public const int TaskTypeFieldNumber = 3;
+  private int taskType_;
+  /// <summary>
+  /// 任务类型（对应 TaskType 枚举：0=击败第一个敌人 1=给每一个驱动盘都升一级）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int TaskType {
+    get { return taskType_; }
+    set {
+      taskType_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "target_count" field.</summary>
+  public const int TargetCountFieldNumber = 4;
+  private int targetCount_;
+  /// <summary>
+  /// 目标数量
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int TargetCount {
+    get { return targetCount_; }
+    set {
+      targetCount_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "depot_ids" field.</summary>
+  public const int DepotIdsFieldNumber = 5;
+  private static readonly pb::FieldCodec<int> _repeated_depotIds_codec
+      = pb::FieldCodec.ForInt32(42);
+  private readonly pbc::RepeatedField<int> depotIds_ = new pbc::RepeatedField<int>();
+  /// <summary>
+  /// 驱动盘奖励 id 列表（用服务端物品编号，见 ItemCatalog）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public pbc::RepeatedField<int> DepotIds {
+    get { return depotIds_; }
+  }
+
+  /// <summary>Field number for the "materials_id" field.</summary>
+  public const int MaterialsIdFieldNumber = 6;
+  private static readonly pb::FieldCodec<int> _repeated_materialsId_codec
+      = pb::FieldCodec.ForInt32(50);
+  private readonly pbc::RepeatedField<int> materialsId_ = new pbc::RepeatedField<int>();
+  /// <summary>
+  /// 材料奖励 id 列表（同上）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public pbc::RepeatedField<int> MaterialsId {
+    get { return materialsId_; }
+  }
+
+  /// <summary>Field number for the "state" field.</summary>
+  public const int StateFieldNumber = 7;
+  private int state_;
+  /// <summary>
+  /// 任务状态：0=Locked 1=InProgress 2=Completed 3=Claimed
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int State {
+    get { return state_; }
+    set {
+      state_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "current_count" field.</summary>
+  public const int CurrentCountFieldNumber = 8;
+  private int currentCount_;
+  /// <summary>
+  /// 当前进度
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CurrentCount {
+    get { return currentCount_; }
+    set {
+      currentCount_ = value;
+    }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override bool Equals(object other) {
+    return Equals(other as TaskInfo);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equals(TaskInfo other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (TaskId != other.TaskId) return false;
+    if (TaskDesc != other.TaskDesc) return false;
+    if (TaskType != other.TaskType) return false;
+    if (TargetCount != other.TargetCount) return false;
+    if(!depotIds_.Equals(other.depotIds_)) return false;
+    if(!materialsId_.Equals(other.materialsId_)) return false;
+    if (State != other.State) return false;
+    if (CurrentCount != other.CurrentCount) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (TaskId != 0) hash ^= TaskId.GetHashCode();
+    if (TaskDesc.Length != 0) hash ^= TaskDesc.GetHashCode();
+    if (TaskType != 0) hash ^= TaskType.GetHashCode();
+    if (TargetCount != 0) hash ^= TargetCount.GetHashCode();
+    hash ^= depotIds_.GetHashCode();
+    hash ^= materialsId_.GetHashCode();
+    if (State != 0) hash ^= State.GetHashCode();
+    if (CurrentCount != 0) hash ^= CurrentCount.GetHashCode();
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (TaskId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(TaskId);
+    }
+    if (TaskDesc.Length != 0) {
+      output.WriteRawTag(18);
+      output.WriteString(TaskDesc);
+    }
+    if (TaskType != 0) {
+      output.WriteRawTag(24);
+      output.WriteInt32(TaskType);
+    }
+    if (TargetCount != 0) {
+      output.WriteRawTag(32);
+      output.WriteInt32(TargetCount);
+    }
+    depotIds_.WriteTo(output, _repeated_depotIds_codec);
+    materialsId_.WriteTo(output, _repeated_materialsId_codec);
+    if (State != 0) {
+      output.WriteRawTag(56);
+      output.WriteInt32(State);
+    }
+    if (CurrentCount != 0) {
+      output.WriteRawTag(64);
+      output.WriteInt32(CurrentCount);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (TaskId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(TaskId);
+    }
+    if (TaskDesc.Length != 0) {
+      output.WriteRawTag(18);
+      output.WriteString(TaskDesc);
+    }
+    if (TaskType != 0) {
+      output.WriteRawTag(24);
+      output.WriteInt32(TaskType);
+    }
+    if (TargetCount != 0) {
+      output.WriteRawTag(32);
+      output.WriteInt32(TargetCount);
+    }
+    depotIds_.WriteTo(ref output, _repeated_depotIds_codec);
+    materialsId_.WriteTo(ref output, _repeated_materialsId_codec);
+    if (State != 0) {
+      output.WriteRawTag(56);
+      output.WriteInt32(State);
+    }
+    if (CurrentCount != 0) {
+      output.WriteRawTag(64);
+      output.WriteInt32(CurrentCount);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CalculateSize() {
+    int size = 0;
+    if (TaskId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(TaskId);
+    }
+    if (TaskDesc.Length != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeStringSize(TaskDesc);
+    }
+    if (TaskType != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(TaskType);
+    }
+    if (TargetCount != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(TargetCount);
+    }
+    size += depotIds_.CalculateSize(_repeated_depotIds_codec);
+    size += materialsId_.CalculateSize(_repeated_materialsId_codec);
+    if (State != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(State);
+    }
+    if (CurrentCount != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(CurrentCount);
+    }
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(TaskInfo other) {
+    if (other == null) {
+      return;
+    }
+    if (other.TaskId != 0) {
+      TaskId = other.TaskId;
+    }
+    if (other.TaskDesc.Length != 0) {
+      TaskDesc = other.TaskDesc;
+    }
+    if (other.TaskType != 0) {
+      TaskType = other.TaskType;
+    }
+    if (other.TargetCount != 0) {
+      TargetCount = other.TargetCount;
+    }
+    depotIds_.Add(other.depotIds_);
+    materialsId_.Add(other.materialsId_);
+    if (other.State != 0) {
+      State = other.State;
+    }
+    if (other.CurrentCount != 0) {
+      CurrentCount = other.CurrentCount;
+    }
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          TaskId = input.ReadInt32();
+          break;
+        }
+        case 18: {
+          TaskDesc = input.ReadString();
+          break;
+        }
+        case 24: {
+          TaskType = input.ReadInt32();
+          break;
+        }
+        case 32: {
+          TargetCount = input.ReadInt32();
+          break;
+        }
+        case 42:
+        case 40: {
+          depotIds_.AddEntriesFrom(input, _repeated_depotIds_codec);
+          break;
+        }
+        case 50:
+        case 48: {
+          materialsId_.AddEntriesFrom(input, _repeated_materialsId_codec);
+          break;
+        }
+        case 56: {
+          State = input.ReadInt32();
+          break;
+        }
+        case 64: {
+          CurrentCount = input.ReadInt32();
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          TaskId = input.ReadInt32();
+          break;
+        }
+        case 18: {
+          TaskDesc = input.ReadString();
+          break;
+        }
+        case 24: {
+          TaskType = input.ReadInt32();
+          break;
+        }
+        case 32: {
+          TargetCount = input.ReadInt32();
+          break;
+        }
+        case 42:
+        case 40: {
+          depotIds_.AddEntriesFrom(ref input, _repeated_depotIds_codec);
+          break;
+        }
+        case 50:
+        case 48: {
+          materialsId_.AddEntriesFrom(ref input, _repeated_materialsId_codec);
+          break;
+        }
+        case 56: {
+          State = input.ReadInt32();
+          break;
+        }
+        case 64: {
+          CurrentCount = input.ReadInt32();
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+/// <summary>
 /// 上报任务进度请求（状态迁移 / 进度变化时客户端主动上报）
 /// </summary>
 [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
@@ -6405,7 +6917,7 @@ public sealed partial class TaskProgressNtf : pb::IMessage<TaskProgressNtf>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::RequestEntityReflection.Descriptor.MessageTypes[23]; }
+    get { return global::RequestEntityReflection.Descriptor.MessageTypes[24]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6635,7 +7147,7 @@ public sealed partial class TaskProgressReq : pb::IMessage<TaskProgressReq>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::RequestEntityReflection.Descriptor.MessageTypes[24]; }
+    get { return global::RequestEntityReflection.Descriptor.MessageTypes[25]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

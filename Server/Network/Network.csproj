@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<?xml version='1.0' encoding='utf-8'?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="15.0">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -88,6 +88,6 @@
     <Content Include="LubanManager\Tb\tbtaskdata.bytes">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
+  <Compile Include="LubanManager\Codes\DriverDiskType.cs" /><Compile Include="LubanManager\Codes\Tbdialogue.cs" /><Compile Include="LubanManager\Codes\TbdialogueLine.cs" /><Compile Include="LubanManager\Codes\TbdialogueOption.cs" /><Compile Include="LubanManager\Codes\TbdriverDisk.cs" /><Compile Include="LubanManager\Codes\TbmaterialData.cs" /><Compile Include="LubanManager\Codes\dialogue.cs" /><Compile Include="LubanManager\Codes\dialogueLine.cs" /><Compile Include="LubanManager\Codes\dialogueOption.cs" /><Compile Include="LubanManager\Codes\driverDisk.cs" /><Compile Include="LubanManager\Codes\materialData.cs" /><Content Include="LubanManager\Tb\tbdialogue.bytes"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content><Content Include="LubanManager\Tb\tbdialogueline.bytes"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content><Content Include="LubanManager\Tb\tbdialogueoption.bytes"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content><Content Include="LubanManager\Tb\tbdriverdisk.bytes"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content><Content Include="LubanManager\Tb\tbmaterialdata.bytes"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></Content></ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

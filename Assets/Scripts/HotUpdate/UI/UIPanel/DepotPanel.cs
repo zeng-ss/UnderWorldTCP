@@ -20,7 +20,15 @@ namespace HotUpdate.UI.UIPanel
         #region 详情界面UI组件
 
         public Image depotIcon;
-        public TMP_Text depotName, depotLevelText, depotBaseTypeText, depotBaseText, depotAttackText, depotHealthText, depotDefenseText, depotBaoJiText;
+
+        public TMP_Text depotName,
+            depotLevelText,
+            depotBaseTypeText,
+            depotBaseText,
+            depotAttackText,
+            depotHealthText,
+            depotDefenseText,
+            depotBaoJiText;
 
         #endregion
 

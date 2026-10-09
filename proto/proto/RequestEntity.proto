@@ -95,6 +95,7 @@ message PlayerAttackReq{
 message GetRewardReq{
   int32 role_id = 1;
   int32 reward_type = 2;  //奖励类型: 1=任务奖励 2=击杀奖励 3=拾取物品
+  int32 task_id = 3;      //任务奖励时必填：服务端据此从 Luban 配置取该任务的奖励内容
 }
 
 //开始游戏请求
@@ -167,11 +168,24 @@ message SyncEnemyAniReq{
 
 // ========== 任务进度持久化 ==========
 
-// 单条任务进度
+// 单条任务进度（客户端 → 服务端上报用，只带可变状态）
 message TaskProgressData{
-  int32 task_id = 1;        // 任务唯一 id（对应客户端 TaskDataSo.taskID）
+  int32 task_id = 1;        // 任务唯一 id（对应服务端 Luban taskData.TaskID）
   int32 state = 2;          // 任务状态：0=Locked 1=InProgress 2=Completed 3=Claimed（对应 TaskState 枚举）
   int32 current_count = 3;  // 当前进度
+}
+
+// 任务完整数据（服务端 → 客户端下发）：定义来自 Luban，进度来自 role_task_progress。
+// 客户端不再维护任何本地任务配置，任务描述 / 类型 / 目标数量 / 奖励全部以本消息为准。
+message TaskInfo{
+  int32 task_id = 1;              // 任务唯一 id
+  string task_desc = 2;           // 任务描述（UI 展示）
+  int32 task_type = 3;            // 任务类型（对应 TaskType 枚举：0=击败第一个敌人 1=给每一个驱动盘都升一级）
+  int32 target_count = 4;         // 目标数量
+  repeated int32 depot_ids = 5;   // 驱动盘奖励 id 列表（用服务端物品编号，见 ItemCatalog）
+  repeated int32 materials_id = 6;// 材料奖励 id 列表（同上）
+  int32 state = 7;                // 任务状态：0=Locked 1=InProgress 2=Completed 3=Claimed
+  int32 current_count = 8;        // 当前进度
 }
 
 // 上报任务进度请求（状态迁移 / 进度变化时客户端主动上报）
