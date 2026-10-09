@@ -1,48 +1,52 @@
+using HotUpdate.Event;
 using UnityEngine;
 
-// 移动子系统：重力、CharacterController 位移与着地判断（原 PlayerCtrl.Update 的重力块）。
-// PlayerCtrl.Update 只需调 Tick()。
-public class PlayerLocomotion
+namespace HotUpdate.Player
 {
-    private const float Gravity = -5f;
-
-    private readonly CharacterController _characterController;
-    private readonly PlayerStateMachine _stateMachine;
-    private Vector3 _velocity;
-    private bool _hasGravity;
-
-    public bool IsOnGround { get; private set; }
-
-    public PlayerLocomotion(CharacterController characterController, PlayerStateMachine stateMachine)
+    // 移动子系统：重力、CharacterController 位移与着地判断（原 PlayerCtrl.Update 的重力块）。
+    // PlayerCtrl.Update 只需调 Tick()。
+    public class PlayerLocomotion
     {
-        _characterController = characterController;
-        _stateMachine = stateMachine;
-    }
+        private const float Gravity = -5f;
 
-    /// <summary>原 PlayerCtrl.Init() 里与移动相关的部分</summary>
-    public void Init()
-    {
-        _characterController.enabled = true;
-        _hasGravity = true;
-    }
+        private readonly CharacterController _characterController;
+        private readonly PlayerStateMachine _stateMachine;
+        private Vector3 _velocity;
+        private bool _hasGravity;
 
-    /// <summary>逐帧调用，内部逻辑与重构前完全一致</summary>
-    public void Tick()
-    {
-        if (!_characterController.enabled && _stateMachine.CurrentState != PlayerStateType.Dead)
-            _characterController.enabled = true;
+        public bool IsOnGround { get; private set; }
 
-        if (!_hasGravity || !_characterController.enabled) return;
-
-        _characterController.Move(_velocity * Time.deltaTime);
-        IsOnGround = _characterController.isGrounded;
-        if (IsOnGround)
+        public PlayerLocomotion(CharacterController characterController, PlayerStateMachine stateMachine)
         {
-            _velocity.y = -2f;
+            _characterController = characterController;
+            _stateMachine = stateMachine;
         }
-        else
+
+        /// <summary>原 PlayerCtrl.Init() 里与移动相关的部分</summary>
+        public void Init()
         {
-            _velocity.y += Gravity * Time.deltaTime;
+            _characterController.enabled = true;
+            _hasGravity = true;
+        }
+
+        /// <summary>逐帧调用，内部逻辑与重构前完全一致</summary>
+        public void Tick()
+        {
+            if (!_characterController.enabled && _stateMachine.CurrentState != PlayerStateType.Dead)
+                _characterController.enabled = true;
+
+            if (!_hasGravity || !_characterController.enabled) return;
+
+            _characterController.Move(_velocity * Time.deltaTime);
+            IsOnGround = _characterController.isGrounded;
+            if (IsOnGround)
+            {
+                _velocity.y = -2f;
+            }
+            else
+            {
+                _velocity.y += Gravity * Time.deltaTime;
+            }
         }
     }
 }

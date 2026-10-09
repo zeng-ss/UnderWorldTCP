@@ -1,618 +1,623 @@
 using System;
 using System.Collections.Generic;
 using Google.Protobuf;
+using HotUpdate.Data;
 using UnityEngine;
+using AppContext = HotUpdate.Core.AppContext;
 
-/// <summary>
-/// 协议处理层：统一管理请求发送、响应处理、事件广播。
-/// 普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.Proto。
-/// </summary>
-public class ProtoHandler
+namespace HotUpdate.Network
 {
-    #region 位置同步状态 => 玩家
-
-    private Transform _syncTarget;
-    private Transform _syncRotationTarget;
-    private float _syncTimer;
-    private string _syncNickname;
-    private int _syncRoleId;
-
-    // 敌人
-    private Transform _syncETarget;
-    private Transform _syncERotationTarget;
-
-    #endregion
-
-    #region 事件
-
-    public event Action<PositionSyncNtf> OnPositionSyncReceived;
-    public event Action<PlayerEnterSceneNtf> OnPlayerEnterScene;
-    public event Action<PlayerLeaveSceneNtf> OnPlayerLeaveScene;
-    public event Action<RoomInfoNtf> OnRoomInfoChanged;
-    public event Action<RoomStartGameNtf> OnRoomStartGame;
-    public event Action<PlayerAttackRet> OnPlayerAttackBroadcast;
-    public event Action<SyncAniRet> OnSyncAniReceived;
-    public event Action<PlayerVfxNtf> OnPlayerVfxReceived;
-    public event Action<EnemyPositionSyncRet> OnEnemyPositionSyncReceived;
-    public event Action<EnemySyncAniRet> OnEnemySyncAniReceived;
-
-    #endregion
-
-    #region 回调存储
-
-    private Action<RegistRet> _registCallback;
-    private Action<loginRet> _loginCallback;
-    private Action<GetServerListRet> _serverListCallback;
-    private Action<loginGameServerRet> _loginGameServerCallback;
-    private Action<CreateRoleRet> _createRoleCallback;
-    private Action<StartGameRet> _startGameCallback;
-    private Action<SaveRoleRet> _saveRoleCallback;
-    private Action<ChangeSceneRet> _changeSceneCallback;
-    private Action<SpawnEnemyRet> _spawnEnemyCallback;
-    private readonly Dictionary<int, Action<PlayerAttackRet>> _playerAttackCallbacks = new();
-    private int _nextAttackSeqId;
-    private Action<GetRewardRet> _getRewardCallback;
-    private Action<TaskProgressRet> _taskProgressCallback;
-    private Action<TaskProgressListRet> _taskProgressListCallback;
-    private Action<CreateRoomRet> _createRoomCallback;
-    private Action<JoinRoomRet> _joinRoomCallback;
-
-    #endregion
-
-    #region 初始化
-
-    // 场景/预制体里可能存在多个实例，只保留最早 Awake 的一个
-    private static ProtoHandler _live;
-
-    public void Init()
+    /// <summary>
+    /// 协议处理层：统一管理请求发送、响应处理、事件广播。
+    /// 普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.Proto。
+    /// </summary>
+    public class ProtoHandler
     {
-        InitHandlers();
-    }
+        #region 位置同步状态 => 玩家
 
-    private void InitHandlers()
-    {
-        AppContext.Events.AddNetHandler(NetDefine.CMD_RegistCode, OnRegistResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_LoginCode, OnLoginResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_GetServerListCode, OnGetServerListResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_LoginGameServerCode, OnLoginGameServerResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoleCode, OnCreateRoleResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_StartGameCode, OnStartGameResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_SaveRoleCode, OnSaveRoleResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_ChangeSceneCode, OnChangeSceneResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_SpawnEnemyCode, OnSpawnEnemyResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerAttackCode, OnPlayerAttackResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_GetRewardCode, OnGetRewardResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_TaskProgressCode, OnTaskProgressResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_TaskProgressReqCode, OnTaskProgressListResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoomCode, OnCreateRoomResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_JoinRoomCode, OnJoinRoomResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_RoomInfoCode, OnRoomInfoNtf);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_RoomStartGameCode, OnRoomStartGameNtf);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_ErrCode, OnErrorResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_PositionSyncCode, OnPositionSync);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerEnterSceneCode, OnPlayerEnterSceneEvent);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerLeaveSceneCode, OnPlayerLeaveSceneEvent);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_SyneAniCode, OnSyncAniResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerVfxCode, OnPlayerVfxResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_EnemyPositionSyncCode, OnEnemyPosSyncResult);
-        AppContext.Events.AddNetHandler(NetDefine.CMD_SyneEnemyAniCode, OnEnemyAniSyncResult);
-    }
+        private Transform _syncTarget;
+        private Transform _syncRotationTarget;
+        private float _syncTimer;
+        private string _syncNickname;
+        private int _syncRoleId;
 
-    // 由 GameManager.Update 每帧驱动
-    private const float SyncInterval = 0.05f; // 20 次/秒，位置同步足够平滑
+        // 敌人
+        private Transform _syncETarget;
+        private Transform _syncERotationTarget;
 
-    public void Tick()
-    {
-        _syncTimer += Time.deltaTime;
-        if (!(_syncTimer >= SyncInterval)) return;
-        _syncTimer = 0;
+        #endregion
 
-        // 玩家位置上报
-        if (_syncTarget)
+        #region 事件
+
+        public event Action<PositionSyncNtf> OnPositionSyncReceived;
+        public event Action<PlayerEnterSceneNtf> OnPlayerEnterScene;
+        public event Action<PlayerLeaveSceneNtf> OnPlayerLeaveScene;
+        public event Action<RoomInfoNtf> OnRoomInfoChanged;
+        public event Action<RoomStartGameNtf> OnRoomStartGame;
+        public event Action<PlayerAttackRet> OnPlayerAttackBroadcast;
+        public event Action<SyncAniRet> OnSyncAniReceived;
+        public event Action<PlayerVfxNtf> OnPlayerVfxReceived;
+        public event Action<EnemyPositionSyncRet> OnEnemyPositionSyncReceived;
+        public event Action<EnemySyncAniRet> OnEnemySyncAniReceived;
+
+        #endregion
+
+        #region 回调存储
+
+        private Action<RegistRet> _registCallback;
+        private Action<loginRet> _loginCallback;
+        private Action<GetServerListRet> _serverListCallback;
+        private Action<loginGameServerRet> _loginGameServerCallback;
+        private Action<CreateRoleRet> _createRoleCallback;
+        private Action<StartGameRet> _startGameCallback;
+        private Action<SaveRoleRet> _saveRoleCallback;
+        private Action<ChangeSceneRet> _changeSceneCallback;
+        private Action<SpawnEnemyRet> _spawnEnemyCallback;
+        private readonly Dictionary<int, Action<PlayerAttackRet>> _playerAttackCallbacks = new();
+        private int _nextAttackSeqId;
+        private Action<GetRewardRet> _getRewardCallback;
+        private Action<TaskProgressRet> _taskProgressCallback;
+        private Action<TaskProgressListRet> _taskProgressListCallback;
+        private Action<CreateRoomRet> _createRoomCallback;
+        private Action<JoinRoomRet> _joinRoomCallback;
+
+        #endregion
+
+        #region 初始化
+
+        // 场景/预制体里可能存在多个实例，只保留最早 Awake 的一个
+        private static ProtoHandler _live;
+
+        public void Init()
         {
-            NetClientMgr.Instance.Send(NetDefine.CMD_PositionSyncCode, new PositionSyncReq
+            InitHandlers();
+        }
+
+        private void InitHandlers()
+        {
+            AppContext.Events.AddNetHandler(NetDefine.CMD_RegistCode, OnRegistResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_LoginCode, OnLoginResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_GetServerListCode, OnGetServerListResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_LoginGameServerCode, OnLoginGameServerResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoleCode, OnCreateRoleResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_StartGameCode, OnStartGameResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_SaveRoleCode, OnSaveRoleResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_ChangeSceneCode, OnChangeSceneResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_SpawnEnemyCode, OnSpawnEnemyResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerAttackCode, OnPlayerAttackResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_GetRewardCode, OnGetRewardResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_TaskProgressCode, OnTaskProgressResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_TaskProgressReqCode, OnTaskProgressListResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoomCode, OnCreateRoomResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_JoinRoomCode, OnJoinRoomResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_RoomInfoCode, OnRoomInfoNtf);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_RoomStartGameCode, OnRoomStartGameNtf);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_ErrCode, OnErrorResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_PositionSyncCode, OnPositionSync);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerEnterSceneCode, OnPlayerEnterSceneEvent);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerLeaveSceneCode, OnPlayerLeaveSceneEvent);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_SyneAniCode, OnSyncAniResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerVfxCode, OnPlayerVfxResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_EnemyPositionSyncCode, OnEnemyPosSyncResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_SyneEnemyAniCode, OnEnemyAniSyncResult);
+        }
+
+        // 由 GameManager.Update 每帧驱动
+        private const float SyncInterval = 0.05f; // 20 次/秒，位置同步足够平滑
+
+        public void Tick()
+        {
+            _syncTimer += Time.deltaTime;
+            if (!(_syncTimer >= SyncInterval)) return;
+            _syncTimer = 0;
+
+            // 玩家位置上报
+            if (_syncTarget)
             {
-                RoleId = _syncRoleId,
-                PosX = _syncTarget.position.x,
-                PosY = _syncTarget.position.y,
-                PosZ = _syncTarget.position.z,
-                RotationY = _syncRotationTarget ? _syncRotationTarget.eulerAngles.y : 0f,
-                NikeName = _syncNickname
-            }.ToByteString());
-        }
-    }
-
-    #endregion
-
-    #region 位置同步控制
-
-    /// <summary>
-    /// 开始定时向服务端发送位置信息（联机时在 StartGame 成功后调用）
-    /// rotationTarget 用于同步模型旋转（playerModel.transform），不传则用 positionTarget 的旋转
-    /// </summary>
-    public void StartPositionSync(Transform positionTarget, int roleId, Transform rotationTarget = null)
-    {
-        MainRoleInfo info = AppContext.Session.MainRoleInfo;
-        string nickname = info != null ? info.BaseInfo.Nickname : AppContext.Session.PlayerName;
-        if (string.IsNullOrEmpty(nickname)) nickname = "Player" + roleId;
-
-        _syncTarget = positionTarget;
-        _syncRotationTarget = rotationTarget;
-        _syncRoleId = roleId;
-        _syncNickname = nickname;
-        _syncTimer = 0;
-    }
-
-    public void StartEPositionSync(Transform positionTarget, int roleId, Transform rotationTarget = null)
-    {
-        _syncETarget = positionTarget;
-        _syncERotationTarget = rotationTarget;
-        _syncRoleId = roleId;
-    }
-
-    public void StopPositionSync()
-    {
-        _syncTarget = null;
-        _syncRotationTarget = null;
-    }
-
-    public void StopEPositionSync()
-    {
-        _syncETarget = null;
-        _syncERotationTarget = null;
-    }
-
-    #endregion
-
-    #region 请求方法
-
-    // 玩家动画同步：单向广播（服务端只转发给其他人，不给请求者回包），fire-and-forget。
-    public void RequestSyncAni(int roleId, string aniName, int skillConfigIndex)
-    {
-        SyncAniReq req = new SyncAniReq
-            { RoleId = roleId, AnimationName = aniName, SkillConfigIndex = skillConfigIndex };
-        NetClientMgr.Instance.Send(NetDefine.CMD_SyneAniCode, req.ToByteString());
-    }
-
-    // 敌人动画同步：单向广播，fire-and-forget。
-    public void RequestSyncEnemyAni(int roleId, string aniName)
-    {
-        EnemySyncAniRet req = new EnemySyncAniRet { RoleId = roleId, AnimationName = aniName };
-        NetClientMgr.Instance.Send(NetDefine.CMD_SyneEnemyAniCode, req.ToByteString());
-    }
-
-    public void RequestSyncVfx(PlayerVfxNtf ntf)
-    {
-        NetClientMgr.Instance.Send(NetDefine.CMD_PlayerVfxCode, ntf.ToByteString());
-    }
-
-    public void RequestRegist(string userName, string phoneNum, string password, Action<RegistRet> callback)
-    {
-        _registCallback = callback;
-        RegistReq req = new RegistReq { UserName = userName, Password = password };
-        NetClientMgr.Instance.Send(NetDefine.CMD_RegistCode, req.ToByteString());
-    }
-
-    public void RequestLogin(string userName, string password, Action<loginRet> callback)
-    {
-        _loginCallback = callback;
-        LoginReq req = new LoginReq { UserName = userName, Password = password };
-        NetClientMgr.Instance.Send(NetDefine.CMD_LoginCode, req.ToByteString());
-    }
-
-    public void RequestServerList(Action<GetServerListRet> callback)
-    {
-        _serverListCallback = callback;
-        GetServerListReq req = new GetServerListReq { ServerId = 0 };
-        NetClientMgr.Instance.Send(NetDefine.CMD_GetServerListCode, req.ToByteString());
-    }
-
-    public void RequestLoginGameServer(int accountId, int serverId, Action<loginGameServerRet> callback)
-    {
-        _loginGameServerCallback = callback;
-        LoginGameServerReq req = new LoginGameServerReq { AccountId = accountId, GameServerId = serverId };
-        NetClientMgr.Instance.Send(NetDefine.CMD_LoginGameServerCode, req.ToByteString());
-    }
-
-    public void RequestCreateRole(int accountId, int serverId, string nickname, int jobId,
-        Action<CreateRoleRet> callback)
-    {
-        _createRoleCallback = callback;
-        CreateRoleReq req = new CreateRoleReq
-        {
-            AccountId = accountId,
-            GameServerId = serverId,
-            Nickname = nickname,
-            JobId = jobId
-        };
-        NetClientMgr.Instance.Send(NetDefine.CMD_CreateRoleCode, req.ToByteString());
-    }
-
-    public void RequestStartGame(int roleId, Action<StartGameRet> callback)
-    {
-        _startGameCallback = callback;
-        StartGameReq req = new StartGameReq { RoleId = roleId };
-        NetClientMgr.Instance.Send(NetDefine.CMD_StartGameCode, req.ToByteString());
-    }
-
-    public void RequestSaveRole(SaveRoleReq req, Action<SaveRoleRet> callback)
-    {
-        _saveRoleCallback = callback;
-        NetClientMgr.Instance.Send(NetDefine.CMD_SaveRoleCode, req.ToByteString());
-    }
-
-    public void RequestChangeScene(int roleId, string sceneName, Action<ChangeSceneRet> callback)
-    {
-        _changeSceneCallback = callback;
-        ChangeSceneReq req = new ChangeSceneReq { RoleId = roleId, SceneName = sceneName };
-        NetClientMgr.Instance.Send(NetDefine.CMD_ChangeSceneCode, req.ToByteString());
-    }
-
-    public void RequestSpawnEnemy(int roleId, int enemyConfigId, float maxHp, Vector3 pos,
-        Action<SpawnEnemyRet> callback)
-    {
-        _spawnEnemyCallback = callback;
-        SpawnEnemyReq req = new SpawnEnemyReq
-        {
-            RoleId = roleId,
-            EnemyConfigId = enemyConfigId,
-            MaxHp = maxHp,
-            PosX = pos.x,
-            PosY = pos.y,
-            PosZ = pos.z
-        };
-        NetClientMgr.Instance.Send(NetDefine.CMD_SpawnEnemyCode, req.ToByteString());
-    }
-
-    public void RequestPlayerAttack(int roleId, int enemyInstanceId, float damage, float baojiPercent, bool isExAttack,
-        Action<PlayerAttackRet> callback)
-    {
-        int seqId = ++_nextAttackSeqId;
-        _playerAttackCallbacks[seqId] = callback;
-        PlayerAttackReq req = new PlayerAttackReq
-        {
-            RoleId = roleId,
-            EnemyInstanceId = enemyInstanceId,
-            Damage = damage,
-            BaojiPercent = baojiPercent,
-            IsExAttack = isExAttack,
-            SequenceId = seqId
-        };
-        NetClientMgr.Instance.Send(NetDefine.CMD_PlayerAttackCode, req.ToByteString());
-    }
-
-    public void RequestGetReward(int rewardType, Action<GetRewardRet> callback)
-    {
-        _getRewardCallback = callback;
-        GetRewardReq req = new GetRewardReq { RoleId = AppContext.Session.RoleId, RewardType = rewardType };
-        NetClientMgr.Instance.Send(NetDefine.CMD_GetRewardCode, req.ToByteString());
-    }
-
-    /// <summary>
-    /// 保存任务进度到服务端（任务状态机迁移时调用）。批量上报，支持一次提交多个任务。
-    /// </summary>
-    public void RequestSaveTaskProgress(TaskDataRuntime task, Action<TaskProgressRet> callback)
-    {
-        _taskProgressCallback = callback;
-        TaskProgressNtf ntf = new TaskProgressNtf { RoleId = AppContext.Session.RoleId };
-        ntf.ProgressList.Add(new TaskProgressData
-        {
-            TaskId = task.TaskId,
-            State = (int)task.State,
-            CurrentCount = task.CurrentCount
-        });
-        NetClientMgr.Instance.Send(NetDefine.CMD_TaskProgressCode, ntf.ToByteString());
-    }
-
-    /// <summary>
-    /// 从服务端拉取全量任务进度（联机时在 StartGame 成功后调用，恢复任务状态机）。
-    /// </summary>
-    public void RequestLoadTaskProgress(Action<TaskProgressListRet> callback)
-    {
-        _taskProgressListCallback = callback;
-        TaskProgressReq req = new TaskProgressReq { RoleId = AppContext.Session.RoleId };
-        NetClientMgr.Instance.Send(NetDefine.CMD_TaskProgressReqCode, req.ToByteString());
-    }
-
-    public void RequestCreateRoom(int roleId, string roomName, string nickname,
-        Action<CreateRoomRet> callback)
-    {
-        _createRoomCallback = callback;
-        CreateRoomReq req = new CreateRoomReq
-        {
-            RoleId = roleId,
-            RoomName = roomName,
-            Nickname = nickname
-        };
-        NetClientMgr.Instance.Send(NetDefine.CMD_CreateRoomCode, req.ToByteString());
-    }
-
-    public void RequestJoinRoom(int roleId, int roomId, string nickname,
-        Action<JoinRoomRet> callback)
-    {
-        _joinRoomCallback = callback;
-        JoinRoomReq req = new JoinRoomReq
-        {
-            RoleId = roleId,
-            RoomId = roomId,
-            Nickname = nickname
-        };
-        NetClientMgr.Instance.Send(NetDefine.CMD_JoinRoomCode, req.ToByteString());
-    }
-
-    public void RequestLeaveRoom(int roleId)
-    {
-        LeaveRoomReq req = new LeaveRoomReq { RoleId = roleId };
-        NetClientMgr.Instance.Send(NetDefine.CMD_LeaveRoomCode, req.ToByteString());
-    }
-
-    public void RequestRoomStartGame(int roleId)
-    {
-        RoomStartGameReq req = new RoomStartGameReq { RoleId = roleId };
-        NetClientMgr.Instance.Send(NetDefine.CMD_RoomStartGameCode, req.ToByteString());
-    }
-
-    public void RequestPlayerReady(int roleId, bool isReady)
-    {
-        PlayerReadyReq req = new PlayerReadyReq { RoleId = roleId, IsReady = isReady };
-        NetClientMgr.Instance.Send(NetDefine.CMD_PlayerReadyCode, req.ToByteString());
-    }
-
-    #endregion
-
-    #region 响应处理
-
-    private void OnRegistResult(ByteString data)
-    {
-        RegistRet ret = RegistRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 注册结果 CmdCode={ret.CmdCode}");
-        _registCallback?.Invoke(ret);
-        _registCallback = null;
-    }
-
-    private void OnLoginResult(ByteString data)
-    {
-        loginRet ret = loginRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 登录结果 CmdCode={ret.CmdCode}");
-        _loginCallback?.Invoke(ret);
-        _loginCallback = null;
-    }
-
-    private void OnGetServerListResult(ByteString data)
-    {
-        GetServerListRet ret = GetServerListRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 服务器列表 数量={ret.GameServers.Count}");
-        _serverListCallback?.Invoke(ret);
-        _serverListCallback = null;
-    }
-
-    private void OnLoginGameServerResult(ByteString data)
-    {
-        loginGameServerRet ret = loginGameServerRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 登录游戏服务器结果 CmdCode={ret.CmdCode}");
-        _loginGameServerCallback?.Invoke(ret);
-        _loginGameServerCallback = null;
-    }
-
-    private void OnCreateRoleResult(ByteString data)
-    {
-        CreateRoleRet ret = CreateRoleRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 创建角色结果 CmdCode={ret.CmdCode}");
-        _createRoleCallback?.Invoke(ret);
-        _createRoleCallback = null;
-    }
-
-    private void OnStartGameResult(ByteString data)
-    {
-        StartGameRet ret = StartGameRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 开始游戏结果 CmdCode={ret.CmdCode}");
-        _startGameCallback?.Invoke(ret);
-        _startGameCallback = null;
-    }
-
-    private void OnSaveRoleResult(ByteString data)
-    {
-        SaveRoleRet ret = SaveRoleRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 保存角色结果 CmdCode={ret.CmdCode}");
-        _saveRoleCallback?.Invoke(ret);
-        _saveRoleCallback = null;
-    }
-
-    private void OnChangeSceneResult(ByteString data)
-    {
-        ChangeSceneRet ret = ChangeSceneRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 切换场景结果 CmdCode={ret.CmdCode}");
-        _changeSceneCallback?.Invoke(ret);
-        _changeSceneCallback = null;
-    }
-
-    private void OnSpawnEnemyResult(ByteString data)
-    {
-        SpawnEnemyRet ret = SpawnEnemyRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 敌人生成结果 instanceId={ret.EnemyInstanceId} pos=({ret.PosX},{ret.PosY},{ret.PosZ})");
-
-        if (_spawnEnemyCallback != null)
-        {
-            // 请求者的回调（GameManager.SpawnEnemy）
-            _spawnEnemyCallback.Invoke(ret);
-            _spawnEnemyCallback = null;
-        }
-        else
-        {
-            // 服务端广播给其他人 → 直接生成敌人
-            AppContext.RemotePlayer.SpawnEnemy(ret);
-        }
-    }
-
-    private void OnPlayerAttackResult(ByteString data)
-    {
-        PlayerAttackRet ret = PlayerAttackRet.Parser.ParseFrom(data);
-        Debug.Log(
-            $"ProtoHandler: 攻击结果 attacker={ret.AttackerRoleId} enemy={ret.EnemyInstanceId} damage={ret.DamageDealt} isDead={ret.IsDead}");
-
-        // 判断是不是自己的攻击（回包的 attacker_role_id = 本地 roleId，且请求中有匹配的回调）
-        if (ret.AttackerRoleId == AppContext.Session.RoleId)
-        {
-            // 遍历字典找到匹配的回调（sequence_id 无法回传因为请求中没带）
-            // 取字典中最旧的未处理回调
-            if (_playerAttackCallbacks.Count > 0)
-            {
-                var keys = new List<int>(_playerAttackCallbacks.Keys);
-                keys.Sort();
-                int oldestKey = keys[0];
-                var cb = _playerAttackCallbacks[oldestKey];
-                _playerAttackCallbacks.Remove(oldestKey);
-                cb?.Invoke(ret);
+                NetClientMgr.Instance.Send(NetDefine.CMD_PositionSyncCode, new PositionSyncReq
+                {
+                    RoleId = _syncRoleId,
+                    PosX = _syncTarget.position.x,
+                    PosY = _syncTarget.position.y,
+                    PosZ = _syncTarget.position.z,
+                    RotationY = _syncRotationTarget ? _syncRotationTarget.eulerAngles.y : 0f,
+                    NikeName = _syncNickname
+                }.ToByteString());
             }
         }
-        else if (ret.AttackerRoleId > 0)
+
+        #endregion
+
+        #region 位置同步控制
+
+        /// <summary>
+        /// 开始定时向服务端发送位置信息（联机时在 StartGame 成功后调用）
+        /// rotationTarget 用于同步模型旋转（playerModel.transform），不传则用 positionTarget 的旋转
+        /// </summary>
+        public void StartPositionSync(Transform positionTarget, int roleId, Transform rotationTarget = null)
         {
-            // 别人的攻击广播
-            OnPlayerAttackBroadcast?.Invoke(ret);
+            MainRoleInfo info = AppContext.Session.MainRoleInfo;
+            string nickname = info != null ? info.BaseInfo.Nickname : AppContext.Session.PlayerName;
+            if (string.IsNullOrEmpty(nickname)) nickname = "Player" + roleId;
+
+            _syncTarget = positionTarget;
+            _syncRotationTarget = rotationTarget;
+            _syncRoleId = roleId;
+            _syncNickname = nickname;
+            _syncTimer = 0;
         }
-    }
 
-    private void OnGetRewardResult(ByteString data)
-    {
-        GetRewardRet ret = GetRewardRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 奖励结果 CmdCode={ret.CmdCode}");
-        _getRewardCallback?.Invoke(ret);
-        _getRewardCallback = null;
-    }
+        public void StartEPositionSync(Transform positionTarget, int roleId, Transform rotationTarget = null)
+        {
+            _syncETarget = positionTarget;
+            _syncERotationTarget = rotationTarget;
+            _syncRoleId = roleId;
+        }
 
-    private void OnTaskProgressResult(ByteString data)
-    {
-        TaskProgressRet ret = TaskProgressRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 任务进度保存结果 CmdCode={ret.CmdCode}");
-        _taskProgressCallback?.Invoke(ret);
-        _taskProgressCallback = null;
-    }
+        public void StopPositionSync()
+        {
+            _syncTarget = null;
+            _syncRotationTarget = null;
+        }
 
-    private void OnTaskProgressListResult(ByteString data)
-    {
-        TaskProgressListRet ret = TaskProgressListRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 任务进度拉取结果 CmdCode={ret.CmdCode} count={ret.ProgressList.Count}");
-        _taskProgressListCallback?.Invoke(ret);
-        _taskProgressListCallback = null;
-    }
+        public void StopEPositionSync()
+        {
+            _syncETarget = null;
+            _syncERotationTarget = null;
+        }
 
-    private void OnCreateRoomResult(ByteString data)
-    {
-        CreateRoomRet ret = CreateRoomRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 创建房间结果 roomId={ret.RoomId}");
-        _createRoomCallback?.Invoke(ret);
-        _createRoomCallback = null;
-    }
+        #endregion
 
-    private void OnJoinRoomResult(ByteString data)
-    {
-        JoinRoomRet ret = JoinRoomRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 加入房间结果 roomId={ret.RoomId} players={ret.Players.Count}");
-        _joinRoomCallback?.Invoke(ret);
-        _joinRoomCallback = null;
-    }
+        #region 请求方法
 
-    private void OnRoomInfoNtf(ByteString data)
-    {
-        RoomInfoNtf ntf = RoomInfoNtf.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 房间信息变更 roomId={ntf.RoomId} players={ntf.Players.Count}");
-        OnRoomInfoChanged?.Invoke(ntf);
-    }
+        // 玩家动画同步：单向广播（服务端只转发给其他人，不给请求者回包），fire-and-forget。
+        public void RequestSyncAni(int roleId, string aniName, int skillConfigIndex)
+        {
+            SyncAniReq req = new SyncAniReq
+                { RoleId = roleId, AnimationName = aniName, SkillConfigIndex = skillConfigIndex };
+            NetClientMgr.Instance.Send(NetDefine.CMD_SyneAniCode, req.ToByteString());
+        }
 
-    private void OnRoomStartGameNtf(ByteString data)
-    {
-        RoomStartGameNtf ntf = RoomStartGameNtf.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 房间开始游戏 roomId={ntf.RoomId}");
-        OnRoomStartGame?.Invoke(ntf);
-    }
+        // 敌人动画同步：单向广播，fire-and-forget。
+        public void RequestSyncEnemyAni(int roleId, string aniName)
+        {
+            EnemySyncAniRet req = new EnemySyncAniRet { RoleId = roleId, AnimationName = aniName };
+            NetClientMgr.Instance.Send(NetDefine.CMD_SyneEnemyAniCode, req.ToByteString());
+        }
 
-    private void OnErrorResult(ByteString data)
-    {
-        ErrMsg err = ErrMsg.Parser.ParseFrom(data);
-        Debug.LogError($"ProtoHandler: 收到错误 CmdCode={err.CmdCode}");
-    }
+        public void RequestSyncVfx(PlayerVfxNtf ntf)
+        {
+            NetClientMgr.Instance.Send(NetDefine.CMD_PlayerVfxCode, ntf.ToByteString());
+        }
 
-    private void OnSyncAniResult(ByteString data)
-    {
-        SyncAniRet ret = SyncAniRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 同步动画 ：{ret.AnimationName}");
-        OnSyncAniReceived?.Invoke(ret);
-    }
+        public void RequestRegist(string userName, string phoneNum, string password, Action<RegistRet> callback)
+        {
+            _registCallback = callback;
+            RegistReq req = new RegistReq { UserName = userName, Password = password };
+            NetClientMgr.Instance.Send(NetDefine.CMD_RegistCode, req.ToByteString());
+        }
 
-    private void OnPlayerVfxResult(ByteString data)
-    {
-        PlayerVfxNtf ntf = PlayerVfxNtf.Parser.ParseFrom(data);
-        Debug.Log(
-            $"ProtoHandler: VFX同步 roleId={ntf.RoleId} skill={ntf.SkillConfigIndex} atk={ntf.AttackIndex} vfx={ntf.VfxIndex}");
-        OnPlayerVfxReceived?.Invoke(ntf);
-    }
+        public void RequestLogin(string userName, string password, Action<loginRet> callback)
+        {
+            _loginCallback = callback;
+            LoginReq req = new LoginReq { UserName = userName, Password = password };
+            NetClientMgr.Instance.Send(NetDefine.CMD_LoginCode, req.ToByteString());
+        }
 
-    private void OnEnemyPosSyncResult(ByteString data)
-    {
-        EnemyPositionSyncRet ntf = EnemyPositionSyncRet.Parser.ParseFrom(data);
-        OnEnemyPositionSyncReceived?.Invoke(ntf);
-    }
+        public void RequestServerList(Action<GetServerListRet> callback)
+        {
+            _serverListCallback = callback;
+            GetServerListReq req = new GetServerListReq { ServerId = 0 };
+            NetClientMgr.Instance.Send(NetDefine.CMD_GetServerListCode, req.ToByteString());
+        }
 
-    private void OnEnemyAniSyncResult(ByteString data)
-    {
-        EnemySyncAniRet ret = EnemySyncAniRet.Parser.ParseFrom(data);
-        Debug.Log($"ProtoHandler: 同步动画 ：{ret.AnimationName}");
-        OnEnemySyncAniReceived?.Invoke(ret);
-    }
+        public void RequestLoginGameServer(int accountId, int serverId, Action<loginGameServerRet> callback)
+        {
+            _loginGameServerCallback = callback;
+            LoginGameServerReq req = new LoginGameServerReq { AccountId = accountId, GameServerId = serverId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_LoginGameServerCode, req.ToByteString());
+        }
 
-    #endregion
+        public void RequestCreateRole(int accountId, int serverId, string nickname, int jobId,
+            Action<CreateRoleRet> callback)
+        {
+            _createRoleCallback = callback;
+            CreateRoleReq req = new CreateRoleReq
+            {
+                AccountId = accountId,
+                GameServerId = serverId,
+                Nickname = nickname,
+                JobId = jobId
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_CreateRoleCode, req.ToByteString());
+        }
 
-    #region 位置同步 / 场景事件
+        public void RequestStartGame(int roleId, Action<StartGameRet> callback)
+        {
+            _startGameCallback = callback;
+            StartGameReq req = new StartGameReq { RoleId = roleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_StartGameCode, req.ToByteString());
+        }
 
-    private void OnPositionSync(ByteString data)
-    {
-        PositionSyncNtf ntf = PositionSyncNtf.Parser.ParseFrom(data);
-        OnPositionSyncReceived?.Invoke(ntf);
-    }
+        public void RequestSaveRole(SaveRoleReq req, Action<SaveRoleRet> callback)
+        {
+            _saveRoleCallback = callback;
+            NetClientMgr.Instance.Send(NetDefine.CMD_SaveRoleCode, req.ToByteString());
+        }
 
-    private void OnPlayerEnterSceneEvent(ByteString data)
-    {
-        PlayerEnterSceneNtf ntf = PlayerEnterSceneNtf.Parser.ParseFrom(data);
-        OnPlayerEnterScene?.Invoke(ntf);
-    }
+        public void RequestChangeScene(int roleId, string sceneName, Action<ChangeSceneRet> callback)
+        {
+            _changeSceneCallback = callback;
+            ChangeSceneReq req = new ChangeSceneReq { RoleId = roleId, SceneName = sceneName };
+            NetClientMgr.Instance.Send(NetDefine.CMD_ChangeSceneCode, req.ToByteString());
+        }
 
-    private void OnPlayerLeaveSceneEvent(ByteString data)
-    {
-        PlayerLeaveSceneNtf ntf = PlayerLeaveSceneNtf.Parser.ParseFrom(data);
-        OnPlayerLeaveScene?.Invoke(ntf);
-    }
+        public void RequestSpawnEnemy(int roleId, int enemyConfigId, float maxHp, Vector3 pos,
+            Action<SpawnEnemyRet> callback)
+        {
+            _spawnEnemyCallback = callback;
+            SpawnEnemyReq req = new SpawnEnemyReq
+            {
+                RoleId = roleId,
+                EnemyConfigId = enemyConfigId,
+                MaxHp = maxHp,
+                PosX = pos.x,
+                PosY = pos.y,
+                PosZ = pos.z
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_SpawnEnemyCode, req.ToByteString());
+        }
 
-    #endregion
+        public void RequestPlayerAttack(int roleId, int enemyInstanceId, float damage, float baojiPercent, bool isExAttack,
+            Action<PlayerAttackRet> callback)
+        {
+            int seqId = ++_nextAttackSeqId;
+            _playerAttackCallbacks[seqId] = callback;
+            PlayerAttackReq req = new PlayerAttackReq
+            {
+                RoleId = roleId,
+                EnemyInstanceId = enemyInstanceId,
+                Damage = damage,
+                BaojiPercent = baojiPercent,
+                IsExAttack = isExAttack,
+                SequenceId = seqId
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_PlayerAttackCode, req.ToByteString());
+        }
 
-    public void Clear()
-    {
-        // AppContext 可能已先一步 Dispose（退出流程），此时事件总线随它一起没了
-        if (!AppContext.IsAlive) return;
+        public void RequestGetReward(int rewardType, Action<GetRewardRet> callback)
+        {
+            _getRewardCallback = callback;
+            GetRewardReq req = new GetRewardReq { RoleId = AppContext.Session.RoleId, RewardType = rewardType };
+            NetClientMgr.Instance.Send(NetDefine.CMD_GetRewardCode, req.ToByteString());
+        }
 
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_RegistCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_LoginCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_GetServerListCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_LoginGameServerCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoleCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_StartGameCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_SaveRoleCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_ChangeSceneCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_SpawnEnemyCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerAttackCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_GetRewardCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_TaskProgressCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_TaskProgressReqCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoomCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_JoinRoomCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomInfoCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomStartGameCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_ErrCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PositionSyncCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerEnterSceneCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerLeaveSceneCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_SyneAniCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerVfxCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_EnemyPositionSyncCode);
-        AppContext.Events.RemoveNetHandler(NetDefine.CMD_SyneEnemyAniCode);
+        /// <summary>
+        /// 保存任务进度到服务端（任务状态机迁移时调用）。批量上报，支持一次提交多个任务。
+        /// </summary>
+        public void RequestSaveTaskProgress(TaskDataRuntime task, Action<TaskProgressRet> callback)
+        {
+            _taskProgressCallback = callback;
+            TaskProgressNtf ntf = new TaskProgressNtf { RoleId = AppContext.Session.RoleId };
+            ntf.ProgressList.Add(new TaskProgressData
+            {
+                TaskId = task.TaskId,
+                State = (int)task.State,
+                CurrentCount = task.CurrentCount
+            });
+            NetClientMgr.Instance.Send(NetDefine.CMD_TaskProgressCode, ntf.ToByteString());
+        }
+
+        /// <summary>
+        /// 从服务端拉取全量任务进度（联机时在 StartGame 成功后调用，恢复任务状态机）。
+        /// </summary>
+        public void RequestLoadTaskProgress(Action<TaskProgressListRet> callback)
+        {
+            _taskProgressListCallback = callback;
+            TaskProgressReq req = new TaskProgressReq { RoleId = AppContext.Session.RoleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_TaskProgressReqCode, req.ToByteString());
+        }
+
+        public void RequestCreateRoom(int roleId, string roomName, string nickname,
+            Action<CreateRoomRet> callback)
+        {
+            _createRoomCallback = callback;
+            CreateRoomReq req = new CreateRoomReq
+            {
+                RoleId = roleId,
+                RoomName = roomName,
+                Nickname = nickname
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_CreateRoomCode, req.ToByteString());
+        }
+
+        public void RequestJoinRoom(int roleId, int roomId, string nickname,
+            Action<JoinRoomRet> callback)
+        {
+            _joinRoomCallback = callback;
+            JoinRoomReq req = new JoinRoomReq
+            {
+                RoleId = roleId,
+                RoomId = roomId,
+                Nickname = nickname
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_JoinRoomCode, req.ToByteString());
+        }
+
+        public void RequestLeaveRoom(int roleId)
+        {
+            LeaveRoomReq req = new LeaveRoomReq { RoleId = roleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_LeaveRoomCode, req.ToByteString());
+        }
+
+        public void RequestRoomStartGame(int roleId)
+        {
+            RoomStartGameReq req = new RoomStartGameReq { RoleId = roleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_RoomStartGameCode, req.ToByteString());
+        }
+
+        public void RequestPlayerReady(int roleId, bool isReady)
+        {
+            PlayerReadyReq req = new PlayerReadyReq { RoleId = roleId, IsReady = isReady };
+            NetClientMgr.Instance.Send(NetDefine.CMD_PlayerReadyCode, req.ToByteString());
+        }
+
+        #endregion
+
+        #region 响应处理
+
+        private void OnRegistResult(ByteString data)
+        {
+            RegistRet ret = RegistRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 注册结果 CmdCode={ret.CmdCode}");
+            _registCallback?.Invoke(ret);
+            _registCallback = null;
+        }
+
+        private void OnLoginResult(ByteString data)
+        {
+            loginRet ret = loginRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 登录结果 CmdCode={ret.CmdCode}");
+            _loginCallback?.Invoke(ret);
+            _loginCallback = null;
+        }
+
+        private void OnGetServerListResult(ByteString data)
+        {
+            GetServerListRet ret = GetServerListRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 服务器列表 数量={ret.GameServers.Count}");
+            _serverListCallback?.Invoke(ret);
+            _serverListCallback = null;
+        }
+
+        private void OnLoginGameServerResult(ByteString data)
+        {
+            loginGameServerRet ret = loginGameServerRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 登录游戏服务器结果 CmdCode={ret.CmdCode}");
+            _loginGameServerCallback?.Invoke(ret);
+            _loginGameServerCallback = null;
+        }
+
+        private void OnCreateRoleResult(ByteString data)
+        {
+            CreateRoleRet ret = CreateRoleRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 创建角色结果 CmdCode={ret.CmdCode}");
+            _createRoleCallback?.Invoke(ret);
+            _createRoleCallback = null;
+        }
+
+        private void OnStartGameResult(ByteString data)
+        {
+            StartGameRet ret = StartGameRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 开始游戏结果 CmdCode={ret.CmdCode}");
+            _startGameCallback?.Invoke(ret);
+            _startGameCallback = null;
+        }
+
+        private void OnSaveRoleResult(ByteString data)
+        {
+            SaveRoleRet ret = SaveRoleRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 保存角色结果 CmdCode={ret.CmdCode}");
+            _saveRoleCallback?.Invoke(ret);
+            _saveRoleCallback = null;
+        }
+
+        private void OnChangeSceneResult(ByteString data)
+        {
+            ChangeSceneRet ret = ChangeSceneRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 切换场景结果 CmdCode={ret.CmdCode}");
+            _changeSceneCallback?.Invoke(ret);
+            _changeSceneCallback = null;
+        }
+
+        private void OnSpawnEnemyResult(ByteString data)
+        {
+            SpawnEnemyRet ret = SpawnEnemyRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 敌人生成结果 instanceId={ret.EnemyInstanceId} pos=({ret.PosX},{ret.PosY},{ret.PosZ})");
+
+            if (_spawnEnemyCallback != null)
+            {
+                // 请求者的回调（GameManager.SpawnEnemy）
+                _spawnEnemyCallback.Invoke(ret);
+                _spawnEnemyCallback = null;
+            }
+            else
+            {
+                // 服务端广播给其他人 → 直接生成敌人
+                AppContext.RemotePlayer.SpawnEnemy(ret);
+            }
+        }
+
+        private void OnPlayerAttackResult(ByteString data)
+        {
+            PlayerAttackRet ret = PlayerAttackRet.Parser.ParseFrom(data);
+            Debug.Log(
+                $"ProtoHandler: 攻击结果 attacker={ret.AttackerRoleId} enemy={ret.EnemyInstanceId} damage={ret.DamageDealt} isDead={ret.IsDead}");
+
+            // 判断是不是自己的攻击（回包的 attacker_role_id = 本地 roleId，且请求中有匹配的回调）
+            if (ret.AttackerRoleId == AppContext.Session.RoleId)
+            {
+                // 遍历字典找到匹配的回调（sequence_id 无法回传因为请求中没带）
+                // 取字典中最旧的未处理回调
+                if (_playerAttackCallbacks.Count > 0)
+                {
+                    var keys = new List<int>(_playerAttackCallbacks.Keys);
+                    keys.Sort();
+                    int oldestKey = keys[0];
+                    var cb = _playerAttackCallbacks[oldestKey];
+                    _playerAttackCallbacks.Remove(oldestKey);
+                    cb?.Invoke(ret);
+                }
+            }
+            else if (ret.AttackerRoleId > 0)
+            {
+                // 别人的攻击广播
+                OnPlayerAttackBroadcast?.Invoke(ret);
+            }
+        }
+
+        private void OnGetRewardResult(ByteString data)
+        {
+            GetRewardRet ret = GetRewardRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 奖励结果 CmdCode={ret.CmdCode}");
+            _getRewardCallback?.Invoke(ret);
+            _getRewardCallback = null;
+        }
+
+        private void OnTaskProgressResult(ByteString data)
+        {
+            TaskProgressRet ret = TaskProgressRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 任务进度保存结果 CmdCode={ret.CmdCode}");
+            _taskProgressCallback?.Invoke(ret);
+            _taskProgressCallback = null;
+        }
+
+        private void OnTaskProgressListResult(ByteString data)
+        {
+            TaskProgressListRet ret = TaskProgressListRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 任务进度拉取结果 CmdCode={ret.CmdCode} count={ret.ProgressList.Count}");
+            _taskProgressListCallback?.Invoke(ret);
+            _taskProgressListCallback = null;
+        }
+
+        private void OnCreateRoomResult(ByteString data)
+        {
+            CreateRoomRet ret = CreateRoomRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 创建房间结果 roomId={ret.RoomId}");
+            _createRoomCallback?.Invoke(ret);
+            _createRoomCallback = null;
+        }
+
+        private void OnJoinRoomResult(ByteString data)
+        {
+            JoinRoomRet ret = JoinRoomRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 加入房间结果 roomId={ret.RoomId} players={ret.Players.Count}");
+            _joinRoomCallback?.Invoke(ret);
+            _joinRoomCallback = null;
+        }
+
+        private void OnRoomInfoNtf(ByteString data)
+        {
+            RoomInfoNtf ntf = RoomInfoNtf.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 房间信息变更 roomId={ntf.RoomId} players={ntf.Players.Count}");
+            OnRoomInfoChanged?.Invoke(ntf);
+        }
+
+        private void OnRoomStartGameNtf(ByteString data)
+        {
+            RoomStartGameNtf ntf = RoomStartGameNtf.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 房间开始游戏 roomId={ntf.RoomId}");
+            OnRoomStartGame?.Invoke(ntf);
+        }
+
+        private void OnErrorResult(ByteString data)
+        {
+            ErrMsg err = ErrMsg.Parser.ParseFrom(data);
+            Debug.LogError($"ProtoHandler: 收到错误 CmdCode={err.CmdCode}");
+        }
+
+        private void OnSyncAniResult(ByteString data)
+        {
+            SyncAniRet ret = SyncAniRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 同步动画 ：{ret.AnimationName}");
+            OnSyncAniReceived?.Invoke(ret);
+        }
+
+        private void OnPlayerVfxResult(ByteString data)
+        {
+            PlayerVfxNtf ntf = PlayerVfxNtf.Parser.ParseFrom(data);
+            Debug.Log(
+                $"ProtoHandler: VFX同步 roleId={ntf.RoleId} skill={ntf.SkillConfigIndex} atk={ntf.AttackIndex} vfx={ntf.VfxIndex}");
+            OnPlayerVfxReceived?.Invoke(ntf);
+        }
+
+        private void OnEnemyPosSyncResult(ByteString data)
+        {
+            EnemyPositionSyncRet ntf = EnemyPositionSyncRet.Parser.ParseFrom(data);
+            OnEnemyPositionSyncReceived?.Invoke(ntf);
+        }
+
+        private void OnEnemyAniSyncResult(ByteString data)
+        {
+            EnemySyncAniRet ret = EnemySyncAniRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 同步动画 ：{ret.AnimationName}");
+            OnEnemySyncAniReceived?.Invoke(ret);
+        }
+
+        #endregion
+
+        #region 位置同步 / 场景事件
+
+        private void OnPositionSync(ByteString data)
+        {
+            PositionSyncNtf ntf = PositionSyncNtf.Parser.ParseFrom(data);
+            OnPositionSyncReceived?.Invoke(ntf);
+        }
+
+        private void OnPlayerEnterSceneEvent(ByteString data)
+        {
+            PlayerEnterSceneNtf ntf = PlayerEnterSceneNtf.Parser.ParseFrom(data);
+            OnPlayerEnterScene?.Invoke(ntf);
+        }
+
+        private void OnPlayerLeaveSceneEvent(ByteString data)
+        {
+            PlayerLeaveSceneNtf ntf = PlayerLeaveSceneNtf.Parser.ParseFrom(data);
+            OnPlayerLeaveScene?.Invoke(ntf);
+        }
+
+        #endregion
+
+        public void Clear()
+        {
+            // AppContext 可能已先一步 Dispose（退出流程），此时事件总线随它一起没了
+            if (!AppContext.IsAlive) return;
+
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_RegistCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_LoginCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_GetServerListCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_LoginGameServerCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoleCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_StartGameCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_SaveRoleCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_ChangeSceneCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_SpawnEnemyCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerAttackCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_GetRewardCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_TaskProgressCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_TaskProgressReqCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoomCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_JoinRoomCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomInfoCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomStartGameCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_ErrCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_PositionSyncCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerEnterSceneCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerLeaveSceneCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_SyneAniCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerVfxCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_EnemyPositionSyncCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_SyneEnemyAniCode);
+        }
     }
 }

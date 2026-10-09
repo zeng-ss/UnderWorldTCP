@@ -2,144 +2,150 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotUpdate.Controller;
+using HotUpdate.Core;
+using HotUpdate.Data;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using AppContext = HotUpdate.Core.AppContext;
 
-/// <summary>
-/// 仓库里的单个驱动盘
-/// </summary>
-public class DepotItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+namespace HotUpdate.UI.UIItem
 {
-    // UI组件
-    public Image depotItemImage, equipTipImage, tipKuangImage;
-    public TMP_Text equipBtnText;
-    [Header("装备强化面板")] public GameObject improveOrEquipPanel;
-    public Button improveBtn, equipBtn;
-
-    /// <summary>鼠标悬停，请求展示详情</summary>
-    public event Action<DriverDiskDataRuntime> OnHover;
-
-    [NonSerialized] public DriverDiskDataRuntime CurrentDriverDiskData;
-
-    private bool _isEquipped;
-    private DepotController _ctrl;
-
-    private void Start()
+    /// <summary>
+    /// 仓库里的单个驱动盘
+    /// </summary>
+    public class DepotItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
     {
-        equipBtn.onClick.AddListener(OnEquipBtnClick);
-        improveBtn.onClick.AddListener(OnImproveBtnClick);
-    }
+        // UI组件
+        public Image depotItemImage, equipTipImage, tipKuangImage;
+        public TMP_Text equipBtnText;
+        [Header("装备强化面板")] public GameObject improveOrEquipPanel;
+        public Button improveBtn, equipBtn;
 
-    private void OnEnable()
-    {
-        // 不再用 Update 每帧轮询输入，改为在 InputManager 上一次性注册
-        InputManager.Instance.RegisterKeyDown(KeyCode.R, ClosePopup);
-        InputManager.Instance.RegisterMouseDown(0, ClosePopupIfClickedOutside);
-        InputManager.Instance.RegisterMouseDown(1, OpenPopupAtMouse);
-    }
+        /// <summary>鼠标悬停，请求展示详情</summary>
+        public event Action<DriverDiskDataRuntime> OnHover;
 
-    private void OnDisable()
-    {
-        InputManager.Instance.UnregisterKeyDown(KeyCode.R, ClosePopup);
-        InputManager.Instance.UnregisterMouseDown(0, ClosePopupIfClickedOutside);
-        InputManager.Instance.UnregisterMouseDown(1, OpenPopupAtMouse);
-        improveOrEquipPanel.SetActive(false);
-    }
+        [NonSerialized] public DriverDiskDataRuntime CurrentDriverDiskData;
 
-    #region 渲染
+        private bool _isEquipped;
+        private DepotController _ctrl;
 
-    public void UpdateData(DriverDiskDataRuntime driverDiskData, DepotController ctrl)
-    {
-        _ctrl = ctrl;
-        CurrentDriverDiskData = driverDiskData;
-        AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.DepotIconName}",
-            sprite =>
-            {
-                if (depotItemImage) depotItemImage.sprite = sprite;
-            });
-    }
-
-    /// <summary>由 DepotPanel 在装备状态变化时同步过来</summary>
-    public void SetEquipped(bool equipped)
-    {
-        _isEquipped = equipped;
-        equipBtnText.text = equipped ? "卸下" : "装备";
-        equipTipImage.gameObject.SetActive(equipped);
-    }
-
-    #endregion
-
-    #region 交互
-
-    private void OnEquipBtnClick()
-    {
-        if (CurrentDriverDiskData == null) return;
-        improveOrEquipPanel.SetActive(false);
-
-        if (_isEquipped) _ctrl.Unequip(CurrentDriverDiskData);
-        else _ctrl.Equip(CurrentDriverDiskData);
-    }
-
-    private void OnImproveBtnClick()
-    {
-        improveOrEquipPanel.SetActive(false);
-        if (CurrentDriverDiskData != null) _ctrl.RequestImprove(CurrentDriverDiskData);
-    }
-
-    /// <summary>右键呼出操作面板</summary>
-    private void OpenPopupAtMouse()
-    {
-        var rect = improveOrEquipPanel.GetComponent<RectTransform>();
-        rect.anchorMin = new Vector2(0, 1);
-        rect.anchorMax = new Vector2(0, 1);
-        rect.pivot = new Vector2(0, 1);
-
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(GetComponent<RectTransform>(),
-                Input.mousePosition, null, out Vector2 localPos))
+        private void Start()
         {
-            improveOrEquipPanel.transform.localPosition = localPos;
-            improveOrEquipPanel.SetActive(true);
+            equipBtn.onClick.AddListener(OnEquipBtnClick);
+            improveBtn.onClick.AddListener(OnImproveBtnClick);
         }
-    }
 
-    private void ClosePopup()
-    {
-        if (improveOrEquipPanel.activeSelf) improveOrEquipPanel.SetActive(false);
-    }
+        private void OnEnable()
+        {
+            // 不再用 Update 每帧轮询输入，改为在 InputManager 上一次性注册
+            InputManager.Instance.RegisterKeyDown(KeyCode.R, ClosePopup);
+            InputManager.Instance.RegisterMouseDown(0, ClosePopupIfClickedOutside);
+            InputManager.Instance.RegisterMouseDown(1, OpenPopupAtMouse);
+        }
 
-    private void ClosePopupIfClickedOutside()
-    {
-        if (!improveOrEquipPanel.activeSelf) return;
-        if (!IsPointerOverImprovePanel()) improveOrEquipPanel.SetActive(false);
-    }
+        private void OnDisable()
+        {
+            InputManager.Instance.UnregisterKeyDown(KeyCode.R, ClosePopup);
+            InputManager.Instance.UnregisterMouseDown(0, ClosePopupIfClickedOutside);
+            InputManager.Instance.UnregisterMouseDown(1, OpenPopupAtMouse);
+            improveOrEquipPanel.SetActive(false);
+        }
 
-    private bool IsPointerOverImprovePanel()
-    {
-        if (!improveOrEquipPanel.activeSelf) return false;
-        var eventData = new PointerEventData(EventSystem.current) { position = Input.mousePosition };
-        var results = new List<RaycastResult>();
-        EventSystem.current.RaycastAll(eventData, results);
-        return results.Any(result => result.gameObject == improveOrEquipPanel);
-    }
+        #region 渲染
 
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        tipKuangImage.enabled = true;
-        if (CurrentDriverDiskData != null) OnHover?.Invoke(CurrentDriverDiskData);
-    }
+        public void UpdateData(DriverDiskDataRuntime driverDiskData, DepotController ctrl)
+        {
+            _ctrl = ctrl;
+            CurrentDriverDiskData = driverDiskData;
+            AppContext.Res.LoadSpriteAsync($"Res/{driverDiskData.DepotIconName}",
+                sprite =>
+                {
+                    if (depotItemImage) depotItemImage.sprite = sprite;
+                });
+        }
 
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        tipKuangImage.enabled = false;
-    }
+        /// <summary>由 DepotPanel 在装备状态变化时同步过来</summary>
+        public void SetEquipped(bool equipped)
+        {
+            _isEquipped = equipped;
+            equipBtnText.text = equipped ? "卸下" : "装备";
+            equipTipImage.gameObject.SetActive(equipped);
+        }
 
-    #endregion
+        #endregion
 
-    private void OnDestroy()
-    {
-        equipBtn.onClick.RemoveAllListeners();
-        improveBtn.onClick.RemoveAllListeners();
+        #region 交互
+
+        private void OnEquipBtnClick()
+        {
+            if (CurrentDriverDiskData == null) return;
+            improveOrEquipPanel.SetActive(false);
+
+            if (_isEquipped) _ctrl.Unequip(CurrentDriverDiskData);
+            else _ctrl.Equip(CurrentDriverDiskData);
+        }
+
+        private void OnImproveBtnClick()
+        {
+            improveOrEquipPanel.SetActive(false);
+            if (CurrentDriverDiskData != null) _ctrl.RequestImprove(CurrentDriverDiskData);
+        }
+
+        /// <summary>右键呼出操作面板</summary>
+        private void OpenPopupAtMouse()
+        {
+            var rect = improveOrEquipPanel.GetComponent<RectTransform>();
+            rect.anchorMin = new Vector2(0, 1);
+            rect.anchorMax = new Vector2(0, 1);
+            rect.pivot = new Vector2(0, 1);
+
+            if (RectTransformUtility.ScreenPointToLocalPointInRectangle(GetComponent<RectTransform>(),
+                    Input.mousePosition, null, out Vector2 localPos))
+            {
+                improveOrEquipPanel.transform.localPosition = localPos;
+                improveOrEquipPanel.SetActive(true);
+            }
+        }
+
+        private void ClosePopup()
+        {
+            if (improveOrEquipPanel.activeSelf) improveOrEquipPanel.SetActive(false);
+        }
+
+        private void ClosePopupIfClickedOutside()
+        {
+            if (!improveOrEquipPanel.activeSelf) return;
+            if (!IsPointerOverImprovePanel()) improveOrEquipPanel.SetActive(false);
+        }
+
+        private bool IsPointerOverImprovePanel()
+        {
+            if (!improveOrEquipPanel.activeSelf) return false;
+            var eventData = new PointerEventData(EventSystem.current) { position = Input.mousePosition };
+            var results = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(eventData, results);
+            return results.Any(result => result.gameObject == improveOrEquipPanel);
+        }
+
+        public void OnPointerEnter(PointerEventData eventData)
+        {
+            tipKuangImage.enabled = true;
+            if (CurrentDriverDiskData != null) OnHover?.Invoke(CurrentDriverDiskData);
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            tipKuangImage.enabled = false;
+        }
+
+        #endregion
+
+        private void OnDestroy()
+        {
+            equipBtn.onClick.RemoveAllListeners();
+            improveBtn.onClick.RemoveAllListeners();
+        }
     }
 }

@@ -1,10 +1,13 @@
-public class EnemyDeadState : EnemyState
+namespace HotUpdate.Enemy
 {
-    public override void Enter()
+    public class EnemyDeadState : EnemyState
     {
-        if (!Enemy.IsServer) return;
-        Enemy.PlayAnimation("Dead");
-        Enemy.characterController.enabled = false;
-        Enemy.tag = "Untagged";
+        public override void Enter()
+        {
+            if (!Enemy.IsServer) return;
+            Enemy.PlayAnimation("Dead");
+            Enemy.characterController.enabled = false;
+            Enemy.tag = "Untagged";
+        }
     }
 }

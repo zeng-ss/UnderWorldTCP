@@ -1,29 +1,33 @@
+using HotUpdate.Event;
 using UnityEngine;
 
-public class PlayerHurtState : PlayerState
+namespace HotUpdate.Player
 {
-    public override void Enter()
+    public class PlayerHurtState : PlayerState
     {
-        if (!Player.Core.IsLocalPlayer) return;
-        Player.playerModel.SetRootMotionAction(OnRootMotion);
-        Player.PlayAnimation("Hurt");
-    }
-
-    private void OnRootMotion(Vector3 arg1, Quaternion arg2)
-    {
-        Player.CharacterController.Move(arg1);
-    }
-
-    public override void Update()
-    {
-        if (!Player.Core.IsLocalPlayer) return;
-        if (IsAnimationMoreThanTime("Hurt", 0.5f))
+        public override void Enter()
         {
-            Player.StateMachine.ChangeTo(PlayerStateType.Idle);
+            if (!Player.Core.IsLocalPlayer) return;
+            Player.playerModel.SetRootMotionAction(OnRootMotion);
+            Player.PlayAnimation("Hurt");
         }
-    }
 
-    public override void Exit()
-    {
+        private void OnRootMotion(Vector3 arg1, Quaternion arg2)
+        {
+            Player.CharacterController.Move(arg1);
+        }
+
+        public override void Update()
+        {
+            if (!Player.Core.IsLocalPlayer) return;
+            if (IsAnimationMoreThanTime("Hurt", 0.5f))
+            {
+                Player.StateMachine.ChangeTo(PlayerStateType.Idle);
+            }
+        }
+
+        public override void Exit()
+        {
+        }
     }
 }

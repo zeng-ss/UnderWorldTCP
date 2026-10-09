@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using HotUpdate.Core;
+using HotUpdate.Data;
+using HotUpdate.Event;
 
 namespace HotUpdate.Service
 {

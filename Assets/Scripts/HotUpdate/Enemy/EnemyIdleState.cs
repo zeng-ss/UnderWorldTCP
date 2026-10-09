@@ -1,37 +1,41 @@
+using HotUpdate.Event;
 using UnityEngine;
 
-public class EnemyIdleState : EnemyState
+namespace HotUpdate.Enemy
 {
-    private float _randomValue;
-    private float _timer;
-
-    public override void Enter()
+    public class EnemyIdleState : EnemyState
     {
-        Enemy.isCanPlayHurtAni = true;
-        Enemy.PlayAnimation("Idle");
-        _randomValue = Random.Range(3f, 8f);
-    }
+        private float _randomValue;
+        private float _timer;
 
-    public override void Update()
-    {
-        if (Enemy.IsLocalEnemy) return;
-        if (Enemy.PlayerRef == null)
+        public override void Enter()
         {
-            _timer = 0;
-            return;
+            Enemy.isCanPlayHurtAni = true;
+            Enemy.PlayAnimation("Idle");
+            _randomValue = Random.Range(3f, 8f);
         }
 
-        _timer += Time.deltaTime;
-        if (_timer >= _randomValue)
+        public override void Update()
         {
-            Enemy.ChangeState(EnemyStateType.Attack);
-            _randomValue = Random.Range(3f, 8f);
+            if (Enemy.IsLocalEnemy) return;
+            if (Enemy.PlayerRef == null)
+            {
+                _timer = 0;
+                return;
+            }
+
+            _timer += Time.deltaTime;
+            if (_timer >= _randomValue)
+            {
+                Enemy.ChangeState(EnemyStateType.Attack);
+                _randomValue = Random.Range(3f, 8f);
+                _timer = 0f;
+            }
+        }
+
+        public override void Exit()
+        {
             _timer = 0f;
         }
-    }
-
-    public override void Exit()
-    {
-        _timer = 0f;
     }
 }

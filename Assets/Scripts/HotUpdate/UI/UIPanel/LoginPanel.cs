@@ -1,98 +1,105 @@
 using System.Collections.Generic;
+using HotUpdate.Controller;
+using HotUpdate.Core;
+using HotUpdate.Event;
+using HotUpdate.Manager;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-/// <summary>
-/// 登录面板（纯 View）。
-///
-/// 只负责：渲染服务器下拉框与状态、收集账号密码、把意图交给 LoginController。
-/// 网络请求、校验、建角色、跳面板全部在 Controller 里。
-///
-/// 依赖方向是单向的：本面板持有 Controller 实例（自己 new），
-/// Controller 不认识本面板，服务器列表通过 ServerListChanged 事件送回来。
-/// </summary>
-[PanelPath("LoginPanel")]
-public class LoginPanel : BasePanel
+namespace HotUpdate.UI.UIPanel
 {
-    [FormerlySerializedAs("StateText")] public Text stateText;
-    public Dropdown dropdown;
-    public Button loginBtn;
-    public Button registerBtn;
-    public Text account;
-    public Text password;
-
-    /// <summary>本面板的控制器，由面板自己 new 并持有</summary>
-    private LoginController _controller;
-
-    /// <summary>回写下拉框时抑制回调，避免和用户的真实选择互相触发</summary>
-    private bool _syncingDropdown;
-
-    protected override void Awake()
+    /// <summary>
+    /// 登录面板（纯 View）。
+    ///
+    /// 只负责：渲染服务器下拉框与状态、收集账号密码、把意图交给 LoginController。
+    /// 网络请求、校验、建角色、跳面板全部在 Controller 里。
+    ///
+    /// 依赖方向是单向的：本面板持有 Controller 实例（自己 new），
+    /// Controller 不认识本面板，服务器列表通过 ServerListChanged 事件送回来。
+    /// </summary>
+    [PanelPath("LoginPanel")]
+    public class LoginPanel : BasePanel
     {
-        base.Awake();
-        _controller = new LoginController();
-        loginBtn.onClick.AddListener(RaiseLoginClicked);
-        registerBtn.onClick.AddListener(RaiseRegisterClicked);
-        dropdown.onValueChanged.AddListener(RaiseServerSelected);
-    }
+        [FormerlySerializedAs("StateText")] public Text stateText;
+        public Dropdown dropdown;
+        public Button loginBtn;
+        public Button registerBtn;
+        public Text account;
+        public Text password;
 
-    private void OnEnable()
-    {
-        AppContext.Events.AddEventListener(GameEvent.ServerListChanged, OnServerListChanged);
-        _controller.OnPanelShown();
-    }
+        /// <summary>本面板的控制器，由面板自己 new 并持有</summary>
+        private LoginController _controller;
 
-    private void OnDisable()
-    {
-        AppContext.Events.RemoveEventListener(GameEvent.ServerListChanged, OnServerListChanged);
-    }
+        /// <summary>回写下拉框时抑制回调，避免和用户的真实选择互相触发</summary>
+        private bool _syncingDropdown;
 
-    #region 渲染（Model → View）
+        protected override void Awake()
+        {
+            base.Awake();
+            _controller = new LoginController();
+            loginBtn.onClick.AddListener(RaiseLoginClicked);
+            registerBtn.onClick.AddListener(RaiseRegisterClicked);
+            dropdown.onValueChanged.AddListener(RaiseServerSelected);
+        }
 
-    private void OnServerListChanged(EventArgs args)
-    {
-        if (args is not ServerListArgs a) return;
+        private void OnEnable()
+        {
+            AppContext.Events.AddEventListener(GameEvent.ServerListChanged, OnServerListChanged);
+            _controller.OnPanelShown();
+        }
 
-        var options = new List<Dropdown.OptionData>(a.ServerNames.Count);
-        foreach (var name in a.ServerNames) options.Add(new Dropdown.OptionData(name));
-        dropdown.options = options;
+        private void OnDisable()
+        {
+            AppContext.Events.RemoveEventListener(GameEvent.ServerListChanged, OnServerListChanged);
+        }
 
-        _syncingDropdown = true;
-        dropdown.value = a.SelectedIndex;
-        _syncingDropdown = false;
+        #region 渲染（Model → View）
 
-        stateText.text = a.StateText;
-        stateText.color = a.StateColor;
-    }
+        private void OnServerListChanged(EventArgs args)
+        {
+            if (args is not ServerListArgs a) return;
 
-    #endregion
+            var options = new List<Dropdown.OptionData>(a.ServerNames.Count);
+            foreach (var name in a.ServerNames) options.Add(new Dropdown.OptionData(name));
+            dropdown.options = options;
 
-    #region 上报意图（View → Controller）
+            _syncingDropdown = true;
+            dropdown.value = a.SelectedIndex;
+            _syncingDropdown = false;
 
-    private void RaiseServerSelected(int index)
-    {
-        if (_syncingDropdown) return;
-        _controller.SelectServer(index);
-    }
+            stateText.text = a.StateText;
+            stateText.color = a.StateColor;
+        }
 
-    private void RaiseLoginClicked()
-    {
-        _controller.Login(account.text.Trim(), password.text.Trim());
-    }
+        #endregion
 
-    private void RaiseRegisterClicked()
-    {
-        _controller.RequestRegister();
-    }
+        #region 上报意图（View → Controller）
 
-    #endregion
+        private void RaiseServerSelected(int index)
+        {
+            if (_syncingDropdown) return;
+            _controller.SelectServer(index);
+        }
 
-    protected override void OnDestroy()
-    {
-        base.OnDestroy();
-        loginBtn.onClick.RemoveAllListeners();
-        registerBtn.onClick.RemoveAllListeners();
-        dropdown.onValueChanged.RemoveAllListeners();
+        private void RaiseLoginClicked()
+        {
+            _controller.Login(account.text.Trim(), password.text.Trim());
+        }
+
+        private void RaiseRegisterClicked()
+        {
+            _controller.RequestRegister();
+        }
+
+        #endregion
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            loginBtn.onClick.RemoveAllListeners();
+            registerBtn.onClick.RemoveAllListeners();
+            dropdown.onValueChanged.RemoveAllListeners();
+        }
     }
 }

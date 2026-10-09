@@ -1,116 +1,122 @@
 using System.Collections.Generic;
+using HotUpdate.Core;
+using HotUpdate.Data;
+using HotUpdate.Event;
 
-/// <summary>
-/// 驱动盘（仓库）服务。拥有「已拥有」和「已装备」两份列表，并对外广播变化。
-/// </summary>
-public class DepotService
+namespace HotUpdate.Service
 {
-    /// <summary>装备槽数量，对应 DepotPanel 上 contentList 的格子数</summary>
-    private const int MaxEquipSlots = 5;
-
-    /// <summary>已拥有的驱动盘</summary>
-    public List<DriverDiskDataRuntime> Owned { get; } = new();
-
-    /// <summary>已装备的驱动盘</summary>
-    public List<DriverDiskDataRuntime> Equipped { get; } = new();
-
-    /// <summary>静态配置引用，发放奖励时需要按 id 找到模板</summary>
-    public DepotConfig Config { get; private set; }
-
-    public bool HasFreeEquipSlot => Equipped.Count < MaxEquipSlots;
-
-    public void Init(DepotConfig config)
+    /// <summary>
+    /// 驱动盘（仓库）服务。拥有「已拥有」和「已装备」两份列表，并对外广播变化。
+    /// </summary>
+    public class DepotService
     {
-        Config = config;
-        Owned.Clear();
-        Equipped.Clear();
-    }
+        /// <summary>装备槽数量，对应 DepotPanel 上 contentList 的格子数</summary>
+        private const int MaxEquipSlots = 5;
 
-    #region 拥有列表
+        /// <summary>已拥有的驱动盘</summary>
+        public List<DriverDiskDataRuntime> Owned { get; } = new();
 
-    /// <summary>按配置模板发放驱动盘</summary>
-    public void AddByTemplate(DriverDiskData template, int count = 1)
-    {
-        if (template == null) return;
-        for (int i = 0; i < count; i++)
+        /// <summary>已装备的驱动盘</summary>
+        public List<DriverDiskDataRuntime> Equipped { get; } = new();
+
+        /// <summary>静态配置引用，发放奖励时需要按 id 找到模板</summary>
+        public DepotConfig Config { get; private set; }
+
+        public bool HasFreeEquipSlot => Equipped.Count < MaxEquipSlots;
+
+        public void Init(DepotConfig config)
         {
-            Owned.Add(new DriverDiskDataRuntime(template));
+            Config = config;
+            Owned.Clear();
+            Equipped.Clear();
         }
 
-        NotifyDepotChanged();
-    }
+        #region 拥有列表
 
-    /// <summary>按配置 id 发放，找不到模板直接返回 0</summary>
-    public int AddByDepotId(int depotId, int count = 1)
-    {
-        var template = FindTemplate(depotId);
-        if (template == null) return 0;
-        AddByTemplate(template, count);
-        return count;
-    }
-
-    public bool Remove(DriverDiskDataRuntime item)
-    {
-        if (item == null) return false;
-        Unequip(item);
-        if (!Owned.Remove(item)) return false;
-        NotifyDepotChanged();
-        return true;
-    }
-
-    private DriverDiskData FindTemplate(int depotId)
-    {
-        if (Config == null || Config.depots == null) return null;
-        foreach (var depot in Config.depots)
+        /// <summary>按配置模板发放驱动盘</summary>
+        public void AddByTemplate(DriverDiskData template, int count = 1)
         {
-            if (depot != null && depot.depotId == depotId) return depot;
+            if (template == null) return;
+            for (int i = 0; i < count; i++)
+            {
+                Owned.Add(new DriverDiskDataRuntime(template));
+            }
+
+            NotifyDepotChanged();
         }
 
-        return null;
-    }
+        /// <summary>按配置 id 发放，找不到模板直接返回 0</summary>
+        public int AddByDepotId(int depotId, int count = 1)
+        {
+            var template = FindTemplate(depotId);
+            if (template == null) return 0;
+            AddByTemplate(template, count);
+            return count;
+        }
 
-    #endregion
+        public bool Remove(DriverDiskDataRuntime item)
+        {
+            if (item == null) return false;
+            Unequip(item);
+            if (!Owned.Remove(item)) return false;
+            NotifyDepotChanged();
+            return true;
+        }
 
-    #region 装备 / 卸下
+        private DriverDiskData FindTemplate(int depotId)
+        {
+            if (Config == null || Config.depots == null) return null;
+            foreach (var depot in Config.depots)
+            {
+                if (depot != null && depot.depotId == depotId) return depot;
+            }
 
-    public bool IsEquipped(DriverDiskDataRuntime item)
-    {
-        return item != null && Equipped.Contains(item);
-    }
+            return null;
+        }
 
-    public bool Equip(DriverDiskDataRuntime item)
-    {
-        if (item == null || IsEquipped(item)) return false;
-        if (!Owned.Contains(item) || !HasFreeEquipSlot) return false;
+        #endregion
 
-        Equipped.Add(item);
-        NotifyEquippedChanged();
-        return true;
-    }
+        #region 装备 / 卸下
 
-    public bool Unequip(DriverDiskDataRuntime item)
-    {
-        if (item == null || !Equipped.Remove(item)) return false;
-        NotifyEquippedChanged();
-        return true;
-    }
+        public bool IsEquipped(DriverDiskDataRuntime item)
+        {
+            return item != null && Equipped.Contains(item);
+        }
 
-    public void UnequipAll()
-    {
-        if (Equipped.Count == 0) return;
-        Equipped.Clear();
-        NotifyEquippedChanged();
-    }
+        public bool Equip(DriverDiskDataRuntime item)
+        {
+            if (item == null || IsEquipped(item)) return false;
+            if (!Owned.Contains(item) || !HasFreeEquipSlot) return false;
 
-    #endregion
+            Equipped.Add(item);
+            NotifyEquippedChanged();
+            return true;
+        }
 
-    private void NotifyDepotChanged()
-    {
-        AppContext.Events.EventTrigger(GameEvent.DepotChanged);
-    }
+        public bool Unequip(DriverDiskDataRuntime item)
+        {
+            if (item == null || !Equipped.Remove(item)) return false;
+            NotifyEquippedChanged();
+            return true;
+        }
 
-    private void NotifyEquippedChanged()
-    {
-        AppContext.Events.EventTrigger(GameEvent.EquippedChanged);
+        public void UnequipAll()
+        {
+            if (Equipped.Count == 0) return;
+            Equipped.Clear();
+            NotifyEquippedChanged();
+        }
+
+        #endregion
+
+        private void NotifyDepotChanged()
+        {
+            AppContext.Events.EventTrigger(GameEvent.DepotChanged);
+        }
+
+        private void NotifyEquippedChanged()
+        {
+            AppContext.Events.EventTrigger(GameEvent.EquippedChanged);
+        }
     }
 }

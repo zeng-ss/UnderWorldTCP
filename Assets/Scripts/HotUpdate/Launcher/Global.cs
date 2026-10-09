@@ -1,16 +1,21 @@
-public class Global : SingleTonMono<Global>
+using HotUpdate.Network;
+
+namespace HotUpdate.Launcher
 {
-    protected override void Awake()
+    public class Global : SingleTonMono<Global>
     {
-        base.Awake();
+        protected override void Awake()
+        {
+            base.Awake();
 
-        // 初始化TCP网络连接（连接 GateServer）
-        NetSocketMgr.Instance.Init();
-    }
+            // 初始化TCP网络连接（连接 GateServer）
+            NetSocketMgr.Instance.Init();
+        }
 
-    protected override void OnApplicationQuit()
-    {
-        base.OnApplicationQuit();
-        NetSocketMgr.Instance.Disconnect();
+        protected override void OnApplicationQuit()
+        {
+            base.OnApplicationQuit();
+            NetSocketMgr.Instance.Disconnect();
+        }
     }
 }

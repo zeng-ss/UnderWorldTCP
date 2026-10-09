@@ -1,62 +1,66 @@
+using HotUpdate.Data;
 using UnityEngine;
 
-public class PlayerDefenceState : PlayerState
+namespace HotUpdate.Player
 {
-    private enum DefenceChildState
+    public class PlayerDefenceState : PlayerState
     {
-        Enter, //进入格挡
-        Hold, //一直按着 F不松手，一直处于格挡状态
-        CounterAttack, //反击，动画结束回到 Idle状态
-        Exit //退出格挡
-    }
-
-    private DefenceChildState _defenceState;
-
-    private DefenceChildState DefenceState
-    {
-        get => _defenceState;
-        set
+        private enum DefenceChildState
         {
-            _defenceState = value;
-            switch (_defenceState)
+            Enter, //进入格挡
+            Hold, //一直按着 F不松手，一直处于格挡状态
+            CounterAttack, //反击，动画结束回到 Idle状态
+            Exit //退出格挡
+        }
+
+        private DefenceChildState _defenceState;
+
+        private DefenceChildState DefenceState
+        {
+            get => _defenceState;
+            set
             {
-                case DefenceChildState.Enter:
-                    Player.PlayAnimation("EnterDefence");
-                    break;
-                case DefenceChildState.Hold:
-                    Player.PlayAnimation("HoldDefence");
-                    break;
-                case DefenceChildState.CounterAttack:
-                    //_player.playerModel.transform.LookAt(((Component)_player.Enemy).transform); //面向敌人
-                    if (!Player.Core.IsLocalPlayer) return;
-                    // 本地先更新（预测，提升手感）
-                    Player.SkillCombo.UpdateSkillConfig(ComboSet.Second);
-                    Player.SkillCombo.StartSkillByIndex(1);
-                    break;
-                case DefenceChildState.Exit:
-                    Player.PlayAnimation("ExitDefence");
-                    break;
+                _defenceState = value;
+                switch (_defenceState)
+                {
+                    case DefenceChildState.Enter:
+                        Player.PlayAnimation("EnterDefence");
+                        break;
+                    case DefenceChildState.Hold:
+                        Player.PlayAnimation("HoldDefence");
+                        break;
+                    case DefenceChildState.CounterAttack:
+                        //_player.playerModel.transform.LookAt(((Component)_player.Enemy).transform); //面向敌人
+                        if (!Player.Core.IsLocalPlayer) return;
+                        // 本地先更新（预测，提升手感）
+                        Player.SkillCombo.UpdateSkillConfig(ComboSet.Second);
+                        Player.SkillCombo.StartSkillByIndex(1);
+                        break;
+                    case DefenceChildState.Exit:
+                        Player.PlayAnimation("ExitDefence");
+                        break;
+                }
             }
         }
-    }
 
-    public override void Enter()
-    {
-        Player.playerModel.SetRootMotionAction(OnRootMotion);
-        DefenceState = DefenceChildState.Enter;
-    }
+        public override void Enter()
+        {
+            Player.playerModel.SetRootMotionAction(OnRootMotion);
+            DefenceState = DefenceChildState.Enter;
+        }
 
-    private void OnRootMotion(Vector3 arg1, Quaternion arg2)
-    {
-        Player.CharacterController.Move(arg1);
-    }
+        private void OnRootMotion(Vector3 arg1, Quaternion arg2)
+        {
+            Player.CharacterController.Move(arg1);
+        }
 
-    public override void Update()
-    {
-    }
+        public override void Update()
+        {
+        }
 
-    public override void Exit()
-    {
-        Player.playerModel.ClearRootMotionAction();
+        public override void Exit()
+        {
+            Player.playerModel.ClearRootMotionAction();
+        }
     }
 }

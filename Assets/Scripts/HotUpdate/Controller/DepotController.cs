@@ -1,3 +1,7 @@
+using HotUpdate.Core;
+using HotUpdate.Data;
+using HotUpdate.UI.UIPanel;
+
 namespace HotUpdate.Controller
 {
     /// <summary>

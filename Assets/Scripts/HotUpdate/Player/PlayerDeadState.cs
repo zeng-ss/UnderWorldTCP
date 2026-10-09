@@ -1,8 +1,11 @@
-public class PlayerDeadState : PlayerState
+namespace HotUpdate.Player
 {
-    public override void Enter()
+    public class PlayerDeadState : PlayerState
     {
-        if (!Player.Core.IsLocalPlayer) return;
-        Player.PlayAnimation("Dead");
+        public override void Enter()
+        {
+            if (!Player.Core.IsLocalPlayer) return;
+            Player.PlayAnimation("Dead");
+        }
     }
 }
