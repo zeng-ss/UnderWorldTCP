@@ -1,5 +1,4 @@
 using System;
-using HotUpdate.Core;
 using HotUpdate.Event;
 using UnityEngine;
 using AppContext = HotUpdate.Core.AppContext;

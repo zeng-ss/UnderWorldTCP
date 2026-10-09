@@ -1,7 +1,6 @@
 using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.Event;
-using HotUpdate.Network;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -30,24 +29,9 @@ namespace HotUpdate.Manager
         {
             base.Awake();
             _appContext = AppContext.Create();
-            BootstrapServices();
+            _appContext.InitAll(materialData, depotConfig, taskConfigSo, _basePlayerValueData);
             RegisterGlobalHotkeys();
             AppContext.Events.AddEventListener(GameEvent.EquippedChanged, OnEquippedChanged);
-        }
-
-        /// <summary>按依赖顺序初始化各个 Service</summary>
-        private void BootstrapServices()
-        {
-            AppContext.Material.Init(materialData);
-            AppContext.Depot.Init(depotConfig);
-            AppContext.Task.Init(taskConfigSo);
-            AppContext.PlayerData.Init(_basePlayerValueData ?? new PlayerValueData());
-            // 用当前装备先算一次，保证 Current 一开始就有值而不是全 0
-            AppContext.PlayerData.ApplyEquipped(AppContext.Depot.Equipped);
-            AppContext.Ui.Init();
-            AppContext.Sound.Init();
-            AppContext.Proto.Init();
-            AppContext.RemotePlayer.Init();
         }
 
         private void OnEquippedChanged(EventArgs args)

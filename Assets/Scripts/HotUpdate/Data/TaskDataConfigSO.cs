@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotUpdate.Core;
 using UnityEngine;
 using AppContext = HotUpdate.Core.AppContext;
 using Random = UnityEngine.Random;

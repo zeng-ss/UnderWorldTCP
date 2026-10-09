@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using DamageNumbersPro;
 using DG.Tweening;
-using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.Event;
 using HotUpdate.Player;

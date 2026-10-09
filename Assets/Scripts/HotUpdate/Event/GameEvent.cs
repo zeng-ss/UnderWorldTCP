@@ -18,6 +18,9 @@ namespace HotUpdate.Event
         //一段对话结束
         DialogueEnd,
 
+        //剧情进度变化（推进 / 重置）
+        StoryChanged,
+
         //请求显示光标
         CursorShow,
 
@@ -80,16 +83,19 @@ namespace HotUpdate.Event
         public float Progress { get; }
     }
 
-    /// <summary>对话结束事件参数</summary>
+    /// <summary>对话结束事件参数。携带刚结束的对话数据，监听方无需再按索引回查。</summary>
     public class DialogueEndArgs : EventArgs
     {
-        public DialogueEndArgs(int dialogueId) : base((int)GameEvent.DialogueEnd)
+        public DialogueEndArgs(DialogueData dialogue) : base((int)GameEvent.DialogueEnd)
         {
-            DialogueId = dialogueId;
+            Dialogue = dialogue;
         }
 
-        /// <summary>结束的对话 id</summary>
-        public int DialogueId { get; }
+        /// <summary>刚结束的对话数据</summary>
+        public DialogueData Dialogue { get; }
+
+        /// <summary>刚结束的对话 id；无数据时为 -1</summary>
+        public int DialogueId => Dialogue != null ? Dialogue.id : -1;
     }
 
     /// <summary>角色属性重算完成事件参数</summary>

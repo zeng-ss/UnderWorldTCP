@@ -1,9 +1,8 @@
 using System.Collections.Generic;
-using System.Linq;
 using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.Event;
-using HotUpdate.Network;
+using HotUpdate.Manager;
 using HotUpdate.UI.UIPanel;
 using TMPro;
 using UnityEngine;
@@ -12,23 +11,22 @@ namespace HotUpdate.Controller
 {
     public class NpcCtrl : MonoBehaviour
     {
-        public List<DialogueData> dialogueDatas;
-        private new Camera _camera;
+        private Camera _camera;
         private TMP_Text _tipText;
-        [HideInInspector] public bool isEnter;
+        private bool _isEnter;
 
         public void Start()
         {
             _camera = Camera.main;
             _tipText = GetComponentInChildren<TMP_Text>();
             _tipText.gameObject.SetActive(false);
-            AppContext.Events.AddEventListener(GameEvent.DialogueEnd, GetTask);
+            AppContext.Events.AddEventListener(GameEvent.DialogueEnd, OnDialogueEnd);
             InputManager.Instance.RegisterGameplayKeyDown(KeyCode.F, OnInteractPressed);
         }
 
         private void Update()
         {
-            // 提示文字始终朝向相机（每帧的视觉更新，不涉及输入）
+            // 提示文字始终朝向相机
             if (_tipText.gameObject.activeSelf)
             {
                 _tipText.transform.LookAt(_camera.transform.position);
@@ -36,54 +34,41 @@ namespace HotUpdate.Controller
             }
         }
 
-        /// <summary>按 F 与 NPC 对话。注册到 InputManager，不再在 Update 里轮询。</summary>
         private void OnInteractPressed()
         {
-            if (!isEnter) return;
-
-            int index = AppContext.Story.DialogueIndex;
-            if (index < 0 || index >= dialogueDatas.Count)
-            {
-                Debug.LogWarning($"对话下标越界：{index}，共 {dialogueDatas.Count} 段");
-                return;
-            }
-
-            AppContext.Events.EventTrigger(GameEvent.CursorShow);
-            AppContext.Dialogue.StartDialogue(dialogueDatas[index]);
+            if (!_isEnter) return;
+            // 当前该播哪段对话由 StoryService 决定
+            FindAnyObjectByType<DialogueManager>().StartDialogue();
         }
 
         /// <summary>
-        /// 对话结束获取任务
+        /// 一段对话结束后：解锁该段对话配置的任务，并在非结局对话后生成敌人。
         /// </summary>
-        /// <param name="args">事件参数，实际类型为 DialogueEndArgs</param>
-        private void GetTask(EventArgs args)
+        private void OnDialogueEnd(EventArgs args)
         {
-            int dialogueId = ((DialogueEndArgs)args).DialogueId;
-            // 走 TaskService.Unlock 做状态迁移（Locked → InProgress），不再直接改字段
-            foreach (var task in AppContext.Task.Tasks.Where(task =>
-                         dialogueDatas[AppContext.Story.DialogueIndex].taskIds.Contains(task.TaskId)))
-            {
-                AppContext.Task.Unlock(task.TaskId);
-            }
+            if (args is not DialogueEndArgs endArgs || endArgs.Dialogue == null) return;
+            DialogueData dialogue = endArgs.Dialogue;
 
-            if (dialogueId != 2)
+            // 解锁本段对话配置的任务（Locked → InProgress）
+            AppContext.Task.UnlockAll(dialogue.taskIds);
+
+            // id == 2 为纯剧情收尾，不生成敌人
+            if (dialogue.id != 2)
             {
-                // 对话结束生成敌人
-                //GameManager.Instance.SpawnEnemy();
                 Vector3 pos = new Vector3(17, -1.6f, -30);
                 AppContext.Proto.RequestSpawnEnemy(AppContext.Session.RoleId, 1, 20000, pos,
                     AppContext.RemotePlayer.SpawnEnemy);
             }
 
-            AppContext.Ui.OpenPanel<TipPanel>(panel => { panel.ShowTip("有新任务了，快去完成吧~"); });
-            AppContext.Ui.OpenPanel<TaskPanel>((panel => { panel.RefreshTaskUI(AppContext.Task.Tasks); }));
+            AppContext.Ui.ShowTip("有新任务了，快去完成吧~");
+            AppContext.Ui.OpenPanel<TaskPanel>(panel => panel.RefreshTaskUI(AppContext.Task.Tasks));
         }
 
         private void OnTriggerEnter(Collider other)
         {
             if (other.CompareTag("Player"))
             {
-                isEnter = true;
+                _isEnter = true;
                 _tipText.gameObject.SetActive(true);
             }
         }
@@ -92,14 +77,14 @@ namespace HotUpdate.Controller
         {
             if (other.CompareTag("Player"))
             {
-                isEnter = false;
+                _isEnter = false;
                 _tipText.gameObject.SetActive(false);
             }
         }
 
         private void OnDestroy()
         {
-            AppContext.Events.RemoveEventListener(GameEvent.DialogueEnd, GetTask);
+            AppContext.Events.RemoveEventListener(GameEvent.DialogueEnd, OnDialogueEnd);
             InputManager.Instance.UnregisterGameplayKeyDown(KeyCode.F, OnInteractPressed);
         }
     }

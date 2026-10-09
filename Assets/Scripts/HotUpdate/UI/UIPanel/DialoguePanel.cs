@@ -1,10 +1,11 @@
+using System;
 using DG.Tweening;
 using HotUpdate.Controller;
-using HotUpdate.Core;
 using HotUpdate.Manager;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.UI.UIPanel
 {
@@ -13,44 +14,50 @@ namespace HotUpdate.UI.UIPanel
     {
         #region 数据
 
-        [Header("对话控制器")]
-        public DialogueController dialogueController;
+        [Header("对话控制器")] public DialogueController dialogueController;
 
-        [Header("左侧UI引用（玩家）")]
-        public TMP_Text speakerNameTextL;
+        [Header("左侧UI引用（玩家）")] public TMP_Text speakerNameTextL;
         public TMP_Text dialogueTextL;
         public Image speakerPortraitImageL;
         public Transform optionsPanelL;
 
-        [Header("右侧UI引用（NPC）")]
-        public TMP_Text speakerNameTextR;
+        [Header("右侧UI引用（NPC）")] public TMP_Text speakerNameTextR;
         public TMP_Text dialogueTextR;
         public Image speakerPortraitImageR;
         public Transform optionsPanelR;
 
-        [Header("公共UI")]
-        public TMP_Text tipText; // 提示文字（居中显示）
+        [Header("公共UI")] public TMP_Text tipText; // 提示文字（居中显示）
         private Camera _followCamera;
 
-        [Header("动画设置")]
-        private float _fadeDuration = 0.3f;
-        private float _textTypeDuration = 0.05f;
-        private Ease _fadeEase = Ease.OutQuad;
+        [Header("动画设置")] private float _fadeDuration = 0.3f;
+        private const float TextTypeDuration = 0.05f;
+        private const Ease FadeEase = Ease.OutQuad;
 
         private Sequence _showSequence;
         private Tween _typingTween;
         private bool _isPlayerSpeaking = true;
         private float _lastSoundTime;
 
+        /// <summary>当前是否正在播放打字机效果</summary>
+        public bool IsTyping { get; private set; }
+
+        /// <summary>打字机播放完成（自然结束或被跳过）时触发，由对话管理器据此推进状态机</summary>
+        public event Action OnTypingComplete;
+
         #endregion
 
-        protected override void Awake() { base.Awake(); _followCamera = Camera.main; }
+        protected override void Awake()
+        {
+            base.Awake();
+            _followCamera = Camera.main;
+        }
 
         private void OnEnable()
         {
             // 面板显示动画
             transform.localScale = Vector3.zero;
-            _showSequence = DOTween.Sequence().Append(transform.DOScale(Vector3.one, _fadeDuration).SetEase(_fadeEase)).Play();
+            _showSequence = DOTween.Sequence().Append(transform.DOScale(Vector3.one, _fadeDuration).SetEase(FadeEase))
+                .Play();
         }
 
         /// <summary>
@@ -72,6 +79,7 @@ namespace HotUpdate.UI.UIPanel
                 speakerPortraitImageR.sprite = portrait;
                 speakerPortraitImageR.gameObject.SetActive(true);
             }
+
             // 通过控制器显示对应侧边
             if (dialogueController != null)
             {
@@ -96,6 +104,7 @@ namespace HotUpdate.UI.UIPanel
                 nameText.transform.DOScale(Vector3.one, 0.3f)
                     .SetEase(Ease.OutBack);
             }
+
             // 头像动画
             Image portraitImage = isPlayer ? speakerPortraitImageL : speakerPortraitImageR;
             if (portraitImage != null && portraitImage.gameObject.activeSelf)
@@ -105,7 +114,7 @@ namespace HotUpdate.UI.UIPanel
         }
 
         /// <summary>
-        /// 显示对话文本
+        /// 显示对话文本并播放打字机效果。播放结束
         /// </summary>
         public void ShowDialogue(string content, AudioClip typingSound = null)
         {
@@ -113,13 +122,20 @@ namespace HotUpdate.UI.UIPanel
             _typingTween?.Kill();
             // 根据当前说话者选择对应的文本组件
             TMP_Text targetText = _isPlayerSpeaking ? dialogueTextL : dialogueTextR;
-            if (targetText == null) return;
+            if (targetText == null || string.IsNullOrEmpty(content))
+            {
+                FinishTyping();
+                return;
+            }
+
             // 重置文本
             targetText.text = "";
             targetText.alpha = 1;
+            IsTyping = true;
             // 打字机效果
             int charCount = 0;
-            _typingTween = DOTween.To(() => charCount, x => charCount = x, content.Length, content.Length * _textTypeDuration)
+            _typingTween = DOTween.To(() => charCount, x => charCount = x, content.Length,
+                    content.Length * TextTypeDuration)
                 .SetEase(Ease.Linear)
                 .OnUpdate(() =>
                 {
@@ -135,22 +151,29 @@ namespace HotUpdate.UI.UIPanel
                         }
                     }
                 })
-                .OnComplete(() => { _typingTween = null; }).Play();
+                .OnComplete(FinishTyping)
+                .Play();
         }
 
-        /// <summary>
-        /// 立即完成打字
-        /// </summary>
-        public void CompleteCurrentTyping()
+        /// <summary>立即完成打字（玩家按键跳过时由对话管理器调用）</summary>
+        public void CompleteTyping()
         {
             if (_typingTween != null && _typingTween.IsActive())
             {
-                _typingTween.Complete();
-                _typingTween.Kill();
-                _typingTween = null;
+                _typingTween.Complete(); // 会触发 OnComplete → FinishTyping
+                return;
             }
-            // 显示提示文字
-            ShowContinueHint();
+
+            FinishTyping();
+        }
+
+        // 统一的打字收尾：保证 OnTypingComplete 只触发一次
+        private void FinishTyping()
+        {
+            if (!IsTyping) return;
+            IsTyping = false;
+            _typingTween = null;
+            OnTypingComplete?.Invoke();
         }
 
         /// <summary>
@@ -167,7 +190,10 @@ namespace HotUpdate.UI.UIPanel
         /// </summary>
         public void HideContinueHint()
         {
-            if (tipText.gameObject.activeSelf) { tipText.gameObject.SetActive(false); }
+            if (tipText.gameObject.activeSelf)
+            {
+                tipText.gameObject.SetActive(false);
+            }
         }
 
         /// <summary>
@@ -219,20 +245,26 @@ namespace HotUpdate.UI.UIPanel
             // 停止所有动画
             _showSequence?.Kill();
             _typingTween?.Kill();
+            _typingTween = null;
+            IsTyping = false;
             Sequence closeSequence = DOTween.Sequence();
             // 隐藏所有侧边
             if (dialogueController != null)
             {
                 closeSequence.AppendCallback(() => dialogueController.HideAllSides());
             }
+
             // 面板缩放消失
-            closeSequence.Append(transform.DOScale(Vector3.zero, _fadeDuration)
-                    .SetEase(Ease.InBack))
-                .OnComplete(() =>
-                {
-                    AppContext.Ui.ClosePanel<DialoguePanel>();
-                })
+            closeSequence.Append(transform.DOScale(Vector3.zero, _fadeDuration).SetEase(Ease.InBack))
+                .OnComplete(() => { AppContext.Ui.ClosePanel<DialoguePanel>(); })
                 .Play();
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            // 面板销毁后清空事件，避免保留对对话管理器的引用
+            OnTypingComplete = null;
         }
     }
 }

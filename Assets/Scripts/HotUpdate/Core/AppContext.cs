@@ -1,3 +1,4 @@
+using HotUpdate.Data;
 using HotUpdate.Event;
 using HotUpdate.Manager;
 using HotUpdate.Network;
@@ -57,32 +58,6 @@ namespace HotUpdate.Core
 
         #endregion
 
-        #region 基础设施 Mono 管理器
-
-        private DialogueManager _dialogue;
-
-        public static DialogueManager Dialogue => Resolve(ref _current._dialogue);
-
-        private static T Resolve<T>(ref T field) where T : MonoBehaviour
-        {
-            if (field != null) return field;
-
-            field = Object.FindAnyObjectByType<T>(FindObjectsInactive.Include);
-            if (field != null)
-            {
-                // 场景里已有的实例提升为跨场景存活（等价于它原本 DontDestroyOnLoad 的行为）
-                Object.DontDestroyOnLoad(field.gameObject);
-                return field;
-            }
-
-            var go = new GameObject(typeof(T).Name);
-            Object.DontDestroyOnLoad(go);
-            field = go.AddComponent<T>();
-            return field;
-        }
-
-        #endregion
-
         private AppContext()
         {
             _current = this;
@@ -106,12 +81,26 @@ namespace HotUpdate.Core
             _chat = new ChatService();
         }
 
-        /// <summary>由 GameManager 在 Awake 里调用，整个进程只应执行一次</summary>
         public static AppContext Create() => _current ??= new AppContext();
+
+        public void InitAll(MaterialDataSo materialData, DepotConfig depotConfig, TaskDataConfigSo taskConfigSo,
+            PlayerValueData basePlayerValueData)
+        {
+            _material.Init(materialData);
+            _depot.Init(depotConfig);
+            _task.Init(taskConfigSo);
+            _playerData.Init(basePlayerValueData ?? new PlayerValueData());
+            // 用当前装备先算一次，保证 Current 一开始就有值而不是全 0
+            _playerData.ApplyEquipped(_depot.Equipped);
+            _uiManager.Init();
+            _sound.Init();
+            _proto.Init();
+            _story.Init();
+            _remotePlayer.Init();
+        }
 
         public static bool IsAlive => _current != null;
 
-        /// <summary>释放所有跨面板协调者持有的监听（热更重载 / 退出时调用）</summary>
         public void Dispose()
         {
             _task.Clear();

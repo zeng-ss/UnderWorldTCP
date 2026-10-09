@@ -1,6 +1,5 @@
 using System;
 using HotUpdate.Controller;
-using HotUpdate.Core;
 using HotUpdate.Manager;
 using TMPro;
 using UnityEngine;

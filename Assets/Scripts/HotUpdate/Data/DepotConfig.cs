@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotUpdate.Core;
 using HotUpdate.Event;
 using UnityEngine;
 using UnityEngine.Serialization;

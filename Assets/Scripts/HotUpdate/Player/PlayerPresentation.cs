@@ -3,7 +3,6 @@ using System.Collections;
 using DamageNumbersPro;
 using DG.Tweening;
 using HotUpdate.Controller;
-using HotUpdate.Core;
 using HotUpdate.Data;
 using Unity.Cinemachine;
 using UnityEngine;

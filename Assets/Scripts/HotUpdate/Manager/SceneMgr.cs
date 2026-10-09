@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using HotUpdate.Core;
 using HotUpdate.Event;
-using HotUpdate.Network;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
 using UnityEngine.AddressableAssets;

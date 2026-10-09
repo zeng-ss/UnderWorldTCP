@@ -1,5 +1,4 @@
 using System;
-using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.Event;
 using HotUpdate.Player;
