@@ -53,10 +53,50 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_TaskProgressReqCode:
                 OnTaskProgressReqResultHandle(session, basePackage);
                 break;
+            case NetDefine.CMD_DriverDiskUpgradeCode:
+                OnDriverDiskUpgradeResultHandle(session, basePackage);
+                break;
+            case NetDefine.CMD_DriverDiskEquipCode:
+                OnDriverDiskEquipResultHandle(session, basePackage);
+                break;
+            case NetDefine.CMD_BagInfoCode:
+                OnBagInfoResultHandle(session, basePackage);
+                break;
             default:
                 LogMsg.Info("[LoginCtrl]中心服务器发过来的结果的请求码没有注册");
                 break;
         }
+    }
+
+    // 驱动盘升级返回（CenterServer 已落库）。失败也原样透传，客户端据此拿 Tip 弹提示，
+    // 不走 SendError —— SendError 只发 CMD_ErrCode，回调永远等不到响应会悬挂。
+    private void OnDriverDiskUpgradeResultHandle(Session session, BasePackage basePackage)
+    {
+        DriverDiskUpgradeRet ret = DriverDiskUpgradeRet.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Login]驱动盘升级结果:" + ret);
+        session.SendData(basePackage);
+    }
+
+    // 装备 / 卸下返回（同上，失败原样透传）
+    private void OnDriverDiskEquipResultHandle(Session session, BasePackage basePackage)
+    {
+        DriverDiskEquipRet ret = DriverDiskEquipRet.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Login]驱动盘装备结果:" + ret);
+        session.SendData(basePackage);
+    }
+
+    // 背包拉取返回
+    private void OnBagInfoResultHandle(Session session, BasePackage basePackage)
+    {
+        BagInfoRet ret = BagInfoRet.Parser.ParseFrom(basePackage.Data);
+        if (ret.CmdCode != CmdCode.Succeed)
+        {
+            session.SendError(basePackage, ret.CmdCode);
+            return;
+        }
+
+        LogMsg.Info("[Login]背包拉取结果: 驱动盘=" + ret.DriverDiskMap.Count + " 材料=" + ret.MaterialMap.Count);
+        session.SendData(basePackage);
     }
 
     private void OnGetRewardResultHandle(Session session, BasePackage basePackage)
@@ -331,6 +371,15 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_TaskProgressReqCode:
                 OnTaskProgressReqHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_DriverDiskUpgradeCode:
+                OnDriverDiskUpgradeHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_DriverDiskEquipCode:
+                OnDriverDiskEquipHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_BagInfoCode:
+                OnBagInfoHandle(serverBase, basePackage);
+                break;
             case NetDefine.CMD_PositionSyncCode:
                 OnPositionSyncHandle(serverBase, basePackage);
                 break;
@@ -450,6 +499,30 @@ public class LoginCtrl : IContainer
         TaskProgressReq req = TaskProgressReq.Parser.ParseFrom(basePackage.Data);
         serverBase._Client.SendData(basePackage);
         LogMsg.Info("[Login]收到任务进度拉取转发:" + req);
+    }
+
+    // 驱动盘升级转发（LoginServer 只透传给 CenterServer，校验与落库都在 Center）
+    private void OnDriverDiskUpgradeHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        DriverDiskUpgradeReq req = DriverDiskUpgradeReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到驱动盘升级转发:" + req);
+    }
+
+    // 装备 / 卸下转发
+    private void OnDriverDiskEquipHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        DriverDiskEquipReq req = DriverDiskEquipReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到驱动盘装备转发:" + req);
+    }
+
+    // 背包拉取转发
+    private void OnBagInfoHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        BagInfoReq req = BagInfoReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到背包拉取转发:" + req);
     }
 
     // 位置同步处理（LoginServer直接广播，不经过CenterServer）

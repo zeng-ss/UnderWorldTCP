@@ -3,13 +3,10 @@ using System.Collections.Generic;
 using HotUpdate.Data.Config;
 using UnityEngine;
 using AppContext = HotUpdate.Core.AppContext;
-using Random = UnityEngine.Random;
 
 namespace HotUpdate.Data
 {
     // 驱动盘的运行时实例。
-    // 模板（名称 / 图标 / 初始等级 / 升级消耗 / 属性初值）来自 Luban 的 driverDisk 表导出的 Json；
-    // 每个实例持有自己的等级与词条，发放时从模板拷贝一份。
     public class DriverDiskDataRuntime
     {
         public readonly string DepotName;
@@ -21,10 +18,13 @@ namespace HotUpdate.Data
         public float CurLevelMaxFill;
         public float CurLevelFillValue;
 
-        public DriverDiskValueData DepotDriverDiskValue = new();
+        public readonly DriverDiskValueData DepotDriverDiskValue = new();
 
-        // 由配置行构造（模板 → 实例）
-        public DriverDiskDataRuntime(DriverDiskRow row)
+        // 客户端里「已升过一级」的等级门槛：初始 1 级，升到 2 级即算升过一次
+        public const int UpgradedLevel = 2;
+
+        // 由配置行构造（只取静态模板字段）
+        private DriverDiskDataRuntime(DriverDiskRow row)
         {
             if (row == null)
             {
@@ -54,25 +54,27 @@ namespace HotUpdate.Data
             };
         }
 
-        // 拷贝构造：发放同名驱动盘时复制一份独立实例
-        public DriverDiskDataRuntime(DriverDiskDataRuntime other)
+        // 由「配置行 + 服务端数据」构造：静态取模板，动态以服务端为准
+        public DriverDiskDataRuntime(DriverDiskRow row, DriverDiskInfo info) : this(row)
         {
-            DepotName = other.DepotName;
-            DepotId = other.DepotId;
-            DepotIconName = other.DepotIconName;
-            MaterialsId = new List<int>(other.MaterialsId);
-            Level = other.Level;
-            CurLevelMaxFill = other.CurLevelMaxFill;
-            CurLevelFillValue = other.CurLevelFillValue;
-            DepotDriverDiskValue = new DriverDiskValueData
-            {
-                driverDiskType = other.DepotDriverDiskValue.driverDiskType,
-                baseValue = other.DepotDriverDiskValue.baseValue,
-                attackPercent = other.DepotDriverDiskValue.attackPercent,
-                defensePercent = other.DepotDriverDiskValue.defensePercent,
-                healthPercent = other.DepotDriverDiskValue.healthPercent,
-                baoJiPercent = other.DepotDriverDiskValue.baoJiPercent,
-            };
+            ApplyFrom(info);
+        }
+
+        /// <summary>
+        /// 用服务端数据覆盖动态字段
+        /// </summary>
+        public void ApplyFrom(DriverDiskInfo info)
+        {
+            if (info == null) return;
+
+            Level = info.Level;
+            CurLevelMaxFill = info.CurMaxFillValue;
+            CurLevelFillValue = info.CurFillValue;
+            DepotDriverDiskValue.baseValue = info.BaseValue;
+            DepotDriverDiskValue.attackPercent = info.AttackPer;
+            DepotDriverDiskValue.defensePercent = info.DefensePer;
+            DepotDriverDiskValue.healthPercent = info.HealthPer;
+            DepotDriverDiskValue.baoJiPercent = info.BaoJiPer;
         }
 
         // Json 里的 diskType 是裸 int，在接入边界校验后转枚举
@@ -83,29 +85,8 @@ namespace HotUpdate.Data
             return DriverDiskType.Attack;
         }
 
-        // 添加经验值
-        public void AddExp(float exp)
-        {
-            CurLevelFillValue += exp;
-            // 检查是否可以升级
-            while (CurLevelFillValue >= CurLevelMaxFill)
-            {
-                Level++;
-                if (Level == 2)
-                {
-                    // 事件化：不再直接调任务系统，改为通知 TaskService 推进
-                    AppContext.Task.AdvanceByType(TaskType.给每一个驱动盘都升一级);
-                }
-
-                CurLevelFillValue -= CurLevelMaxFill;
-                CurLevelMaxFill = (int)Random.Range(CurLevelMaxFill + 200, CurLevelMaxFill + 500);
-                // 升级时提升属性
-                UpgradeValue();
-            }
-        }
-
-        // 检测材料数量是否足够增加经验值。
-        // 这里只做判定，不再自己弹提示面板 —— 展示层的事交给 Controller 处理。
+        // 检测材料数量是否足够升级。
+        // 只做本地粗判，用于省掉一次必然失败的往返；真正的校验与扣除在服务端。
         public bool CheckCanAddExp(out string shortageTip)
         {
             shortageTip = "";
@@ -120,45 +101,6 @@ namespace HotUpdate.Data
             return canAddExp;
         }
 
-        // 升级属性提升
-        private void UpgradeValue()
-        {
-            // 根据类型提升不同的属性
-            switch (DepotDriverDiskValue.driverDiskType)
-            {
-                case DriverDiskType.Attack:
-                    DepotDriverDiskValue.baseValue += Random.Range(20, 100);
-                    DepotDriverDiskValue.attackPercent += 10f;
-                    DepotDriverDiskValue.defensePercent += 5f;
-                    DepotDriverDiskValue.healthPercent += 3f;
-                    DepotDriverDiskValue.baoJiPercent += 3f;
-                    break;
-                case DriverDiskType.Defense:
-                    DepotDriverDiskValue.baseValue += Random.Range(20, 100);
-                    DepotDriverDiskValue.defensePercent += 10f;
-                    DepotDriverDiskValue.healthPercent += 5f;
-                    DepotDriverDiskValue.baoJiPercent += 2f;
-                    DepotDriverDiskValue.attackPercent += 3f;
-                    break;
-                case DriverDiskType.Health:
-                    DepotDriverDiskValue.baseValue += Random.Range(20, 100);
-                    DepotDriverDiskValue.healthPercent += 10f;
-                    DepotDriverDiskValue.defensePercent += 5f;
-                    DepotDriverDiskValue.baoJiPercent += 1f;
-                    DepotDriverDiskValue.attackPercent += 2f;
-                    break;
-                case DriverDiskType.BaoJi:
-                    DepotDriverDiskValue.baseValue += Random.Range(5, 10);
-                    DepotDriverDiskValue.baoJiPercent += 5f;
-                    DepotDriverDiskValue.attackPercent += 3f;
-                    DepotDriverDiskValue.defensePercent += 1f;
-                    DepotDriverDiskValue.healthPercent += 1f;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
         // 获取当前等级进度（0-1）
         public float GetLevelProgress()
         {
@@ -166,7 +108,7 @@ namespace HotUpdate.Data
         }
     }
 
-    // 驱动盘的属性词条（可变，随升级提升）
+    // 驱动盘的属性词条（由服务端下发，随升级提升）
     public class DriverDiskValueData
     {
         public DriverDiskType driverDiskType;

@@ -50,57 +50,71 @@ public static partial class ResultEntityReflection {
           "CGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIwCgpyZXdhcmRfbWFwGAIgAygL",
           "MhwuR2V0UmV3YXJkUmV0LlJld2FyZE1hcEVudHJ5EhMKC3Jld2FyZF9kZXNj",
           "GAMgASgJGjAKDlJld2FyZE1hcEVudHJ5EgsKA2tleRgBIAEoBRINCgV2YWx1",
-          "ZRgCIAEoBToCOAEiUQoMU3RhcnRHYW1lUmV0EhoKCGNtZF9jb2RlGAEgASgO",
-          "MgguQ21kQ29kZRIlCg5tYWluX3JvbGVfaW5mbxgCIAEoCzINLk1haW5Sb2xl",
-          "SW5mbyIxCgxSb2xlQmFzZUluZm8SDwoHcm9sZV9pZBgBIAEoBRIQCghuaWNr",
-          "bmFtZRgCIAEoCSLmAgoMTWFpblJvbGVJbmZvEiAKCWJhc2VfaW5mbxgBIAEo",
-          "CzINLlJvbGVCYXNlSW5mbxISCgphY2NvdW50X2lkGAIgASgFEhIKCnNjZW5l",
-          "X25hbWUYByABKAkSEQoJc2VydmVyX2lkGAggASgFEjkKD2RyaXZlcl9kaXNr",
-          "X21hcBgJIAMoCzIgLk1haW5Sb2xlSW5mby5Ecml2ZXJEaXNrTWFwRW50cnkS",
-          "NAoMbWF0ZXJpYWxfbWFwGAogAygLMh4uTWFpblJvbGVJbmZvLk1hdGVyaWFs",
-          "TWFwRW50cnkaRQoSRHJpdmVyRGlza01hcEVudHJ5EgsKA2tleRgBIAEoBRIe",
-          "CgV2YWx1ZRgCIAEoCzIPLkRyaXZlckRpc2tJbmZvOgI4ARpBChBNYXRlcmlh",
-          "bE1hcEVudHJ5EgsKA2tleRgBIAEoBRIcCgV2YWx1ZRgCIAEoCzINLk1hdGVy",
-          "aWFsSW5mbzoCOAEikAIKDkRyaXZlckRpc2tJbmZvEgoKAmlkGAEgASgFEhYK",
-          "DmRyaXZlcl9kaXNrX2lkGAIgASgFEhkKEWRyaXZlcl9kaXNrX2NvdW50GAMg",
-          "ASgFEhgKEGRyaXZlcl9kaXNrX25hbWUYBCABKAkSEgoKYmFzZV92YWx1ZRgF",
-          "IAEoBRISCgphdHRhY2tfcGVyGAYgASgCEhMKC2RlZmVuc2VfcGVyGAcgASgC",
-          "EhIKCmhlYWx0aF9wZXIYCCABKAISEQoJYmFvSmlfcGVyGAkgASgCEg0KBWxl",
-          "dmVsGAogASgFEhoKEmN1cl9tYXhfZmlsbF92YWx1ZRgLIAEoAhIWCg5jdXJf",
-          "ZmlsbF92YWx1ZRgMIAEoAiJSCgxNYXRlcmlhbEluZm8SEwoLbWF0ZXJpYWxf",
-          "aWQYASABKAUSFgoObWF0ZXJpYWxfY291bnQYAiABKAUSFQoNbWF0ZXJpYWxf",
-          "bmFtZRgDIAEoCSJ2Cg9Qb3NpdGlvblN5bmNOdGYSDwoHcm9sZV9pZBgBIAEo",
-          "BRINCgVwb3NfeBgCIAEoAhINCgVwb3NfeRgDIAEoAhINCgVwb3NfehgEIAEo",
-          "AhISCgpyb3RhdGlvbl95GAUgASgCEhEKCW5pa2VfbmFtZRgGIAEoCSJ5ChNQ",
-          "bGF5ZXJFbnRlclNjZW5lTnRmEg8KB3JvbGVfaWQYASABKAUSEAoIbmlja25h",
-          "bWUYAiABKAkSDQoFcG9zX3gYAyABKAISDQoFcG9zX3kYBCABKAISDQoFcG9z",
-          "X3oYBSABKAISEgoKc2NlbmVfbmFtZRgGIAEoBSImChNQbGF5ZXJMZWF2ZVNj",
-          "ZW5lTnRmEg8KB3JvbGVfaWQYASABKAUiWAoOUm9vbVBsYXllckluZm8SDwoH",
-          "cm9sZV9pZBgBIAEoBRIQCghuaWNrbmFtZRgCIAEoCRIRCglpc19tYXN0ZXIY",
-          "AyABKAgSEAoIaXNfcmVhZHkYBCABKAgiXgoNQ3JlYXRlUm9vbVJldBIaCghj",
-          "bWRfY29kZRgBIAEoDjIILkNtZENvZGUSDwoHcm9vbV9pZBgCIAEoBRIgCgdw",
-          "bGF5ZXJzGAMgAygLMg8uUm9vbVBsYXllckluZm8iXAoLSm9pblJvb21SZXQS",
-          "GgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEg8KB3Jvb21faWQYAiABKAUS",
-          "IAoHcGxheWVycxgDIAMoCzIPLlJvb21QbGF5ZXJJbmZvIkAKC1Jvb21JbmZv",
-          "TnRmEg8KB3Jvb21faWQYASABKAUSIAoHcGxheWVycxgCIAMoCzIPLlJvb21Q",
-          "bGF5ZXJJbmZvIjMKEFJvb21TdGFydEdhbWVOdGYSDwoHcm9vbV9pZBgBIAEo",
-          "BRIOCgZtYXBfaWQYAiABKAUiUQoKU3luY0FuaVJldBIWCg5hbmltYXRpb25f",
-          "bmFtZRgBIAEoCRIPCgdyb2xlX2lkGAIgASgFEhoKEnNraWxsX2NvbmZpZ19p",
-          "bmRleBgDIAEoBSJkCgxQbGF5ZXJWZnhOdGYSDwoHcm9sZV9pZBgBIAEoBRIa",
-          "ChJza2lsbF9jb25maWdfaW5kZXgYAiABKAUSFAoMYXR0YWNrX2luZGV4GAMg",
-          "ASgFEhEKCXZmeF9pbmRleBgEIAEoBSJoChRFbmVteVBvc2l0aW9uU3luY1Jl",
-          "dBIPCgdyb2xlX2lkGAEgASgFEg0KBXBvc194GAIgASgCEg0KBXBvc195GAMg",
-          "ASgCEg0KBXBvc196GAQgASgCEhIKCnJvdGF0aW9uX3kYBSABKAIiOgoPRW5l",
-          "bXlTeW5jQW5pUmV0EhYKDmFuaW1hdGlvbl9uYW1lGAEgASgJEg8KB3JvbGVf",
-          "aWQYAiABKAUiLQoPVGFza1Byb2dyZXNzUmV0EhoKCGNtZF9jb2RlGAEgASgO",
-          "MgguQ21kQ29kZSJPChNUYXNrUHJvZ3Jlc3NMaXN0UmV0EhoKCGNtZF9jb2Rl",
-          "GAEgASgOMgguQ21kQ29kZRIcCgl0YXNrX2xpc3QYAiADKAsyCS5UYXNrSW5m",
-          "byrfAQoHQ21kQ29kZRILCgdTdWNjZWVkEAASDQoJQWNjdEV4aXN0EAESDwoL",
-          "U2VydmVyRXJyb3IQAhIQCgxBY2N0Tm90RXhpc3QQAxIRCg1QYXNzd29yZEVy",
-          "cm9yEAQSDwoLQWNjdERpc2FibGUQBRIRCg1SZXFQYXJhbUVycm9yEAYSEQoN",
-          "Tmlja25hbWVFeGlzdBAHEhIKDlVzZXJOYW1lSWxlZ2FsEAgSEgoOcGFzc3dv",
-          "cmRJbGVnYWwQChIQCgxSb2xlTm90RXhpc3QQCxIRCg1FbmVteU5vdEV4aXN0",
-          "EAxiBnByb3RvMw=="));
+          "ZRgCIAEoBToCOAEi6gEKFERyaXZlckRpc2tVcGdyYWRlUmV0EhoKCGNtZF9j",
+          "b2RlGAEgASgOMgguQ21kQ29kZRIkCgtkcml2ZXJfZGlzaxgCIAEoCzIPLkRy",
+          "aXZlckRpc2tJbmZvEjwKDG1hdGVyaWFsX21hcBgDIAMoCzImLkRyaXZlckRp",
+          "c2tVcGdyYWRlUmV0Lk1hdGVyaWFsTWFwRW50cnkSEQoJb2xkX2xldmVsGAQg",
+          "ASgFEgsKA3RpcBgFIAEoCRoyChBNYXRlcmlhbE1hcEVudHJ5EgsKA2tleRgB",
+          "IAEoBRINCgV2YWx1ZRgCIAEoBToCOAEiYQoSRHJpdmVyRGlza0VxdWlwUmV0",
+          "EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIQCghkZXBvdF9pZBgCIAEo",
+          "BRIQCghlcXVpcHBlZBgDIAEoCBILCgN0aXAYBCABKAkinwIKCkJhZ0luZm9S",
+          "ZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEjcKD2RyaXZlcl9kaXNr",
+          "X21hcBgCIAMoCzIeLkJhZ0luZm9SZXQuRHJpdmVyRGlza01hcEVudHJ5EjIK",
+          "DG1hdGVyaWFsX21hcBgDIAMoCzIcLkJhZ0luZm9SZXQuTWF0ZXJpYWxNYXBF",
+          "bnRyeRpFChJEcml2ZXJEaXNrTWFwRW50cnkSCwoDa2V5GAEgASgFEh4KBXZh",
+          "bHVlGAIgASgLMg8uRHJpdmVyRGlza0luZm86AjgBGkEKEE1hdGVyaWFsTWFw",
+          "RW50cnkSCwoDa2V5GAEgASgFEhwKBXZhbHVlGAIgASgLMg0uTWF0ZXJpYWxJ",
+          "bmZvOgI4ASJRCgxTdGFydEdhbWVSZXQSGgoIY21kX2NvZGUYASABKA4yCC5D",
+          "bWRDb2RlEiUKDm1haW5fcm9sZV9pbmZvGAIgASgLMg0uTWFpblJvbGVJbmZv",
+          "IjEKDFJvbGVCYXNlSW5mbxIPCgdyb2xlX2lkGAEgASgFEhAKCG5pY2tuYW1l",
+          "GAIgASgJIuYCCgxNYWluUm9sZUluZm8SIAoJYmFzZV9pbmZvGAEgASgLMg0u",
+          "Um9sZUJhc2VJbmZvEhIKCmFjY291bnRfaWQYAiABKAUSEgoKc2NlbmVfbmFt",
+          "ZRgHIAEoCRIRCglzZXJ2ZXJfaWQYCCABKAUSOQoPZHJpdmVyX2Rpc2tfbWFw",
+          "GAkgAygLMiAuTWFpblJvbGVJbmZvLkRyaXZlckRpc2tNYXBFbnRyeRI0Cgxt",
+          "YXRlcmlhbF9tYXAYCiADKAsyHi5NYWluUm9sZUluZm8uTWF0ZXJpYWxNYXBF",
+          "bnRyeRpFChJEcml2ZXJEaXNrTWFwRW50cnkSCwoDa2V5GAEgASgFEh4KBXZh",
+          "bHVlGAIgASgLMg8uRHJpdmVyRGlza0luZm86AjgBGkEKEE1hdGVyaWFsTWFw",
+          "RW50cnkSCwoDa2V5GAEgASgFEhwKBXZhbHVlGAIgASgLMg0uTWF0ZXJpYWxJ",
+          "bmZvOgI4ASKlAgoORHJpdmVyRGlza0luZm8SCgoCaWQYASABKAUSFgoOZHJp",
+          "dmVyX2Rpc2tfaWQYAiABKAUSGQoRZHJpdmVyX2Rpc2tfY291bnQYAyABKAUS",
+          "GAoQZHJpdmVyX2Rpc2tfbmFtZRgEIAEoCRISCgpiYXNlX3ZhbHVlGAUgASgF",
+          "EhIKCmF0dGFja19wZXIYBiABKAISEwoLZGVmZW5zZV9wZXIYByABKAISEgoK",
+          "aGVhbHRoX3BlchgIIAEoAhIRCgliYW9KaV9wZXIYCSABKAISDQoFbGV2ZWwY",
+          "CiABKAUSGgoSY3VyX21heF9maWxsX3ZhbHVlGAsgASgCEhYKDmN1cl9maWxs",
+          "X3ZhbHVlGAwgASgCEhMKC2lzX2VxdWlwcGVkGA0gASgIIlIKDE1hdGVyaWFs",
+          "SW5mbxITCgttYXRlcmlhbF9pZBgBIAEoBRIWCg5tYXRlcmlhbF9jb3VudBgC",
+          "IAEoBRIVCg1tYXRlcmlhbF9uYW1lGAMgASgJInYKD1Bvc2l0aW9uU3luY050",
+          "ZhIPCgdyb2xlX2lkGAEgASgFEg0KBXBvc194GAIgASgCEg0KBXBvc195GAMg",
+          "ASgCEg0KBXBvc196GAQgASgCEhIKCnJvdGF0aW9uX3kYBSABKAISEQoJbmlr",
+          "ZV9uYW1lGAYgASgJInkKE1BsYXllckVudGVyU2NlbmVOdGYSDwoHcm9sZV9p",
+          "ZBgBIAEoBRIQCghuaWNrbmFtZRgCIAEoCRINCgVwb3NfeBgDIAEoAhINCgVw",
+          "b3NfeRgEIAEoAhINCgVwb3NfehgFIAEoAhISCgpzY2VuZV9uYW1lGAYgASgF",
+          "IiYKE1BsYXllckxlYXZlU2NlbmVOdGYSDwoHcm9sZV9pZBgBIAEoBSJYCg5S",
+          "b29tUGxheWVySW5mbxIPCgdyb2xlX2lkGAEgASgFEhAKCG5pY2tuYW1lGAIg",
+          "ASgJEhEKCWlzX21hc3RlchgDIAEoCBIQCghpc19yZWFkeRgEIAEoCCJeCg1D",
+          "cmVhdGVSb29tUmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIPCgdy",
+          "b29tX2lkGAIgASgFEiAKB3BsYXllcnMYAyADKAsyDy5Sb29tUGxheWVySW5m",
+          "byJcCgtKb2luUm9vbVJldBIaCghjbWRfY29kZRgBIAEoDjIILkNtZENvZGUS",
+          "DwoHcm9vbV9pZBgCIAEoBRIgCgdwbGF5ZXJzGAMgAygLMg8uUm9vbVBsYXll",
+          "ckluZm8iQAoLUm9vbUluZm9OdGYSDwoHcm9vbV9pZBgBIAEoBRIgCgdwbGF5",
+          "ZXJzGAIgAygLMg8uUm9vbVBsYXllckluZm8iMwoQUm9vbVN0YXJ0R2FtZU50",
+          "ZhIPCgdyb29tX2lkGAEgASgFEg4KBm1hcF9pZBgCIAEoBSJRCgpTeW5jQW5p",
+          "UmV0EhYKDmFuaW1hdGlvbl9uYW1lGAEgASgJEg8KB3JvbGVfaWQYAiABKAUS",
+          "GgoSc2tpbGxfY29uZmlnX2luZGV4GAMgASgFImQKDFBsYXllclZmeE50ZhIP",
+          "Cgdyb2xlX2lkGAEgASgFEhoKEnNraWxsX2NvbmZpZ19pbmRleBgCIAEoBRIU",
+          "CgxhdHRhY2tfaW5kZXgYAyABKAUSEQoJdmZ4X2luZGV4GAQgASgFImgKFEVu",
+          "ZW15UG9zaXRpb25TeW5jUmV0Eg8KB3JvbGVfaWQYASABKAUSDQoFcG9zX3gY",
+          "AiABKAISDQoFcG9zX3kYAyABKAISDQoFcG9zX3oYBCABKAISEgoKcm90YXRp",
+          "b25feRgFIAEoAiI6Cg9FbmVteVN5bmNBbmlSZXQSFgoOYW5pbWF0aW9uX25h",
+          "bWUYASABKAkSDwoHcm9sZV9pZBgCIAEoBSItCg9UYXNrUHJvZ3Jlc3NSZXQS",
+          "GgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlIk8KE1Rhc2tQcm9ncmVzc0xp",
+          "c3RSZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEhwKCXRhc2tfbGlz",
+          "dBgCIAMoCzIJLlRhc2tJbmZvKt8BCgdDbWRDb2RlEgsKB1N1Y2NlZWQQABIN",
+          "CglBY2N0RXhpc3QQARIPCgtTZXJ2ZXJFcnJvchACEhAKDEFjY3ROb3RFeGlz",
+          "dBADEhEKDVBhc3N3b3JkRXJyb3IQBBIPCgtBY2N0RGlzYWJsZRAFEhEKDVJl",
+          "cVBhcmFtRXJyb3IQBhIRCg1OaWNrbmFtZUV4aXN0EAcSEgoOVXNlck5hbWVJ",
+          "bGVnYWwQCBISCg5wYXNzd29yZElsZWdhbBAKEhAKDFJvbGVOb3RFeGlzdBAL",
+          "EhEKDUVuZW15Tm90RXhpc3QQDGIGcHJvdG8z"));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { global::RequestEntityReflection.Descriptor, },
         new pbr::GeneratedClrTypeInfo(new[] {typeof(global::CmdCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -116,10 +130,13 @@ public static partial class ResultEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::SpawnEnemyRet), global::SpawnEnemyRet.Parser, new[]{ "CmdCode", "EnemyInstanceId", "PosX", "PosY", "PosZ", "MaxHp", "CurrHp", "EnemyConfigId", "RoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PlayerAttackRet), global::PlayerAttackRet.Parser, new[]{ "CmdCode", "EnemyInstanceId", "DamageDealt", "EnemyCurrHp", "EnemyMaxHp", "IsDead", "IsBaoji", "AttackerRoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::GetRewardRet), global::GetRewardRet.Parser, new[]{ "CmdCode", "RewardMap", "RewardDesc" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+          new pbr::GeneratedClrTypeInfo(typeof(global::DriverDiskUpgradeRet), global::DriverDiskUpgradeRet.Parser, new[]{ "CmdCode", "DriverDisk", "MaterialMap", "OldLevel", "Tip" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+          new pbr::GeneratedClrTypeInfo(typeof(global::DriverDiskEquipRet), global::DriverDiskEquipRet.Parser, new[]{ "CmdCode", "DepotId", "Equipped", "Tip" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::BagInfoRet), global::BagInfoRet.Parser, new[]{ "CmdCode", "DriverDiskMap", "MaterialMap" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, }),
           new pbr::GeneratedClrTypeInfo(typeof(global::StartGameRet), global::StartGameRet.Parser, new[]{ "CmdCode", "MainRoleInfo" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::RoleBaseInfo), global::RoleBaseInfo.Parser, new[]{ "RoleId", "Nickname" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::MainRoleInfo), global::MainRoleInfo.Parser, new[]{ "BaseInfo", "AccountId", "SceneName", "ServerId", "DriverDiskMap", "MaterialMap" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, }),
-          new pbr::GeneratedClrTypeInfo(typeof(global::DriverDiskInfo), global::DriverDiskInfo.Parser, new[]{ "Id", "DriverDiskId", "DriverDiskCount", "DriverDiskName", "BaseValue", "AttackPer", "DefensePer", "HealthPer", "BaoJiPer", "Level", "CurMaxFillValue", "CurFillValue" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::DriverDiskInfo), global::DriverDiskInfo.Parser, new[]{ "Id", "DriverDiskId", "DriverDiskCount", "DriverDiskName", "BaseValue", "AttackPer", "DefensePer", "HealthPer", "BaoJiPer", "Level", "CurMaxFillValue", "CurFillValue", "IsEquipped" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::MaterialInfo), global::MaterialInfo.Parser, new[]{ "MaterialId", "MaterialCount", "MaterialName" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PositionSyncNtf), global::PositionSyncNtf.Parser, new[]{ "RoleId", "PosX", "PosY", "PosZ", "RotationY", "NikeName" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PlayerEnterSceneNtf), global::PlayerEnterSceneNtf.Parser, new[]{ "RoleId", "Nickname", "PosX", "PosY", "PosZ", "SceneName" }, null, null, null, null),
@@ -3807,6 +3824,939 @@ public sealed partial class GetRewardRet : pb::IMessage<GetRewardRet>
 }
 
 /// <summary>
+///驱动盘升级返回
+/// </summary>
+[global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+public sealed partial class DriverDiskUpgradeRet : pb::IMessage<DriverDiskUpgradeRet>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<DriverDiskUpgradeRet> _parser = new pb::MessageParser<DriverDiskUpgradeRet>(() => new DriverDiskUpgradeRet());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pb::MessageParser<DriverDiskUpgradeRet> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[12]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public DriverDiskUpgradeRet() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public DriverDiskUpgradeRet(DriverDiskUpgradeRet other) : this() {
+    cmdCode_ = other.cmdCode_;
+    driverDisk_ = other.driverDisk_ != null ? other.driverDisk_.Clone() : null;
+    materialMap_ = other.materialMap_.Clone();
+    oldLevel_ = other.oldLevel_;
+    tip_ = other.tip_;
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public DriverDiskUpgradeRet Clone() {
+    return new DriverDiskUpgradeRet(this);
+  }
+
+  /// <summary>Field number for the "cmd_code" field.</summary>
+  public const int CmdCodeFieldNumber = 1;
+  private global::CmdCode cmdCode_ = global::CmdCode.Succeed;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public global::CmdCode CmdCode {
+    get { return cmdCode_; }
+    set {
+      cmdCode_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "driver_disk" field.</summary>
+  public const int DriverDiskFieldNumber = 2;
+  private global::DriverDiskInfo driverDisk_;
+  /// <summary>
+  /// 升级后的驱动盘状态（等级 / 经验 / 词条），客户端据此覆盖本地实例
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public global::DriverDiskInfo DriverDisk {
+    get { return driverDisk_; }
+    set {
+      driverDisk_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "material_map" field.</summary>
+  public const int MaterialMapFieldNumber = 3;
+  private static readonly pbc::MapField<int, int>.Codec _map_materialMap_codec
+      = new pbc::MapField<int, int>.Codec(pb::FieldCodec.ForInt32(8, 0), pb::FieldCodec.ForInt32(16, 0), 26);
+  private readonly pbc::MapField<int, int> materialMap_ = new pbc::MapField<int, int>();
+  /// <summary>
+  /// 本次受影响材料的剩余数量（id→剩余），客户端据此覆盖显示
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public pbc::MapField<int, int> MaterialMap {
+    get { return materialMap_; }
+  }
+
+  /// <summary>Field number for the "old_level" field.</summary>
+  public const int OldLevelFieldNumber = 4;
+  private int oldLevel_;
+  /// <summary>
+  /// 升级前等级，客户端据此判断是否首次升到 2 级以推进任务
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int OldLevel {
+    get { return oldLevel_; }
+    set {
+      oldLevel_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "tip" field.</summary>
+  public const int TipFieldNumber = 5;
+  private string tip_ = "";
+  /// <summary>
+  /// 失败提示（材料不足等），成功时为空
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public string Tip {
+    get { return tip_; }
+    set {
+      tip_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+    }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override bool Equals(object other) {
+    return Equals(other as DriverDiskUpgradeRet);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equals(DriverDiskUpgradeRet other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (CmdCode != other.CmdCode) return false;
+    if (!object.Equals(DriverDisk, other.DriverDisk)) return false;
+    if (!MaterialMap.Equals(other.MaterialMap)) return false;
+    if (OldLevel != other.OldLevel) return false;
+    if (Tip != other.Tip) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (CmdCode != global::CmdCode.Succeed) hash ^= CmdCode.GetHashCode();
+    if (driverDisk_ != null) hash ^= DriverDisk.GetHashCode();
+    hash ^= MaterialMap.GetHashCode();
+    if (OldLevel != 0) hash ^= OldLevel.GetHashCode();
+    if (Tip.Length != 0) hash ^= Tip.GetHashCode();
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (CmdCode != global::CmdCode.Succeed) {
+      output.WriteRawTag(8);
+      output.WriteEnum((int) CmdCode);
+    }
+    if (driverDisk_ != null) {
+      output.WriteRawTag(18);
+      output.WriteMessage(DriverDisk);
+    }
+    materialMap_.WriteTo(output, _map_materialMap_codec);
+    if (OldLevel != 0) {
+      output.WriteRawTag(32);
+      output.WriteInt32(OldLevel);
+    }
+    if (Tip.Length != 0) {
+      output.WriteRawTag(42);
+      output.WriteString(Tip);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (CmdCode != global::CmdCode.Succeed) {
+      output.WriteRawTag(8);
+      output.WriteEnum((int) CmdCode);
+    }
+    if (driverDisk_ != null) {
+      output.WriteRawTag(18);
+      output.WriteMessage(DriverDisk);
+    }
+    materialMap_.WriteTo(ref output, _map_materialMap_codec);
+    if (OldLevel != 0) {
+      output.WriteRawTag(32);
+      output.WriteInt32(OldLevel);
+    }
+    if (Tip.Length != 0) {
+      output.WriteRawTag(42);
+      output.WriteString(Tip);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CalculateSize() {
+    int size = 0;
+    if (CmdCode != global::CmdCode.Succeed) {
+      size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CmdCode);
+    }
+    if (driverDisk_ != null) {
+      size += 1 + pb::CodedOutputStream.ComputeMessageSize(DriverDisk);
+    }
+    size += materialMap_.CalculateSize(_map_materialMap_codec);
+    if (OldLevel != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(OldLevel);
+    }
+    if (Tip.Length != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeStringSize(Tip);
+    }
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(DriverDiskUpgradeRet other) {
+    if (other == null) {
+      return;
+    }
+    if (other.CmdCode != global::CmdCode.Succeed) {
+      CmdCode = other.CmdCode;
+    }
+    if (other.driverDisk_ != null) {
+      if (driverDisk_ == null) {
+        DriverDisk = new global::DriverDiskInfo();
+      }
+      DriverDisk.MergeFrom(other.DriverDisk);
+    }
+    materialMap_.MergeFrom(other.materialMap_);
+    if (other.OldLevel != 0) {
+      OldLevel = other.OldLevel;
+    }
+    if (other.Tip.Length != 0) {
+      Tip = other.Tip;
+    }
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          CmdCode = (global::CmdCode) input.ReadEnum();
+          break;
+        }
+        case 18: {
+          if (driverDisk_ == null) {
+            DriverDisk = new global::DriverDiskInfo();
+          }
+          input.ReadMessage(DriverDisk);
+          break;
+        }
+        case 26: {
+          materialMap_.AddEntriesFrom(input, _map_materialMap_codec);
+          break;
+        }
+        case 32: {
+          OldLevel = input.ReadInt32();
+          break;
+        }
+        case 42: {
+          Tip = input.ReadString();
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          CmdCode = (global::CmdCode) input.ReadEnum();
+          break;
+        }
+        case 18: {
+          if (driverDisk_ == null) {
+            DriverDisk = new global::DriverDiskInfo();
+          }
+          input.ReadMessage(DriverDisk);
+          break;
+        }
+        case 26: {
+          materialMap_.AddEntriesFrom(ref input, _map_materialMap_codec);
+          break;
+        }
+        case 32: {
+          OldLevel = input.ReadInt32();
+          break;
+        }
+        case 42: {
+          Tip = input.ReadString();
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+/// <summary>
+///装备 / 卸下驱动盘返回
+/// </summary>
+[global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+public sealed partial class DriverDiskEquipRet : pb::IMessage<DriverDiskEquipRet>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<DriverDiskEquipRet> _parser = new pb::MessageParser<DriverDiskEquipRet>(() => new DriverDiskEquipRet());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pb::MessageParser<DriverDiskEquipRet> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[13]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public DriverDiskEquipRet() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public DriverDiskEquipRet(DriverDiskEquipRet other) : this() {
+    cmdCode_ = other.cmdCode_;
+    depotId_ = other.depotId_;
+    equipped_ = other.equipped_;
+    tip_ = other.tip_;
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public DriverDiskEquipRet Clone() {
+    return new DriverDiskEquipRet(this);
+  }
+
+  /// <summary>Field number for the "cmd_code" field.</summary>
+  public const int CmdCodeFieldNumber = 1;
+  private global::CmdCode cmdCode_ = global::CmdCode.Succeed;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public global::CmdCode CmdCode {
+    get { return cmdCode_; }
+    set {
+      cmdCode_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "depot_id" field.</summary>
+  public const int DepotIdFieldNumber = 2;
+  private int depotId_;
+  /// <summary>
+  /// 驱动盘模板 id
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int DepotId {
+    get { return depotId_; }
+    set {
+      depotId_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "equipped" field.</summary>
+  public const int EquippedFieldNumber = 3;
+  private bool equipped_;
+  /// <summary>
+  /// 操作后的装备状态
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equipped {
+    get { return equipped_; }
+    set {
+      equipped_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "tip" field.</summary>
+  public const int TipFieldNumber = 4;
+  private string tip_ = "";
+  /// <summary>
+  /// 失败提示（装备槽已满等），成功时为空
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public string Tip {
+    get { return tip_; }
+    set {
+      tip_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+    }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override bool Equals(object other) {
+    return Equals(other as DriverDiskEquipRet);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equals(DriverDiskEquipRet other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (CmdCode != other.CmdCode) return false;
+    if (DepotId != other.DepotId) return false;
+    if (Equipped != other.Equipped) return false;
+    if (Tip != other.Tip) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (CmdCode != global::CmdCode.Succeed) hash ^= CmdCode.GetHashCode();
+    if (DepotId != 0) hash ^= DepotId.GetHashCode();
+    if (Equipped != false) hash ^= Equipped.GetHashCode();
+    if (Tip.Length != 0) hash ^= Tip.GetHashCode();
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (CmdCode != global::CmdCode.Succeed) {
+      output.WriteRawTag(8);
+      output.WriteEnum((int) CmdCode);
+    }
+    if (DepotId != 0) {
+      output.WriteRawTag(16);
+      output.WriteInt32(DepotId);
+    }
+    if (Equipped != false) {
+      output.WriteRawTag(24);
+      output.WriteBool(Equipped);
+    }
+    if (Tip.Length != 0) {
+      output.WriteRawTag(34);
+      output.WriteString(Tip);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (CmdCode != global::CmdCode.Succeed) {
+      output.WriteRawTag(8);
+      output.WriteEnum((int) CmdCode);
+    }
+    if (DepotId != 0) {
+      output.WriteRawTag(16);
+      output.WriteInt32(DepotId);
+    }
+    if (Equipped != false) {
+      output.WriteRawTag(24);
+      output.WriteBool(Equipped);
+    }
+    if (Tip.Length != 0) {
+      output.WriteRawTag(34);
+      output.WriteString(Tip);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CalculateSize() {
+    int size = 0;
+    if (CmdCode != global::CmdCode.Succeed) {
+      size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CmdCode);
+    }
+    if (DepotId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(DepotId);
+    }
+    if (Equipped != false) {
+      size += 1 + 1;
+    }
+    if (Tip.Length != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeStringSize(Tip);
+    }
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(DriverDiskEquipRet other) {
+    if (other == null) {
+      return;
+    }
+    if (other.CmdCode != global::CmdCode.Succeed) {
+      CmdCode = other.CmdCode;
+    }
+    if (other.DepotId != 0) {
+      DepotId = other.DepotId;
+    }
+    if (other.Equipped != false) {
+      Equipped = other.Equipped;
+    }
+    if (other.Tip.Length != 0) {
+      Tip = other.Tip;
+    }
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          CmdCode = (global::CmdCode) input.ReadEnum();
+          break;
+        }
+        case 16: {
+          DepotId = input.ReadInt32();
+          break;
+        }
+        case 24: {
+          Equipped = input.ReadBool();
+          break;
+        }
+        case 34: {
+          Tip = input.ReadString();
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          CmdCode = (global::CmdCode) input.ReadEnum();
+          break;
+        }
+        case 16: {
+          DepotId = input.ReadInt32();
+          break;
+        }
+        case 24: {
+          Equipped = input.ReadBool();
+          break;
+        }
+        case 34: {
+          Tip = input.ReadString();
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+/// <summary>
+///背包信息（服务端 → 客户端）。进入游戏 / 领奖后拉取，物品模板仍在 Luban，这里只有「拥有 + 穿戴 + 升级进度」
+/// </summary>
+[global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+public sealed partial class BagInfoRet : pb::IMessage<BagInfoRet>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<BagInfoRet> _parser = new pb::MessageParser<BagInfoRet>(() => new BagInfoRet());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pb::MessageParser<BagInfoRet> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[14]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public BagInfoRet() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public BagInfoRet(BagInfoRet other) : this() {
+    cmdCode_ = other.cmdCode_;
+    driverDiskMap_ = other.driverDiskMap_.Clone();
+    materialMap_ = other.materialMap_.Clone();
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public BagInfoRet Clone() {
+    return new BagInfoRet(this);
+  }
+
+  /// <summary>Field number for the "cmd_code" field.</summary>
+  public const int CmdCodeFieldNumber = 1;
+  private global::CmdCode cmdCode_ = global::CmdCode.Succeed;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public global::CmdCode CmdCode {
+    get { return cmdCode_; }
+    set {
+      cmdCode_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "driver_disk_map" field.</summary>
+  public const int DriverDiskMapFieldNumber = 2;
+  private static readonly pbc::MapField<int, global::DriverDiskInfo>.Codec _map_driverDiskMap_codec
+      = new pbc::MapField<int, global::DriverDiskInfo>.Codec(pb::FieldCodec.ForInt32(8, 0), pb::FieldCodec.ForMessage(18, global::DriverDiskInfo.Parser), 18);
+  private readonly pbc::MapField<int, global::DriverDiskInfo> driverDiskMap_ = new pbc::MapField<int, global::DriverDiskInfo>();
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public pbc::MapField<int, global::DriverDiskInfo> DriverDiskMap {
+    get { return driverDiskMap_; }
+  }
+
+  /// <summary>Field number for the "material_map" field.</summary>
+  public const int MaterialMapFieldNumber = 3;
+  private static readonly pbc::MapField<int, global::MaterialInfo>.Codec _map_materialMap_codec
+      = new pbc::MapField<int, global::MaterialInfo>.Codec(pb::FieldCodec.ForInt32(8, 0), pb::FieldCodec.ForMessage(18, global::MaterialInfo.Parser), 26);
+  private readonly pbc::MapField<int, global::MaterialInfo> materialMap_ = new pbc::MapField<int, global::MaterialInfo>();
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public pbc::MapField<int, global::MaterialInfo> MaterialMap {
+    get { return materialMap_; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override bool Equals(object other) {
+    return Equals(other as BagInfoRet);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equals(BagInfoRet other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (CmdCode != other.CmdCode) return false;
+    if (!DriverDiskMap.Equals(other.DriverDiskMap)) return false;
+    if (!MaterialMap.Equals(other.MaterialMap)) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (CmdCode != global::CmdCode.Succeed) hash ^= CmdCode.GetHashCode();
+    hash ^= DriverDiskMap.GetHashCode();
+    hash ^= MaterialMap.GetHashCode();
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (CmdCode != global::CmdCode.Succeed) {
+      output.WriteRawTag(8);
+      output.WriteEnum((int) CmdCode);
+    }
+    driverDiskMap_.WriteTo(output, _map_driverDiskMap_codec);
+    materialMap_.WriteTo(output, _map_materialMap_codec);
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (CmdCode != global::CmdCode.Succeed) {
+      output.WriteRawTag(8);
+      output.WriteEnum((int) CmdCode);
+    }
+    driverDiskMap_.WriteTo(ref output, _map_driverDiskMap_codec);
+    materialMap_.WriteTo(ref output, _map_materialMap_codec);
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CalculateSize() {
+    int size = 0;
+    if (CmdCode != global::CmdCode.Succeed) {
+      size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CmdCode);
+    }
+    size += driverDiskMap_.CalculateSize(_map_driverDiskMap_codec);
+    size += materialMap_.CalculateSize(_map_materialMap_codec);
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(BagInfoRet other) {
+    if (other == null) {
+      return;
+    }
+    if (other.CmdCode != global::CmdCode.Succeed) {
+      CmdCode = other.CmdCode;
+    }
+    driverDiskMap_.MergeFrom(other.driverDiskMap_);
+    materialMap_.MergeFrom(other.materialMap_);
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          CmdCode = (global::CmdCode) input.ReadEnum();
+          break;
+        }
+        case 18: {
+          driverDiskMap_.AddEntriesFrom(input, _map_driverDiskMap_codec);
+          break;
+        }
+        case 26: {
+          materialMap_.AddEntriesFrom(input, _map_materialMap_codec);
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          CmdCode = (global::CmdCode) input.ReadEnum();
+          break;
+        }
+        case 18: {
+          driverDiskMap_.AddEntriesFrom(ref input, _map_driverDiskMap_codec);
+          break;
+        }
+        case 26: {
+          materialMap_.AddEntriesFrom(ref input, _map_materialMap_codec);
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+/// <summary>
 ///开始游戏请求返回数据
 /// </summary>
 [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
@@ -3824,7 +4774,7 @@ public sealed partial class StartGameRet : pb::IMessage<StartGameRet>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[12]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[15]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4077,7 +5027,7 @@ public sealed partial class RoleBaseInfo : pb::IMessage<RoleBaseInfo>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[13]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[16]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4315,7 +5265,7 @@ public sealed partial class MainRoleInfo : pb::IMessage<MainRoleInfo>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[14]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[17]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4697,7 +5647,7 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[15]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[18]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4729,6 +5679,7 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
     level_ = other.level_;
     curMaxFillValue_ = other.curMaxFillValue_;
     curFillValue_ = other.curFillValue_;
+    isEquipped_ = other.isEquipped_;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -4900,6 +5851,21 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
     }
   }
 
+  /// <summary>Field number for the "is_equipped" field.</summary>
+  public const int IsEquippedFieldNumber = 13;
+  private bool isEquipped_;
+  /// <summary>
+  /// 是否已装备（服务端 role_bag_item.IsEquipped）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool IsEquipped {
+    get { return isEquipped_; }
+    set {
+      isEquipped_ = value;
+    }
+  }
+
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public override bool Equals(object other) {
@@ -4927,6 +5893,7 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
     if (Level != other.Level) return false;
     if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(CurMaxFillValue, other.CurMaxFillValue)) return false;
     if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(CurFillValue, other.CurFillValue)) return false;
+    if (IsEquipped != other.IsEquipped) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -4946,6 +5913,7 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
     if (Level != 0) hash ^= Level.GetHashCode();
     if (CurMaxFillValue != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(CurMaxFillValue);
     if (CurFillValue != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(CurFillValue);
+    if (IsEquipped != false) hash ^= IsEquipped.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -5012,6 +5980,10 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
       output.WriteRawTag(101);
       output.WriteFloat(CurFillValue);
     }
+    if (IsEquipped != false) {
+      output.WriteRawTag(104);
+      output.WriteBool(IsEquipped);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -5070,6 +6042,10 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
       output.WriteRawTag(101);
       output.WriteFloat(CurFillValue);
     }
+    if (IsEquipped != false) {
+      output.WriteRawTag(104);
+      output.WriteBool(IsEquipped);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -5115,6 +6091,9 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
     }
     if (CurFillValue != 0F) {
       size += 1 + 4;
+    }
+    if (IsEquipped != false) {
+      size += 1 + 1;
     }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
@@ -5163,6 +6142,9 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
     }
     if (other.CurFillValue != 0F) {
       CurFillValue = other.CurFillValue;
+    }
+    if (other.IsEquipped != false) {
+      IsEquipped = other.IsEquipped;
     }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
@@ -5229,6 +6211,10 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
         }
         case 101: {
           CurFillValue = input.ReadFloat();
+          break;
+        }
+        case 104: {
+          IsEquipped = input.ReadBool();
           break;
         }
       }
@@ -5298,6 +6284,10 @@ public sealed partial class DriverDiskInfo : pb::IMessage<DriverDiskInfo>
           CurFillValue = input.ReadFloat();
           break;
         }
+        case 104: {
+          IsEquipped = input.ReadBool();
+          break;
+        }
       }
     }
   }
@@ -5320,7 +6310,7 @@ public sealed partial class MaterialInfo : pb::IMessage<MaterialInfo>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[16]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[19]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5604,7 +6594,7 @@ public sealed partial class PositionSyncNtf : pb::IMessage<PositionSyncNtf>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[17]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[20]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -5990,7 +6980,7 @@ public sealed partial class PlayerEnterSceneNtf : pb::IMessage<PlayerEnterSceneN
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[18]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[21]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6376,7 +7366,7 @@ public sealed partial class PlayerLeaveSceneNtf : pb::IMessage<PlayerLeaveSceneN
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[19]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[22]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6577,7 +7567,7 @@ public sealed partial class RoomPlayerInfo : pb::IMessage<RoomPlayerInfo>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[20]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[23]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -6895,7 +7885,7 @@ public sealed partial class CreateRoomRet : pb::IMessage<CreateRoomRet>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[21]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[24]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7159,7 +8149,7 @@ public sealed partial class JoinRoomRet : pb::IMessage<JoinRoomRet>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[22]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[25]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7423,7 +8413,7 @@ public sealed partial class RoomInfoNtf : pb::IMessage<RoomInfoNtf>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[23]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[26]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7650,7 +8640,7 @@ public sealed partial class RoomStartGameNtf : pb::IMessage<RoomStartGameNtf>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[24]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[27]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -7885,7 +8875,7 @@ public sealed partial class SyncAniRet : pb::IMessage<SyncAniRet>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[25]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[28]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8157,7 +9147,7 @@ public sealed partial class PlayerVfxNtf : pb::IMessage<PlayerVfxNtf>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[26]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[29]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8466,7 +9456,7 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[27]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[30]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -8812,7 +9802,7 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[28]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[31]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9050,7 +10040,7 @@ public sealed partial class TaskProgressRet : pb::IMessage<TaskProgressRet>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[29]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[32]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -9251,7 +10241,7 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[30]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[33]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

@@ -98,6 +98,27 @@ message GetRewardRet{
   map<int32,int32> reward_map = 2;// 本次实际发放的奖励 id→数量（物品编号见 ItemCatalog）
   string reward_desc = 3;         // 服务端组好的奖励文本，客户端直接弹提示
 }
+//驱动盘升级返回
+message DriverDiskUpgradeRet{
+  CmdCode cmd_code = 1;
+  DriverDiskInfo driver_disk = 2;     // 升级后的驱动盘状态（等级 / 经验 / 词条），客户端据此覆盖本地实例
+  map<int32,int32> material_map = 3;  // 本次受影响材料的剩余数量（id→剩余），客户端据此覆盖显示
+  int32 old_level = 4;                // 升级前等级，客户端据此判断是否首次升到 2 级以推进任务
+  string tip = 5;                     // 失败提示（材料不足等），成功时为空
+}
+//装备 / 卸下驱动盘返回
+message DriverDiskEquipRet{
+  CmdCode cmd_code = 1;
+  int32 depot_id = 2;                 // 驱动盘模板 id
+  bool equipped = 3;                  // 操作后的装备状态
+  string tip = 4;                     // 失败提示（装备槽已满等），成功时为空
+}
+//背包信息（服务端 → 客户端）。进入游戏 / 领奖后拉取，物品模板仍在 Luban，这里只有「拥有 + 穿戴 + 升级进度」
+message BagInfoRet{
+  CmdCode cmd_code = 1;
+  map<int32, DriverDiskInfo> driver_disk_map = 2;
+  map<int32, MaterialInfo> material_map = 3;
+}
 //开始游戏请求返回数据
 message StartGameRet{
   CmdCode cmd_code = 1;//表示请求是否成功  
@@ -132,6 +153,7 @@ message DriverDiskInfo{
   int32 level = 10;
   float cur_max_fill_value = 11;
   float cur_fill_value = 12;
+  bool is_equipped = 13;         // 是否已装备（服务端 role_bag_item.IsEquipped）
 }
 message MaterialInfo{
   int32 material_id = 1;        // 拥有材料 id

@@ -37,6 +37,9 @@
     public const ushort CMD_EnemyPositionSyncCode = 11250; // 位置同步
     public const ushort CMD_TaskProgressCode = 11260; // 任务进度上报
     public const ushort CMD_TaskProgressReqCode = 11270; // 任务进度拉取
+    public const ushort CMD_DriverDiskUpgradeCode = 11280; // 驱动盘升级（服务端权威）
+    public const ushort CMD_DriverDiskEquipCode = 11290; // 驱动盘装备 / 卸下
+    public const ushort CMD_BagInfoCode = 11300; // 背包信息拉取
 
     //...定义新的一些指令
 }

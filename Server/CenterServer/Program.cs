@@ -33,6 +33,9 @@ namespace CenterServer
             server.RegistCommand(NetDefine.CMD_PlayerAttackCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_TaskProgressCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_TaskProgressReqCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_DriverDiskUpgradeCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_DriverDiskEquipCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_BagInfoCode, loginCtrl);
 
             //RoleTable role = db.Queryable<RoleTable>().Where(v => v.Id == 1).First();
             /*var allRoles = db.Queryable<RoleTable>().ToList().Where(role => role.SceneName != "StartScene");

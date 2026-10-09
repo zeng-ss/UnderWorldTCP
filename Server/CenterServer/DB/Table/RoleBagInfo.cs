@@ -27,8 +27,9 @@ public class RoleBagInfo
     public float CurMaxFillValue { get; set; }
     public float CurFillValue { get; set; }
 
-    /*[SugarColumn(DefaultValue = "0")]
-    public int IsEquipped { get; set; }*/
+    // 0=背包中 1=已装备（只对驱动盘有意义；材料行恒为 0）
+    [SugarColumn(DefaultValue = "0")]
+    public int IsEquipped { get; set; }
 
 
     public DateTime CreateDate { get; set; }

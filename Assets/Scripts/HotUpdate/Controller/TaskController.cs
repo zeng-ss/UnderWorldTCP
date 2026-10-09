@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.UI.UIPanel;
@@ -43,7 +42,10 @@ namespace HotUpdate.Controller
             else AppContext.Ui.OpenPanel<TaskPanel>();
         }
 
-        /// <summary>处理面板上报的「领取奖励」：先请服务端校验并发放，成功后再落地本地状态</summary>
+        /// <summary>
+        /// 处理面板上报的「领取奖励」：请服务端校验并发放（奖励已写入 role_bag_item），
+        /// 之后再回拉一次背包，把新到手的驱动盘（含等级 / 词条）与材料数量落到本地。
+        /// </summary>
         public void RequestFinish(TaskDataRuntime task)
         {
             if (!AppContext.Task.CanClaim(task)) return;
@@ -52,25 +54,21 @@ namespace HotUpdate.Controller
             {
                 if (ret == null || ret.CmdCode != CmdCode.Succeed) return;
 
-                GrantRewardsLocally(ret.RewardMap);
+                RefreshBagFromServer();
                 AppContext.Task.Claim(task);
                 if (!string.IsNullOrEmpty(ret.RewardDesc)) AppContext.Ui.ShowTip(ret.RewardDesc, 4f);
             });
         }
 
-        /// <summary>
-        /// 把服务端下发的奖励明细落到本地背包（驱动盘按模板发放，材料累加数量）。
-        /// TODO: 背包改为完全由服务端下发后，本方法与 DepotService/MaterialService 的本地发放入口一起删除。
-        /// </summary>
-        private static void GrantRewardsLocally(IEnumerable<KeyValuePair<int, int>> rewardMap)
+        /// <summary>回拉服务端背包并覆盖本地（奖励发放 / 升级后都可能需要）</summary>
+        private static void RefreshBagFromServer()
         {
-            foreach (var kv in rewardMap)
+            AppContext.Proto.RequestBagInfo(ret =>
             {
-                int itemId = kv.Key;
-                int count = kv.Value;
-                if (ItemCatalog.IsDriverDisk(itemId)) AppContext.Depot.AddByDepotId(itemId, count);
-                else AppContext.Material.Add(itemId, count);
-            }
+                if (ret == null || ret.CmdCode != CmdCode.Succeed) return;
+                AppContext.Depot.ApplyServerBag(ret.DriverDiskMap.Values);
+                AppContext.Material.ApplyServerBag(ret.MaterialMap.Values);
+            });
         }
     }
 }

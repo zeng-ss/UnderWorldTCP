@@ -1,5 +1,4 @@
 using HotUpdate.Core;
-using HotUpdate.Data;
 using HotUpdate.Service;
 using UnityEngine;
 using UnityEngine.SceneManagement;

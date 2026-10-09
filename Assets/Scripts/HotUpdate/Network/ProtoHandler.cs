@@ -58,6 +58,9 @@ namespace HotUpdate.Network
         private Action<GetRewardRet> _getRewardCallback;
         private Action<TaskProgressRet> _taskProgressCallback;
         private Action<TaskProgressListRet> _taskProgressListCallback;
+        private Action<DriverDiskUpgradeRet> _driverDiskUpgradeCallback;
+        private Action<DriverDiskEquipRet> _driverDiskEquipCallback;
+        private Action<BagInfoRet> _bagInfoCallback;
         private Action<CreateRoomRet> _createRoomCallback;
         private Action<JoinRoomRet> _joinRoomCallback;
 
@@ -88,6 +91,9 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_GetRewardCode, OnGetRewardResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_TaskProgressCode, OnTaskProgressResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_TaskProgressReqCode, OnTaskProgressListResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_DriverDiskUpgradeCode, OnDriverDiskUpgradeResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_DriverDiskEquipCode, OnDriverDiskEquipResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_BagInfoCode, OnBagInfoResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoomCode, OnCreateRoomResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_JoinRoomCode, OnJoinRoomResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_RoomInfoCode, OnRoomInfoNtf);
@@ -327,6 +333,41 @@ namespace HotUpdate.Network
             NetClientMgr.Instance.Send(NetDefine.CMD_TaskProgressReqCode, req.ToByteString());
         }
 
+        /// <summary>
+        /// 请求升级驱动盘。只上报「升级哪个驱动盘」——材料够不够、扣多少、升级结果全部由服务端判定并落库。
+        /// </summary>
+        public void RequestDriverDiskUpgrade(int depotId, Action<DriverDiskUpgradeRet> callback)
+        {
+            _driverDiskUpgradeCallback = callback;
+            DriverDiskUpgradeReq req = new DriverDiskUpgradeReq
+            {
+                RoleId = AppContext.Session.RoleId,
+                DepotId = depotId
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_DriverDiskUpgradeCode, req.ToByteString());
+        }
+
+        /// <summary>请求装备 / 卸下驱动盘（状态由服务端写 role_bag_item.IsEquipped）</summary>
+        public void RequestDriverDiskEquip(int depotId, bool equip, Action<DriverDiskEquipRet> callback)
+        {
+            _driverDiskEquipCallback = callback;
+            DriverDiskEquipReq req = new DriverDiskEquipReq
+            {
+                RoleId = AppContext.Session.RoleId,
+                DepotId = depotId,
+                Equip = equip
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_DriverDiskEquipCode, req.ToByteString());
+        }
+
+        /// <summary>拉取角色全量背包（进游戏 / 领奖后刷新本地）</summary>
+        public void RequestBagInfo(Action<BagInfoRet> callback)
+        {
+            _bagInfoCallback = callback;
+            BagInfoReq req = new BagInfoReq { RoleId = AppContext.Session.RoleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_BagInfoCode, req.ToByteString());
+        }
+
         public void RequestCreateRoom(int roleId, string roomName, string nickname,
             Action<CreateRoomRet> callback)
         {
@@ -509,6 +550,30 @@ namespace HotUpdate.Network
             _taskProgressListCallback = null;
         }
 
+        private void OnDriverDiskUpgradeResult(ByteString data)
+        {
+            DriverDiskUpgradeRet ret = DriverDiskUpgradeRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 驱动盘升级结果 CmdCode={ret.CmdCode} level={ret.OldLevel}->{ret.DriverDisk?.Level}");
+            _driverDiskUpgradeCallback?.Invoke(ret);
+            _driverDiskUpgradeCallback = null;
+        }
+
+        private void OnDriverDiskEquipResult(ByteString data)
+        {
+            DriverDiskEquipRet ret = DriverDiskEquipRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 驱动盘装备结果 CmdCode={ret.CmdCode} depotId={ret.DepotId} equipped={ret.Equipped}");
+            _driverDiskEquipCallback?.Invoke(ret);
+            _driverDiskEquipCallback = null;
+        }
+
+        private void OnBagInfoResult(ByteString data)
+        {
+            BagInfoRet ret = BagInfoRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 背包拉取结果 CmdCode={ret.CmdCode} 驱动盘={ret.DriverDiskMap.Count} 材料={ret.MaterialMap.Count}");
+            _bagInfoCallback?.Invoke(ret);
+            _bagInfoCallback = null;
+        }
+
         private void OnCreateRoomResult(ByteString data)
         {
             CreateRoomRet ret = CreateRoomRet.Parser.ParseFrom(data);
@@ -615,6 +680,9 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_GetRewardCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_TaskProgressCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_TaskProgressReqCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_DriverDiskUpgradeCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_DriverDiskEquipCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_BagInfoCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoomCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_JoinRoomCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomInfoCode);

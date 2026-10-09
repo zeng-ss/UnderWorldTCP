@@ -30,6 +30,9 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_SpawnEnemyCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_TaskProgressCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_TaskProgressReqCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_DriverDiskUpgradeCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_DriverDiskEquipCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_BagInfoCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PositionSyncCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_CreateRoomCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_JoinRoomCode, loginCtrl);
@@ -54,6 +57,9 @@ namespace LoginServer
             client.RegistCommand(NetDefine.CMD_GetRewardCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_TaskProgressCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_TaskProgressReqCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_DriverDiskUpgradeCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_DriverDiskEquipCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_BagInfoCode, loginCtrl);
 
             // new Timer(_ =>
             // {

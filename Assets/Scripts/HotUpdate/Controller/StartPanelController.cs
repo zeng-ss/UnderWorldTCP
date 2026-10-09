@@ -41,6 +41,10 @@ namespace HotUpdate.Controller
             AppContext.Session.PlayerName = info.BaseInfo.Nickname;
             Debug.Log($"角色数据加载成功: {info.BaseInfo.Nickname}");
 
+            // 背包以服务端 role_bag_item 为准：驱动盘（含等级 / 词条 / 穿戴）与材料数量一次落地
+            AppContext.Depot.ApplyServerBag(info.DriverDiskMap.Values);
+            AppContext.Material.ApplyServerBag(info.MaterialMap.Values);
+
             AppContext.Proto.RequestChangeScene(info.BaseInfo.RoleId, LobbySceneName, sceneRet =>
             {
                 if (sceneRet.CmdCode != CmdCode.Succeed)

@@ -67,7 +67,46 @@ public class Center_LoginCtrl : IContainer
             case NetDefine.CMD_TaskProgressReqCode:
                 OnTaskProgressReqHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_DriverDiskUpgradeCode:
+                OnDriverDiskUpgradeHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_DriverDiskEquipCode:
+                OnDriverDiskEquipHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_BagInfoCode:
+                OnBagInfoHandle(serverBase, basePackage);
+                break;
         }
+    }
+
+    // 驱动盘升级（服务端权威：校验材料、扣除、升级、落库）
+    private void OnDriverDiskUpgradeHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        DriverDiskUpgradeReq req = DriverDiskUpgradeReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到驱动盘升级请求:" + req);
+        DriverDiskUpgradeRet ret = _loginModle.UpgradeDriverDisk(req);
+        LogMsg.Info("[Center]驱动盘升级处理完成:" + ret);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 装备 / 卸下驱动盘
+    private void OnDriverDiskEquipHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        DriverDiskEquipReq req = DriverDiskEquipReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到驱动盘装备请求:" + req);
+        DriverDiskEquipRet ret = _loginModle.SetDriverDiskEquipped(req);
+        LogMsg.Info("[Center]驱动盘装备处理完成:" + ret);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 背包全量拉取
+    private void OnBagInfoHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        BagInfoReq req = BagInfoReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到背包拉取请求:" + req);
+        BagInfoRet ret = _loginModle.GetBagInfo(req);
+        LogMsg.Info("[Center]背包拉取处理完成: 驱动盘=" + ret.DriverDiskMap.Count + " 材料=" + ret.MaterialMap.Count);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
     }
 
     private void OnGetRewardHandle(ServerBase serverBase, BasePackage basePackage)

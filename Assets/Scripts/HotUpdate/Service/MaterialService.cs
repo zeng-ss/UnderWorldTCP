@@ -3,13 +3,14 @@ using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.Data.Config;
 using HotUpdate.UI.UIPanel;
+using UnityEngine;
 
 namespace HotUpdate.Service
 {
     /// <summary>
     /// 材料数据服务。
-    /// 静态定义来自 Luban 导出的 tbmaterialdata.json（客户端不再有本地 SO 配置），持有数量属于玩家状态。
-    /// 数量变化时直接通知强化面板刷新（同模块 data→view），不再走全局事件。
+    /// 静态定义来自 Luban 导出的 tbmaterialdata.json，持有数量以服务端 role_bag_item 为准：
+    /// 进游戏下发、升级扣料回包、领奖后回拉，客户端只负责显示，不再自己增减数量。
     /// </summary>
     public class MaterialService
     {
@@ -24,8 +25,7 @@ namespace HotUpdate.Service
 
         /// <summary>
         /// 升级一个驱动盘时消耗的材料数量。
-        /// 原先这个魔法判断散落在 ImprovePanel 和 DriverDiskDataRuntime 两处，这里统一。
-        /// 1 个金币抵 10 点，其余驱动材料 1 个抵 1 点。
+        /// 与服务端 LoginModle.GetUpgradeCost 保持一致：1 个金币抵 10 点，其余驱动材料 1 个抵 1 点。
         /// </summary>
         private int GetUpgradeCost(int materialId) => materialId == ItemCatalog.Gold ? 10 : 1;
 
@@ -45,37 +45,53 @@ namespace HotUpdate.Service
             }
         }
 
+        #region 服务端数据落地
+
+        /// <summary>用服务端下发的全量背包重建材料数量（进游戏 / 领奖后回拉时调用）</summary>
+        public void ApplyServerBag(IEnumerable<MaterialInfo> materials)
+        {
+            // 先把已知材料清零：服务端没下发的即为 0
+            foreach (int materialId in new List<int>(_counts.Keys)) _counts[materialId] = 0;
+
+            if (materials != null)
+            {
+                foreach (MaterialInfo info in materials)
+                {
+                    if (info == null) continue;
+                    _counts[info.MaterialId] = Mathf.Max(0, info.MaterialCount);
+                }
+            }
+
+            RefreshImprovePanel();
+        }
+
+        /// <summary>应用服务端回包的「材料 → 剩余数量」增量（升级扣料后用）</summary>
+        public void ApplyMaterialCounts(IEnumerable<KeyValuePair<int, int>> counts)
+        {
+            if (counts == null) return;
+
+            foreach (var kv in counts) _counts[kv.Key] = Mathf.Max(0, kv.Value);
+            RefreshImprovePanel();
+        }
+
+        #endregion
+
         public int GetCount(int materialId) => _counts.GetValueOrDefault(materialId, 0);
 
+        /// <summary>数量是否够一次升级消耗。只用于本地粗判，真正的扣除在服务端</summary>
         public bool HasEnough(int materialId, int need = -1)
         {
             int cost = need < 0 ? GetUpgradeCost(materialId) : need;
             return GetCount(materialId) >= cost;
         }
 
-        public void Add(int materialId, int delta)
-        {
-            SetCount(materialId, GetCount(materialId) + delta);
-        }
+        public MaterialDataRuntime GetRuntime(int materialId) => _runtime.GetValueOrDefault(materialId);
 
-        private void SetCount(int materialId, int total)
+        // 同模块 data→view：直接让强化面板刷新数量；面板没开则跳过
+        private void RefreshImprovePanel()
         {
-            if (total < 0) total = 0;
-            _counts[materialId] = total;
-            // 同模块 data→view：直接让强化面板刷新数量；面板没开则跳过
             var panel = AppContext.Ui.GetPanel<ImprovePanel>();
             if (panel != null) panel.UpdateMaterialNum();
         }
-
-        /// <summary>扣除升级消耗；不足时返回 false 且不改变数量</summary>
-        public bool TryConsume(int materialId, int need = -1)
-        {
-            int cost = need < 0 ? GetUpgradeCost(materialId) : need;
-            if (!HasEnough(materialId, cost)) return false;
-            SetCount(materialId, GetCount(materialId) - cost);
-            return true;
-        }
-
-        public MaterialDataRuntime GetRuntime(int materialId) => _runtime.GetValueOrDefault(materialId);
     }
 }

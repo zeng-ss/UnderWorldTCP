@@ -3,23 +3,25 @@ using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.Data.Config;
 using HotUpdate.UI.UIPanel;
+using UnityEngine;
 
 namespace HotUpdate.Service
 {
     /// <summary>
-    /// 驱动盘（仓库）服务。拥有「已拥有」和「已装备」两份列表，并对外广播变化。
-    /// 驱动盘的静态模板来自 Luban 导出的 tbdriverdisk.json（客户端不再有本地 SO 配置）。
+    /// 驱动盘（仓库）服务。
+    /// 「已拥有 / 已装备 / 等级 / 词条」全部来自服务端 role_bag_item（进游戏下发、升级回包、领奖后回拉），
+    /// 客户端只保留 Luban 模板用于显示与展示材料配方，不再自己发放或改动驱动盘。
     /// </summary>
     public class DepotService
     {
         private DepotPanel _depotPanel;
 
-        // 驱动盘模板
+        // 驱动盘模板（名称 / 图标 / 升级配方 / 类型 / 初始数值），只读
         private readonly Dictionary<int, DriverDiskRow> _templates = new();
 
         private const int MaxEquipSlots = 5;
 
-        /// <summary>已拥有的驱动盘</summary>
+        /// <summary>已拥有的驱动盘（每个模板一条，数量与穿戴状态同样来自服务端）</summary>
         public List<DriverDiskDataRuntime> Owned { get; } = new();
 
         /// <summary>已装备的驱动盘</summary>
@@ -42,37 +44,54 @@ namespace HotUpdate.Service
             }
         }
 
-        #region 拥有列表
+        #region 服务端数据落地
 
-        /// <summary>按 Luban 模板发放驱动盘</summary>
-        public void AddByTemplate(DriverDiskRow template, int count = 1)
+        /// <summary>
+        /// 用服务端下发的全量背包重建「已拥有 / 已装备」。
+        /// 进游戏（StartGame）与领奖后（BagInfo）都走这里 —— 背包内容以服务端为权威。
+        /// </summary>
+        public void ApplyServerBag(IEnumerable<DriverDiskInfo> disks)
         {
-            if (template == null) return;
-            for (int i = 0; i < count; i++)
+            Owned.Clear();
+            Equipped.Clear();
+
+            if (disks != null)
             {
-                Owned.Add(new DriverDiskDataRuntime(template));
+                foreach (DriverDiskInfo info in disks)
+                {
+                    if (info == null) continue;
+
+                    var template = FindTemplate(info.DriverDiskId);
+                    if (template == null)
+                    {
+                        Debug.LogWarning($"DepotService: 服务端下发了配置表里不存在的驱动盘 {info.DriverDiskId}，已跳过");
+                        continue;
+                    }
+
+                    var runtime = new DriverDiskDataRuntime(template, info);
+                    Owned.Add(runtime);
+                    if (info.IsEquipped && Equipped.Count < MaxEquipSlots) Equipped.Add(runtime);
+                }
             }
 
             RefreshDepotPanel();
+            AppContext.PlayerData.ApplyEquipped(Equipped);
         }
 
-        /// <summary>按配置 id 发放，找不到模板直接返回 0</summary>
-        public int AddByDepotId(int depotId, int count = 1)
+        /// <summary>用服务端回包覆盖某个已拥有驱动盘的数据（升级后调用），并刷新仓库面板</summary>
+        public void ApplyDriverDiskData(DriverDiskInfo info)
         {
-            var template = FindTemplate(depotId);
-            if (template == null) return 0;
-            AddByTemplate(template, count);
-            return count;
-        }
+            if (info == null) return;
 
-        public bool Remove(DriverDiskDataRuntime item)
-        {
-            if (item == null) return false;
-            Unequip(item);
-            if (!Owned.Remove(item)) return false;
+            var runtime = FindOwned(info.DriverDiskId);
+            if (runtime == null) return;
+
+            runtime.ApplyFrom(info);
             RefreshDepotPanel();
-            return true;
         }
+
+        /// <summary>按驱动盘模板 id 找已拥有的实例，没有返回 null</summary>
+        public DriverDiskDataRuntime FindOwned(int depotId) => Owned.Find(v => v.DepotId == depotId);
 
         private DriverDiskRow FindTemplate(int depotId) => _templates.GetValueOrDefault(depotId);
 
@@ -85,6 +104,7 @@ namespace HotUpdate.Service
             return item != null && Equipped.Contains(item);
         }
 
+        /// <summary>落地「已装备」状态（服务端确认成功后才调用）</summary>
         public bool Equip(DriverDiskDataRuntime item)
         {
             if (item == null || IsEquipped(item)) return false;
@@ -95,6 +115,7 @@ namespace HotUpdate.Service
             return true;
         }
 
+        /// <summary>落地「卸下」状态（服务端确认成功后才调用）</summary>
         public bool Unequip(DriverDiskDataRuntime item)
         {
             if (item == null || !Equipped.Remove(item)) return false;

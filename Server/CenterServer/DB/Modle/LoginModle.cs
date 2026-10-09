@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SqlSugar;
+using cfg;
 
 /// <summary>
 /// 处理登录模块相关的数据库业务类   详细处理数据相关的一些的操作  更新数据到数据库 或者从数据库中查询信息等  
@@ -8,6 +9,26 @@ using SqlSugar;
 public class LoginModle
 {
     private SqlSugarClient _db;
+
+    // 装备槽上限（与客户端 DepotService.MaxEquipSlots 保持一致）
+    private const int MaxEquipSlots = 5;
+
+    // 每次强化投入的经验值（服务端权威，客户端不再自己算）
+    private const int AddExpPerUpgrade = 200;
+
+    // 升级词条的随机数。System.Random 不是线程安全的，统一加锁取数
+    private static readonly Random Rng = new Random();
+    private static readonly object RngLock = new object();
+
+    /// <summary>[minInclusive, maxExclusive) 之间的随机整数，语义与 UnityEngine.Random.Range(int,int) 一致</summary>
+    private static int NextRandom(int minInclusive, int maxExclusive)
+    {
+        if (maxExclusive <= minInclusive) return minInclusive;
+        lock (RngLock)
+        {
+            return Rng.Next(minInclusive, maxExclusive);
+        }
+    }
 
     public LoginModle(SqlSugarClient db)
     {
@@ -349,35 +370,16 @@ public class LoginModle
                 ServerId = role.ServerId
             };
 
-            // 加载背包物品
+            // 加载背包物品（驱动盘 / 材料统一走 ItemCatalog 分流，与发奖、升级同源）
             foreach (var bagInfo in roleBagInfo)
             {
                 if (bagInfo.ItemType == ItemCatalog.DriverDiskType)
                 {
-                    DriverDiskInfo diskInfo = new DriverDiskInfo
-                    {
-                        Level = bagInfo.Level,
-                        DriverDiskId = bagInfo.ItemId,
-                        DriverDiskCount = bagInfo.Count,
-                        DriverDiskName = bagInfo.ItemName,
-                        BaseValue = bagInfo.BaseValue,
-                        AttackPer = bagInfo.AttackPercent,
-                        DefensePer = bagInfo.DefensePercent,
-                        BaoJiPer = bagInfo.BaoJiPercent,
-                        CurFillValue = bagInfo.CurFillValue,
-                        CurMaxFillValue = bagInfo.CurMaxFillValue
-                    };
-                    mainRoleInfo.DriverDiskMap.Add(bagInfo.ItemId, diskInfo);
+                    mainRoleInfo.DriverDiskMap[bagInfo.ItemId] = ToDriverDiskInfo(bagInfo);
                 }
                 else
                 {
-                    MaterialInfo materialInfo = new MaterialInfo
-                    {
-                        MaterialId = bagInfo.ItemId,
-                        MaterialName = bagInfo.ItemName,
-                        MaterialCount = bagInfo.Count
-                    };
-                    mainRoleInfo.MaterialMap.Add(bagInfo.ItemId, materialInfo);
+                    mainRoleInfo.MaterialMap[bagInfo.ItemId] = ToMaterialInfo(bagInfo);
                 }
             }
 
@@ -389,7 +391,9 @@ public class LoginModle
     }
 
     /// <summary>
-    /// 保存角色数据
+    /// 保存角色数据。
+    /// 注意：背包（role_bag_item）已改为服务端权威 —— 由发奖 / 升级 / 装备接口增量维护，
+    /// 这里不能再按客户端上传的内容重建或清空，否则会把玩家背包抹掉。
     /// </summary>
     public SaveRoleRet SaveRole(SaveRoleReq req)
     {
@@ -404,9 +408,6 @@ public class LoginModle
         role.UpdateDate = DateTime.Now;
 
         if (_db.Updateable(role).ExecuteCommand() <= 0) ret.CmdCode = CmdCode.ServerError;
-
-        // 保存背包信息
-        _db.Deleteable<RoleBagInfo>().Where(v => v.RoleId == req.RoleId).ExecuteCommand();
 
         return ret;
     }
@@ -551,7 +552,7 @@ public class LoginModle
             }
             else
             {
-                _db.Insertable(new RoleBagInfo
+                RoleBagInfo row = new RoleBagInfo
                 {
                     RoleId = roleId,
                     ItemId = itemId,
@@ -560,8 +561,126 @@ public class LoginModle
                     Count = addCount,
                     CreateDate = DateTime.Now,
                     UpdateDate = DateTime.Now
-                }).ExecuteCommand();
+                };
+                // 驱动盘行必须按 Luban 模板初始化等级与词条，否则新手拿到盘时等级 / 属性全是 0
+                InitDriverDiskRow(row);
+                _db.Insertable(row).ExecuteCommand();
             }
+        }
+    }
+
+    /// <summary>
+    /// 用 Luban 的 driverDisk 模板初始化驱动盘行的等级 / 经验上限 / 词条；材料行或未配置编号保持默认值。
+    /// 幂等：只按模板赋值，不清空 Count。
+    /// </summary>
+    private static void InitDriverDiskRow(RoleBagInfo row)
+    {
+        if (row == null) return;
+        driverDisk template = LubanMgr.Instance.GetDriverDiskById(row.ItemId);
+        if (template == null) return;
+
+        row.Level = template.InitLevel;
+        row.CurMaxFillValue = template.InitMaxFill;
+        row.CurFillValue = 0f;
+        row.BaseValue = template.BaseValue;
+        row.AttackPercent = template.AttackPercent;
+        row.DefensePercent = template.DefensePercent;
+        row.HealthPercent = template.HealthPercent;
+        row.BaoJiPercent = template.BaoJiPercent;
+        row.IsEquipped = 0;
+    }
+
+    /// <summary>role_bag_item 的驱动盘行 → 协议 DriverDiskInfo（StartGame / 升级 / 背包拉取共用）</summary>
+    private static DriverDiskInfo ToDriverDiskInfo(RoleBagInfo bagInfo)
+    {
+        return new DriverDiskInfo
+        {
+            Id = bagInfo.Id,
+            DriverDiskId = bagInfo.ItemId,
+            DriverDiskCount = bagInfo.Count,
+            DriverDiskName = bagInfo.ItemName,
+            BaseValue = bagInfo.BaseValue,
+            AttackPer = bagInfo.AttackPercent,
+            DefensePer = bagInfo.DefensePercent,
+            HealthPer = bagInfo.HealthPercent,
+            BaoJiPer = bagInfo.BaoJiPercent,
+            Level = bagInfo.Level,
+            CurMaxFillValue = bagInfo.CurMaxFillValue,
+            CurFillValue = bagInfo.CurFillValue,
+            IsEquipped = bagInfo.IsEquipped == 1
+        };
+    }
+
+    /// <summary>role_bag_item 的材料行 → 协议 MaterialInfo</summary>
+    private static MaterialInfo ToMaterialInfo(RoleBagInfo bagInfo)
+    {
+        return new MaterialInfo
+        {
+            MaterialId = bagInfo.ItemId,
+            MaterialName = bagInfo.ItemName,
+            MaterialCount = bagInfo.Count
+        };
+    }
+
+    /// <summary>升级一个驱动盘时，单个升级材料被消耗的数量（金币 1 个抵 10 点，其余 1 个抵 1 点；与客户端 MaterialService 同源）</summary>
+    private static int GetUpgradeCost(int materialId)
+    {
+        return materialId == ItemCatalog.Gold ? 10 : 1;
+    }
+
+    /// <summary>给驱动盘加经验并按需连升（等级 / 经验 / 词条都写回 row，由调用方落库）</summary>
+    private static void AddExpToDriverDisk(RoleBagInfo row, int exp)
+    {
+        row.CurFillValue += exp;
+        while (row.CurMaxFillValue > 0f && row.CurFillValue >= row.CurMaxFillValue)
+        {
+            row.Level++;
+            row.CurFillValue -= row.CurMaxFillValue;
+            // 下一级经验上限：在当前上限基础上 +200 ~ +500
+            row.CurMaxFillValue = NextRandom((int)row.CurMaxFillValue + 200, (int)row.CurMaxFillValue + 500);
+            UpgradeDriverDiskValue(row);
+        }
+    }
+
+    /// <summary>升级时按驱动盘类型提升词条（随机区间与原客户端实现一致）</summary>
+    private static void UpgradeDriverDiskValue(RoleBagInfo row)
+    {
+        driverDisk template = LubanMgr.Instance.GetDriverDiskById(row.ItemId);
+        if (template == null) return;
+
+        switch (template.DiskType)
+        {
+            case DriverDiskType.Attack:
+                row.BaseValue += NextRandom(20, 100);
+                row.AttackPercent += 10f;
+                row.DefensePercent += 5f;
+                row.HealthPercent += 3f;
+                row.BaoJiPercent += 3f;
+                break;
+            case DriverDiskType.Defense:
+                row.BaseValue += NextRandom(20, 100);
+                row.DefensePercent += 10f;
+                row.HealthPercent += 5f;
+                row.BaoJiPercent += 2f;
+                row.AttackPercent += 3f;
+                break;
+            case DriverDiskType.Health:
+                row.BaseValue += NextRandom(20, 100);
+                row.HealthPercent += 10f;
+                row.DefensePercent += 5f;
+                row.BaoJiPercent += 1f;
+                row.AttackPercent += 2f;
+                break;
+            case DriverDiskType.BaoJi:
+                row.BaseValue += NextRandom(5, 10);
+                row.BaoJiPercent += 5f;
+                row.AttackPercent += 3f;
+                row.DefensePercent += 1f;
+                row.HealthPercent += 1f;
+                break;
+            default:
+                LogMsg.Info("[Center]驱动盘 " + row.ItemId + " 类型未知，升级词条已跳过");
+                break;
         }
     }
 
@@ -669,6 +788,170 @@ public class LoginModle
             ret.TaskList.Add(info);
         }
 
+        return ret;
+    }
+
+    #endregion
+
+    #region 背包（驱动盘升级 / 装备 / 全量拉取）
+
+    /// <summary>
+    /// 驱动盘升级（服务端权威）。
+    /// 流程：校验拥有 → 校验升级材料 → 扣除材料 → 加经验并随机升级词条 → 写 role_bag_item → 回传新状态。
+    /// 客户端只上报「要升级哪个驱动盘」，材料够不够、升级结果全由服务端判定，杜绝改内存刷材料 / 刷等级。
+    /// </summary>
+    public DriverDiskUpgradeRet UpgradeDriverDisk(DriverDiskUpgradeReq req)
+    {
+        DriverDiskUpgradeRet ret = new DriverDiskUpgradeRet();
+        if (req.RoleId <= 0 || req.DepotId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "参数错误";
+            return ret;
+        }
+
+        driverDisk template = LubanMgr.Instance.GetDriverDiskById(req.DepotId);
+        if (template == null)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "驱动盘配置不存在";
+            return ret;
+        }
+
+        RoleBagInfo disk = _db.Queryable<RoleBagInfo>()
+            .Where(v => v.RoleId == req.RoleId && v.ItemId == req.DepotId
+                        && v.ItemType == ItemCatalog.DriverDiskType).First();
+        if (disk == null)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "未拥有该驱动盘";
+            return ret;
+        }
+
+        // 老数据 / 手工插入的行可能没初始化过，升级前先按模板补一次，避免经验上限为 0 算不出升级
+        if (disk.Level <= 0 || disk.CurMaxFillValue <= 0f) InitDriverDiskRow(disk);
+
+        List<RoleBagInfo> materials = _db.Queryable<RoleBagInfo>()
+            .Where(v => v.RoleId == req.RoleId && v.ItemType == ItemCatalog.MaterialType).ToList();
+
+        // 先整体校验，避免扣一半发现不够
+        string shortageName = null;
+        foreach (int materialId in template.UpgradeMaterials)
+        {
+            RoleBagInfo material = materials.Find(v => v.ItemId == materialId);
+            if (material != null && material.Count >= GetUpgradeCost(materialId)) continue;
+            if (shortageName == null) shortageName = ItemCatalog.GetName(materialId);
+        }
+
+        if (shortageName != null)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = shortageName + "不足";
+            LogMsg.Info("[Center]驱动盘升级失败：roleId=" + req.RoleId + " depotId=" + req.DepotId + " " + ret.Tip);
+            return ret;
+        }
+
+        // 扣除材料，并把剩余数量回给客户端
+        foreach (int materialId in template.UpgradeMaterials)
+        {
+            RoleBagInfo material = materials.Find(v => v.ItemId == materialId);
+            material.Count -= GetUpgradeCost(materialId);
+            material.UpdateDate = DateTime.Now;
+            _db.Updateable(material).ExecuteCommand();
+            ret.MaterialMap[material.ItemId] = material.Count;
+        }
+
+        // 加经验 → 升级（含随机词条），然后落库
+        int oldLevel = disk.Level;
+        AddExpToDriverDisk(disk, AddExpPerUpgrade);
+        disk.UpdateDate = DateTime.Now;
+        _db.Updateable(disk).ExecuteCommand();
+
+        ret.OldLevel = oldLevel;
+        ret.DriverDisk = ToDriverDiskInfo(disk);
+        ret.CmdCode = CmdCode.Succeed;
+        LogMsg.Info("[Center]驱动盘升级成功：roleId=" + req.RoleId + " depotId=" + req.DepotId
+                    + " Lv" + oldLevel + "->" + disk.Level);
+        return ret;
+    }
+
+    /// <summary>
+    /// 装备 / 卸下驱动盘（服务端权威），写 role_bag_item.IsEquipped。
+    /// 装备时按服务端已装备数量校验装备槽上限，防止客户端绕过限制。
+    /// </summary>
+    public DriverDiskEquipRet SetDriverDiskEquipped(DriverDiskEquipReq req)
+    {
+        DriverDiskEquipRet ret = new DriverDiskEquipRet();
+        if (req.RoleId <= 0 || req.DepotId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "参数错误";
+            return ret;
+        }
+
+        ret.DepotId = req.DepotId;
+        ret.Equipped = req.Equip;
+
+        RoleBagInfo disk = _db.Queryable<RoleBagInfo>()
+            .Where(v => v.RoleId == req.RoleId && v.ItemId == req.DepotId
+                        && v.ItemType == ItemCatalog.DriverDiskType).First();
+        if (disk == null)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "未拥有该驱动盘";
+            return ret;
+        }
+
+        if (req.Equip && disk.IsEquipped != 1)
+        {
+            int equippedCount = _db.Queryable<RoleBagInfo>()
+                .Where(v => v.RoleId == req.RoleId && v.ItemType == ItemCatalog.DriverDiskType
+                            && v.IsEquipped == 1).Count();
+            if (equippedCount >= MaxEquipSlots)
+            {
+                ret.CmdCode = CmdCode.ReqParamError;
+                ret.Tip = "装备槽已满";
+                return ret;
+            }
+        }
+
+        disk.IsEquipped = req.Equip ? 1 : 0;
+        disk.UpdateDate = DateTime.Now;
+        _db.Updateable(disk).ExecuteCommand();
+
+        ret.CmdCode = CmdCode.Succeed;
+        LogMsg.Info("[Center]驱动盘" + (req.Equip ? "装备" : "卸下")
+                    + "：roleId=" + req.RoleId + " depotId=" + req.DepotId);
+        return ret;
+    }
+
+    /// <summary>
+    /// 拉取角色全量背包（进入游戏 / 领奖后刷新）。
+    /// 物品模板仍在 Luban 配置里，这里只返回「拥有 + 穿戴 + 升级进度」这类角色私有状态。
+    /// </summary>
+    public BagInfoRet GetBagInfo(BagInfoReq req)
+    {
+        BagInfoRet ret = new BagInfoRet();
+        if (req.RoleId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        List<RoleBagInfo> bagItems = _db.Queryable<RoleBagInfo>().Where(v => v.RoleId == req.RoleId).ToList();
+        foreach (RoleBagInfo bagInfo in bagItems)
+        {
+            if (bagInfo.ItemType == ItemCatalog.DriverDiskType)
+            {
+                ret.DriverDiskMap[bagInfo.ItemId] = ToDriverDiskInfo(bagInfo);
+            }
+            else
+            {
+                ret.MaterialMap[bagInfo.ItemId] = ToMaterialInfo(bagInfo);
+            }
+        }
+
+        ret.CmdCode = CmdCode.Succeed;
         return ret;
     }
 
