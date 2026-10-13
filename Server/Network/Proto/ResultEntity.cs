@@ -37,84 +37,84 @@ public static partial class ResultEntityReflection {
           "IAEoDjIILkNtZENvZGUSDwoHcm9sZV9pZBgCIAEoBRIQCghuaWNrbmFtZRgD",
           "IAEoCRIOCgZqb2JfaWQYBCABKAUSDQoFbGV2ZWwYBSABKAUiKQoLU2F2ZVJv",
           "bGVSZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlIiwKDkNoYW5nZVNj",
-          "ZW5lUmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZSK+AQoNU3Bhd25F",
+          "ZW5lUmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZSKtAQoNU3Bhd25F",
           "bmVteVJldBIaCghjbWRfY29kZRgBIAEoDjIILkNtZENvZGUSGQoRZW5lbXlf",
           "aW5zdGFuY2VfaWQYAiABKAUSDQoFcG9zX3gYAyABKAISDQoFcG9zX3kYBCAB",
           "KAISDQoFcG9zX3oYBSABKAISDgoGbWF4X2hwGAYgASgCEg8KB2N1cnJfaHAY",
-          "ByABKAISFwoPZW5lbXlfY29uZmlnX2lkGAggASgFEg8KB3JvbGVfaWQYCSAB",
-          "KAUiyAEKD1BsYXllckF0dGFja1JldBIaCghjbWRfY29kZRgBIAEoDjIILkNt",
-          "ZENvZGUSGQoRZW5lbXlfaW5zdGFuY2VfaWQYAiABKAUSFAoMZGFtYWdlX2Rl",
-          "YWx0GAMgASgCEhUKDWVuZW15X2N1cnJfaHAYBCABKAISFAoMZW5lbXlfbWF4",
-          "X2hwGAUgASgCEg8KB2lzX2RlYWQYBiABKAgSEAoIaXNfYmFvamkYByABKAgS",
-          "GAoQYXR0YWNrZXJfcm9sZV9pZBgIIAEoBSKjAQoMR2V0UmV3YXJkUmV0EhoK",
-          "CGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIwCgpyZXdhcmRfbWFwGAIgAygL",
-          "MhwuR2V0UmV3YXJkUmV0LlJld2FyZE1hcEVudHJ5EhMKC3Jld2FyZF9kZXNj",
-          "GAMgASgJGjAKDlJld2FyZE1hcEVudHJ5EgsKA2tleRgBIAEoBRINCgV2YWx1",
-          "ZRgCIAEoBToCOAEi6gEKFERyaXZlckRpc2tVcGdyYWRlUmV0EhoKCGNtZF9j",
-          "b2RlGAEgASgOMgguQ21kQ29kZRIkCgtkcml2ZXJfZGlzaxgCIAEoCzIPLkRy",
-          "aXZlckRpc2tJbmZvEjwKDG1hdGVyaWFsX21hcBgDIAMoCzImLkRyaXZlckRp",
-          "c2tVcGdyYWRlUmV0Lk1hdGVyaWFsTWFwRW50cnkSEQoJb2xkX2xldmVsGAQg",
-          "ASgFEgsKA3RpcBgFIAEoCRoyChBNYXRlcmlhbE1hcEVudHJ5EgsKA2tleRgB",
-          "IAEoBRINCgV2YWx1ZRgCIAEoBToCOAEiYQoSRHJpdmVyRGlza0VxdWlwUmV0",
-          "EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIQCghkZXBvdF9pZBgCIAEo",
-          "BRIQCghlcXVpcHBlZBgDIAEoCBILCgN0aXAYBCABKAkinwIKCkJhZ0luZm9S",
-          "ZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEjcKD2RyaXZlcl9kaXNr",
-          "X21hcBgCIAMoCzIeLkJhZ0luZm9SZXQuRHJpdmVyRGlza01hcEVudHJ5EjIK",
-          "DG1hdGVyaWFsX21hcBgDIAMoCzIcLkJhZ0luZm9SZXQuTWF0ZXJpYWxNYXBF",
-          "bnRyeRpFChJEcml2ZXJEaXNrTWFwRW50cnkSCwoDa2V5GAEgASgFEh4KBXZh",
-          "bHVlGAIgASgLMg8uRHJpdmVyRGlza0luZm86AjgBGkEKEE1hdGVyaWFsTWFw",
-          "RW50cnkSCwoDa2V5GAEgASgFEhwKBXZhbHVlGAIgASgLMg0uTWF0ZXJpYWxJ",
-          "bmZvOgI4ASJRCgxTdGFydEdhbWVSZXQSGgoIY21kX2NvZGUYASABKA4yCC5D",
-          "bWRDb2RlEiUKDm1haW5fcm9sZV9pbmZvGAIgASgLMg0uTWFpblJvbGVJbmZv",
-          "IjEKDFJvbGVCYXNlSW5mbxIPCgdyb2xlX2lkGAEgASgFEhAKCG5pY2tuYW1l",
-          "GAIgASgJIuYCCgxNYWluUm9sZUluZm8SIAoJYmFzZV9pbmZvGAEgASgLMg0u",
-          "Um9sZUJhc2VJbmZvEhIKCmFjY291bnRfaWQYAiABKAUSEgoKc2NlbmVfbmFt",
-          "ZRgHIAEoCRIRCglzZXJ2ZXJfaWQYCCABKAUSOQoPZHJpdmVyX2Rpc2tfbWFw",
-          "GAkgAygLMiAuTWFpblJvbGVJbmZvLkRyaXZlckRpc2tNYXBFbnRyeRI0Cgxt",
-          "YXRlcmlhbF9tYXAYCiADKAsyHi5NYWluUm9sZUluZm8uTWF0ZXJpYWxNYXBF",
-          "bnRyeRpFChJEcml2ZXJEaXNrTWFwRW50cnkSCwoDa2V5GAEgASgFEh4KBXZh",
-          "bHVlGAIgASgLMg8uRHJpdmVyRGlza0luZm86AjgBGkEKEE1hdGVyaWFsTWFw",
-          "RW50cnkSCwoDa2V5GAEgASgFEhwKBXZhbHVlGAIgASgLMg0uTWF0ZXJpYWxJ",
-          "bmZvOgI4ASKlAgoORHJpdmVyRGlza0luZm8SCgoCaWQYASABKAUSFgoOZHJp",
-          "dmVyX2Rpc2tfaWQYAiABKAUSGQoRZHJpdmVyX2Rpc2tfY291bnQYAyABKAUS",
-          "GAoQZHJpdmVyX2Rpc2tfbmFtZRgEIAEoCRISCgpiYXNlX3ZhbHVlGAUgASgF",
-          "EhIKCmF0dGFja19wZXIYBiABKAISEwoLZGVmZW5zZV9wZXIYByABKAISEgoK",
-          "aGVhbHRoX3BlchgIIAEoAhIRCgliYW9KaV9wZXIYCSABKAISDQoFbGV2ZWwY",
-          "CiABKAUSGgoSY3VyX21heF9maWxsX3ZhbHVlGAsgASgCEhYKDmN1cl9maWxs",
-          "X3ZhbHVlGAwgASgCEhMKC2lzX2VxdWlwcGVkGA0gASgIIlIKDE1hdGVyaWFs",
-          "SW5mbxITCgttYXRlcmlhbF9pZBgBIAEoBRIWCg5tYXRlcmlhbF9jb3VudBgC",
-          "IAEoBRIVCg1tYXRlcmlhbF9uYW1lGAMgASgJInYKD1Bvc2l0aW9uU3luY050",
-          "ZhIPCgdyb2xlX2lkGAEgASgFEg0KBXBvc194GAIgASgCEg0KBXBvc195GAMg",
-          "ASgCEg0KBXBvc196GAQgASgCEhIKCnJvdGF0aW9uX3kYBSABKAISEQoJbmlr",
-          "ZV9uYW1lGAYgASgJInkKE1BsYXllckVudGVyU2NlbmVOdGYSDwoHcm9sZV9p",
-          "ZBgBIAEoBRIQCghuaWNrbmFtZRgCIAEoCRINCgVwb3NfeBgDIAEoAhINCgVw",
-          "b3NfeRgEIAEoAhINCgVwb3NfehgFIAEoAhISCgpzY2VuZV9uYW1lGAYgASgF",
-          "IiYKE1BsYXllckxlYXZlU2NlbmVOdGYSDwoHcm9sZV9pZBgBIAEoBSJYCg5S",
-          "b29tUGxheWVySW5mbxIPCgdyb2xlX2lkGAEgASgFEhAKCG5pY2tuYW1lGAIg",
-          "ASgJEhEKCWlzX21hc3RlchgDIAEoCBIQCghpc19yZWFkeRgEIAEoCCJeCg1D",
-          "cmVhdGVSb29tUmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIPCgdy",
-          "b29tX2lkGAIgASgFEiAKB3BsYXllcnMYAyADKAsyDy5Sb29tUGxheWVySW5m",
-          "byJcCgtKb2luUm9vbVJldBIaCghjbWRfY29kZRgBIAEoDjIILkNtZENvZGUS",
-          "DwoHcm9vbV9pZBgCIAEoBRIgCgdwbGF5ZXJzGAMgAygLMg8uUm9vbVBsYXll",
-          "ckluZm8iQAoLUm9vbUluZm9OdGYSDwoHcm9vbV9pZBgBIAEoBRIgCgdwbGF5",
-          "ZXJzGAIgAygLMg8uUm9vbVBsYXllckluZm8iMwoQUm9vbVN0YXJ0R2FtZU50",
-          "ZhIPCgdyb29tX2lkGAEgASgFEg4KBm1hcF9pZBgCIAEoBSJRCgpTeW5jQW5p",
-          "UmV0EhYKDmFuaW1hdGlvbl9uYW1lGAEgASgJEg8KB3JvbGVfaWQYAiABKAUS",
-          "GgoSc2tpbGxfY29uZmlnX2luZGV4GAMgASgFImQKDFBsYXllclZmeE50ZhIP",
-          "Cgdyb2xlX2lkGAEgASgFEhoKEnNraWxsX2NvbmZpZ19pbmRleBgCIAEoBRIU",
-          "CgxhdHRhY2tfaW5kZXgYAyABKAUSEQoJdmZ4X2luZGV4GAQgASgFImgKFEVu",
-          "ZW15UG9zaXRpb25TeW5jUmV0Eg8KB3JvbGVfaWQYASABKAUSDQoFcG9zX3gY",
-          "AiABKAISDQoFcG9zX3kYAyABKAISDQoFcG9zX3oYBCABKAISEgoKcm90YXRp",
-          "b25feRgFIAEoAiI6Cg9FbmVteVN5bmNBbmlSZXQSFgoOYW5pbWF0aW9uX25h",
-          "bWUYASABKAkSDwoHcm9sZV9pZBgCIAEoBSItCg9UYXNrUHJvZ3Jlc3NSZXQS",
-          "GgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlIk8KE1Rhc2tQcm9ncmVzc0xp",
-          "c3RSZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEhwKCXRhc2tfbGlz",
-          "dBgCIAMoCzIJLlRhc2tJbmZvKt8BCgdDbWRDb2RlEgsKB1N1Y2NlZWQQABIN",
-          "CglBY2N0RXhpc3QQARIPCgtTZXJ2ZXJFcnJvchACEhAKDEFjY3ROb3RFeGlz",
-          "dBADEhEKDVBhc3N3b3JkRXJyb3IQBBIPCgtBY2N0RGlzYWJsZRAFEhEKDVJl",
-          "cVBhcmFtRXJyb3IQBhIRCg1OaWNrbmFtZUV4aXN0EAcSEgoOVXNlck5hbWVJ",
-          "bGVnYWwQCBISCg5wYXNzd29yZElsZWdhbBAKEhAKDFJvbGVOb3RFeGlzdBAL",
-          "EhEKDUVuZW15Tm90RXhpc3QQDGIGcHJvdG8z"));
+          "ByABKAISFwoPZW5lbXlfY29uZmlnX2lkGAggASgFIsgBCg9QbGF5ZXJBdHRh",
+          "Y2tSZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEhkKEWVuZW15X2lu",
+          "c3RhbmNlX2lkGAIgASgFEhQKDGRhbWFnZV9kZWFsdBgDIAEoAhIVCg1lbmVt",
+          "eV9jdXJyX2hwGAQgASgCEhQKDGVuZW15X21heF9ocBgFIAEoAhIPCgdpc19k",
+          "ZWFkGAYgASgIEhAKCGlzX2Jhb2ppGAcgASgIEhgKEGF0dGFja2VyX3JvbGVf",
+          "aWQYCCABKAUiowEKDEdldFJld2FyZFJldBIaCghjbWRfY29kZRgBIAEoDjII",
+          "LkNtZENvZGUSMAoKcmV3YXJkX21hcBgCIAMoCzIcLkdldFJld2FyZFJldC5S",
+          "ZXdhcmRNYXBFbnRyeRITCgtyZXdhcmRfZGVzYxgDIAEoCRowCg5SZXdhcmRN",
+          "YXBFbnRyeRILCgNrZXkYASABKAUSDQoFdmFsdWUYAiABKAU6AjgBIuoBChRE",
+          "cml2ZXJEaXNrVXBncmFkZVJldBIaCghjbWRfY29kZRgBIAEoDjIILkNtZENv",
+          "ZGUSJAoLZHJpdmVyX2Rpc2sYAiABKAsyDy5Ecml2ZXJEaXNrSW5mbxI8Cgxt",
+          "YXRlcmlhbF9tYXAYAyADKAsyJi5Ecml2ZXJEaXNrVXBncmFkZVJldC5NYXRl",
+          "cmlhbE1hcEVudHJ5EhEKCW9sZF9sZXZlbBgEIAEoBRILCgN0aXAYBSABKAka",
+          "MgoQTWF0ZXJpYWxNYXBFbnRyeRILCgNrZXkYASABKAUSDQoFdmFsdWUYAiAB",
+          "KAU6AjgBImEKEkRyaXZlckRpc2tFcXVpcFJldBIaCghjbWRfY29kZRgBIAEo",
+          "DjIILkNtZENvZGUSEAoIZGVwb3RfaWQYAiABKAUSEAoIZXF1aXBwZWQYAyAB",
+          "KAgSCwoDdGlwGAQgASgJIp8CCgpCYWdJbmZvUmV0EhoKCGNtZF9jb2RlGAEg",
+          "ASgOMgguQ21kQ29kZRI3Cg9kcml2ZXJfZGlza19tYXAYAiADKAsyHi5CYWdJ",
+          "bmZvUmV0LkRyaXZlckRpc2tNYXBFbnRyeRIyCgxtYXRlcmlhbF9tYXAYAyAD",
+          "KAsyHC5CYWdJbmZvUmV0Lk1hdGVyaWFsTWFwRW50cnkaRQoSRHJpdmVyRGlz",
+          "a01hcEVudHJ5EgsKA2tleRgBIAEoBRIeCgV2YWx1ZRgCIAEoCzIPLkRyaXZl",
+          "ckRpc2tJbmZvOgI4ARpBChBNYXRlcmlhbE1hcEVudHJ5EgsKA2tleRgBIAEo",
+          "BRIcCgV2YWx1ZRgCIAEoCzINLk1hdGVyaWFsSW5mbzoCOAEiUQoMU3RhcnRH",
+          "YW1lUmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIlCg5tYWluX3Jv",
+          "bGVfaW5mbxgCIAEoCzINLk1haW5Sb2xlSW5mbyIxCgxSb2xlQmFzZUluZm8S",
+          "DwoHcm9sZV9pZBgBIAEoBRIQCghuaWNrbmFtZRgCIAEoCSLmAgoMTWFpblJv",
+          "bGVJbmZvEiAKCWJhc2VfaW5mbxgBIAEoCzINLlJvbGVCYXNlSW5mbxISCgph",
+          "Y2NvdW50X2lkGAIgASgFEhIKCnNjZW5lX25hbWUYByABKAkSEQoJc2VydmVy",
+          "X2lkGAggASgFEjkKD2RyaXZlcl9kaXNrX21hcBgJIAMoCzIgLk1haW5Sb2xl",
+          "SW5mby5Ecml2ZXJEaXNrTWFwRW50cnkSNAoMbWF0ZXJpYWxfbWFwGAogAygL",
+          "Mh4uTWFpblJvbGVJbmZvLk1hdGVyaWFsTWFwRW50cnkaRQoSRHJpdmVyRGlz",
+          "a01hcEVudHJ5EgsKA2tleRgBIAEoBRIeCgV2YWx1ZRgCIAEoCzIPLkRyaXZl",
+          "ckRpc2tJbmZvOgI4ARpBChBNYXRlcmlhbE1hcEVudHJ5EgsKA2tleRgBIAEo",
+          "BRIcCgV2YWx1ZRgCIAEoCzINLk1hdGVyaWFsSW5mbzoCOAEipQIKDkRyaXZl",
+          "ckRpc2tJbmZvEgoKAmlkGAEgASgFEhYKDmRyaXZlcl9kaXNrX2lkGAIgASgF",
+          "EhkKEWRyaXZlcl9kaXNrX2NvdW50GAMgASgFEhgKEGRyaXZlcl9kaXNrX25h",
+          "bWUYBCABKAkSEgoKYmFzZV92YWx1ZRgFIAEoBRISCgphdHRhY2tfcGVyGAYg",
+          "ASgCEhMKC2RlZmVuc2VfcGVyGAcgASgCEhIKCmhlYWx0aF9wZXIYCCABKAIS",
+          "EQoJYmFvSmlfcGVyGAkgASgCEg0KBWxldmVsGAogASgFEhoKEmN1cl9tYXhf",
+          "ZmlsbF92YWx1ZRgLIAEoAhIWCg5jdXJfZmlsbF92YWx1ZRgMIAEoAhITCgtp",
+          "c19lcXVpcHBlZBgNIAEoCCJSCgxNYXRlcmlhbEluZm8SEwoLbWF0ZXJpYWxf",
+          "aWQYASABKAUSFgoObWF0ZXJpYWxfY291bnQYAiABKAUSFQoNbWF0ZXJpYWxf",
+          "bmFtZRgDIAEoCSJ2Cg9Qb3NpdGlvblN5bmNOdGYSDwoHcm9sZV9pZBgBIAEo",
+          "BRINCgVwb3NfeBgCIAEoAhINCgVwb3NfeRgDIAEoAhINCgVwb3NfehgEIAEo",
+          "AhISCgpyb3RhdGlvbl95GAUgASgCEhEKCW5pa2VfbmFtZRgGIAEoCSJ5ChNQ",
+          "bGF5ZXJFbnRlclNjZW5lTnRmEg8KB3JvbGVfaWQYASABKAUSEAoIbmlja25h",
+          "bWUYAiABKAkSDQoFcG9zX3gYAyABKAISDQoFcG9zX3kYBCABKAISDQoFcG9z",
+          "X3oYBSABKAISEgoKc2NlbmVfbmFtZRgGIAEoBSImChNQbGF5ZXJMZWF2ZVNj",
+          "ZW5lTnRmEg8KB3JvbGVfaWQYASABKAUiWAoOUm9vbVBsYXllckluZm8SDwoH",
+          "cm9sZV9pZBgBIAEoBRIQCghuaWNrbmFtZRgCIAEoCRIRCglpc19tYXN0ZXIY",
+          "AyABKAgSEAoIaXNfcmVhZHkYBCABKAgiXgoNQ3JlYXRlUm9vbVJldBIaCghj",
+          "bWRfY29kZRgBIAEoDjIILkNtZENvZGUSDwoHcm9vbV9pZBgCIAEoBRIgCgdw",
+          "bGF5ZXJzGAMgAygLMg8uUm9vbVBsYXllckluZm8iXAoLSm9pblJvb21SZXQS",
+          "GgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEg8KB3Jvb21faWQYAiABKAUS",
+          "IAoHcGxheWVycxgDIAMoCzIPLlJvb21QbGF5ZXJJbmZvIkAKC1Jvb21JbmZv",
+          "TnRmEg8KB3Jvb21faWQYASABKAUSIAoHcGxheWVycxgCIAMoCzIPLlJvb21Q",
+          "bGF5ZXJJbmZvIjMKEFJvb21TdGFydEdhbWVOdGYSDwoHcm9vbV9pZBgBIAEo",
+          "BRIOCgZtYXBfaWQYAiABKAUiUQoKU3luY0FuaVJldBIWCg5hbmltYXRpb25f",
+          "bmFtZRgBIAEoCRIPCgdyb2xlX2lkGAIgASgFEhoKEnNraWxsX2NvbmZpZ19p",
+          "bmRleBgDIAEoBSJkCgxQbGF5ZXJWZnhOdGYSDwoHcm9sZV9pZBgBIAEoBRIa",
+          "ChJza2lsbF9jb25maWdfaW5kZXgYAiABKAUSFAoMYXR0YWNrX2luZGV4GAMg",
+          "ASgFEhEKCXZmeF9pbmRleBgEIAEoBSJyChRFbmVteVBvc2l0aW9uU3luY1Jl",
+          "dBIZChFlbmVteV9pbnN0YW5jZV9pZBgBIAEoBRINCgVwb3NfeBgCIAEoAhIN",
+          "CgVwb3NfeRgDIAEoAhINCgVwb3NfehgEIAEoAhISCgpyb3RhdGlvbl95GAUg",
+          "ASgCIlMKD0VuZW15U3luY0FuaVJldBIWCg5hbmltYXRpb25fbmFtZRgBIAEo",
+          "CRIZChFlbmVteV9pbnN0YW5jZV9pZBgCIAEoBRINCgVzdGF0ZRgDIAEoBSIt",
+          "Cg9UYXNrUHJvZ3Jlc3NSZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2Rl",
+          "Ik8KE1Rhc2tQcm9ncmVzc0xpc3RSZXQSGgoIY21kX2NvZGUYASABKA4yCC5D",
+          "bWRDb2RlEhwKCXRhc2tfbGlzdBgCIAMoCzIJLlRhc2tJbmZvKt8BCgdDbWRD",
+          "b2RlEgsKB1N1Y2NlZWQQABINCglBY2N0RXhpc3QQARIPCgtTZXJ2ZXJFcnJv",
+          "chACEhAKDEFjY3ROb3RFeGlzdBADEhEKDVBhc3N3b3JkRXJyb3IQBBIPCgtB",
+          "Y2N0RGlzYWJsZRAFEhEKDVJlcVBhcmFtRXJyb3IQBhIRCg1OaWNrbmFtZUV4",
+          "aXN0EAcSEgoOVXNlck5hbWVJbGVnYWwQCBISCg5wYXNzd29yZElsZWdhbBAK",
+          "EhAKDFJvbGVOb3RFeGlzdBALEhEKDUVuZW15Tm90RXhpc3QQDGIGcHJvdG8z"));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { global::RequestEntityReflection.Descriptor, },
         new pbr::GeneratedClrTypeInfo(new[] {typeof(global::CmdCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -127,7 +127,7 @@ public static partial class ResultEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::CreateRoleRet), global::CreateRoleRet.Parser, new[]{ "CmdCode", "RoleId", "Nickname", "JobId", "Level" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::SaveRoleRet), global::SaveRoleRet.Parser, new[]{ "CmdCode" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::ChangeSceneRet), global::ChangeSceneRet.Parser, new[]{ "CmdCode" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::SpawnEnemyRet), global::SpawnEnemyRet.Parser, new[]{ "CmdCode", "EnemyInstanceId", "PosX", "PosY", "PosZ", "MaxHp", "CurrHp", "EnemyConfigId", "RoleId" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::SpawnEnemyRet), global::SpawnEnemyRet.Parser, new[]{ "CmdCode", "EnemyInstanceId", "PosX", "PosY", "PosZ", "MaxHp", "CurrHp", "EnemyConfigId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PlayerAttackRet), global::PlayerAttackRet.Parser, new[]{ "CmdCode", "EnemyInstanceId", "DamageDealt", "EnemyCurrHp", "EnemyMaxHp", "IsDead", "IsBaoji", "AttackerRoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::GetRewardRet), global::GetRewardRet.Parser, new[]{ "CmdCode", "RewardMap", "RewardDesc" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
           new pbr::GeneratedClrTypeInfo(typeof(global::DriverDiskUpgradeRet), global::DriverDiskUpgradeRet.Parser, new[]{ "CmdCode", "DriverDisk", "MaterialMap", "OldLevel", "Tip" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
@@ -148,8 +148,8 @@ public static partial class ResultEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::RoomStartGameNtf), global::RoomStartGameNtf.Parser, new[]{ "RoomId", "MapId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::SyncAniRet), global::SyncAniRet.Parser, new[]{ "AnimationName", "RoleId", "SkillConfigIndex" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PlayerVfxNtf), global::PlayerVfxNtf.Parser, new[]{ "RoleId", "SkillConfigIndex", "AttackIndex", "VfxIndex" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::EnemyPositionSyncRet), global::EnemyPositionSyncRet.Parser, new[]{ "RoleId", "PosX", "PosY", "PosZ", "RotationY" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::EnemySyncAniRet), global::EnemySyncAniRet.Parser, new[]{ "AnimationName", "RoleId" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::EnemyPositionSyncRet), global::EnemyPositionSyncRet.Parser, new[]{ "EnemyInstanceId", "PosX", "PosY", "PosZ", "RotationY" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::EnemySyncAniRet), global::EnemySyncAniRet.Parser, new[]{ "AnimationName", "EnemyInstanceId", "State" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressRet), global::TaskProgressRet.Parser, new[]{ "CmdCode" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressListRet), global::TaskProgressListRet.Parser, new[]{ "CmdCode", "TaskList" }, null, null, null, null)
         }));
@@ -2603,7 +2603,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
     maxHp_ = other.maxHp_;
     currHp_ = other.currHp_;
     enemyConfigId_ = other.enemyConfigId_;
-    roleId_ = other.roleId_;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -2730,18 +2729,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
     }
   }
 
-  /// <summary>Field number for the "role_id" field.</summary>
-  public const int RoleIdFieldNumber = 9;
-  private int roleId_;
-  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-  public int RoleId {
-    get { return roleId_; }
-    set {
-      roleId_ = value;
-    }
-  }
-
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public override bool Equals(object other) {
@@ -2765,7 +2752,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
     if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(MaxHp, other.MaxHp)) return false;
     if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(CurrHp, other.CurrHp)) return false;
     if (EnemyConfigId != other.EnemyConfigId) return false;
-    if (RoleId != other.RoleId) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -2781,7 +2767,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
     if (MaxHp != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(MaxHp);
     if (CurrHp != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(CurrHp);
     if (EnemyConfigId != 0) hash ^= EnemyConfigId.GetHashCode();
-    if (RoleId != 0) hash ^= RoleId.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -2832,10 +2817,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
       output.WriteRawTag(64);
       output.WriteInt32(EnemyConfigId);
     }
-    if (RoleId != 0) {
-      output.WriteRawTag(72);
-      output.WriteInt32(RoleId);
-    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -2878,10 +2859,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
       output.WriteRawTag(64);
       output.WriteInt32(EnemyConfigId);
     }
-    if (RoleId != 0) {
-      output.WriteRawTag(72);
-      output.WriteInt32(RoleId);
-    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -2915,9 +2892,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
     }
     if (EnemyConfigId != 0) {
       size += 1 + pb::CodedOutputStream.ComputeInt32Size(EnemyConfigId);
-    }
-    if (RoleId != 0) {
-      size += 1 + pb::CodedOutputStream.ComputeInt32Size(RoleId);
     }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
@@ -2954,9 +2928,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
     }
     if (other.EnemyConfigId != 0) {
       EnemyConfigId = other.EnemyConfigId;
-    }
-    if (other.RoleId != 0) {
-      RoleId = other.RoleId;
     }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
@@ -3009,10 +2980,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
           EnemyConfigId = input.ReadInt32();
           break;
         }
-        case 72: {
-          RoleId = input.ReadInt32();
-          break;
-        }
       }
     }
   #endif
@@ -3062,10 +3029,6 @@ public sealed partial class SpawnEnemyRet : pb::IMessage<SpawnEnemyRet>
         }
         case 64: {
           EnemyConfigId = input.ReadInt32();
-          break;
-        }
-        case 72: {
-          RoleId = input.ReadInt32();
           break;
         }
       }
@@ -9441,6 +9404,9 @@ public sealed partial class PlayerVfxNtf : pb::IMessage<PlayerVfxNtf>
 
 }
 
+/// <summary>
+/// 敌人位置同步（服务端 → 客户端）。敌人不再有「归属玩家」，因此用服务端实例ID定位。
+/// </summary>
 [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
 public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyncRet>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -9476,7 +9442,7 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public EnemyPositionSyncRet(EnemyPositionSyncRet other) : this() {
-    roleId_ = other.roleId_;
+    enemyInstanceId_ = other.enemyInstanceId_;
     posX_ = other.posX_;
     posY_ = other.posY_;
     posZ_ = other.posZ_;
@@ -9490,21 +9456,27 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
     return new EnemyPositionSyncRet(this);
   }
 
-  /// <summary>Field number for the "role_id" field.</summary>
-  public const int RoleIdFieldNumber = 1;
-  private int roleId_;
+  /// <summary>Field number for the "enemy_instance_id" field.</summary>
+  public const int EnemyInstanceIdFieldNumber = 1;
+  private int enemyInstanceId_;
+  /// <summary>
+  /// 服务端分配的敌人实例ID
+  /// </summary>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-  public int RoleId {
-    get { return roleId_; }
+  public int EnemyInstanceId {
+    get { return enemyInstanceId_; }
     set {
-      roleId_ = value;
+      enemyInstanceId_ = value;
     }
   }
 
   /// <summary>Field number for the "pos_x" field.</summary>
   public const int PosXFieldNumber = 2;
   private float posX_;
+  /// <summary>
+  /// 服务端权威位置X
+  /// </summary>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public float PosX {
@@ -9541,6 +9513,9 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
   /// <summary>Field number for the "rotation_y" field.</summary>
   public const int RotationYFieldNumber = 5;
   private float rotationY_;
+  /// <summary>
+  /// 服务端权威朝向（绕Y轴角度）
+  /// </summary>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public float RotationY {
@@ -9565,7 +9540,7 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
     if (ReferenceEquals(other, this)) {
       return true;
     }
-    if (RoleId != other.RoleId) return false;
+    if (EnemyInstanceId != other.EnemyInstanceId) return false;
     if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(PosX, other.PosX)) return false;
     if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(PosY, other.PosY)) return false;
     if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(PosZ, other.PosZ)) return false;
@@ -9577,7 +9552,7 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public override int GetHashCode() {
     int hash = 1;
-    if (RoleId != 0) hash ^= RoleId.GetHashCode();
+    if (EnemyInstanceId != 0) hash ^= EnemyInstanceId.GetHashCode();
     if (PosX != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(PosX);
     if (PosY != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(PosY);
     if (PosZ != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(PosZ);
@@ -9600,9 +9575,9 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
     output.WriteRawMessage(this);
   #else
-    if (RoleId != 0) {
+    if (EnemyInstanceId != 0) {
       output.WriteRawTag(8);
-      output.WriteInt32(RoleId);
+      output.WriteInt32(EnemyInstanceId);
     }
     if (PosX != 0F) {
       output.WriteRawTag(21);
@@ -9630,9 +9605,9 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-    if (RoleId != 0) {
+    if (EnemyInstanceId != 0) {
       output.WriteRawTag(8);
-      output.WriteInt32(RoleId);
+      output.WriteInt32(EnemyInstanceId);
     }
     if (PosX != 0F) {
       output.WriteRawTag(21);
@@ -9660,8 +9635,8 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public int CalculateSize() {
     int size = 0;
-    if (RoleId != 0) {
-      size += 1 + pb::CodedOutputStream.ComputeInt32Size(RoleId);
+    if (EnemyInstanceId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(EnemyInstanceId);
     }
     if (PosX != 0F) {
       size += 1 + 4;
@@ -9687,8 +9662,8 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
     if (other == null) {
       return;
     }
-    if (other.RoleId != 0) {
-      RoleId = other.RoleId;
+    if (other.EnemyInstanceId != 0) {
+      EnemyInstanceId = other.EnemyInstanceId;
     }
     if (other.PosX != 0F) {
       PosX = other.PosX;
@@ -9722,7 +9697,7 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
           _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
           break;
         case 8: {
-          RoleId = input.ReadInt32();
+          EnemyInstanceId = input.ReadInt32();
           break;
         }
         case 21: {
@@ -9761,7 +9736,7 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
           _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
           break;
         case 8: {
-          RoleId = input.ReadInt32();
+          EnemyInstanceId = input.ReadInt32();
           break;
         }
         case 21: {
@@ -9787,6 +9762,9 @@ public sealed partial class EnemyPositionSyncRet : pb::IMessage<EnemyPositionSyn
 
 }
 
+/// <summary>
+/// 敌人动作/状态同步（服务端 → 客户端）。服务端决定播哪个动作，客户端只负责演。
+/// </summary>
 [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
 public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
 #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
@@ -9823,7 +9801,8 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public EnemySyncAniRet(EnemySyncAniRet other) : this() {
     animationName_ = other.animationName_;
-    roleId_ = other.roleId_;
+    enemyInstanceId_ = other.enemyInstanceId_;
+    state_ = other.state_;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -9836,6 +9815,9 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
   /// <summary>Field number for the "animation_name" field.</summary>
   public const int AnimationNameFieldNumber = 1;
   private string animationName_ = "";
+  /// <summary>
+  /// 服务端指定的动作名（Idle / Attack05Run / Attack01..04 / Dead）
+  /// </summary>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public string AnimationName {
@@ -9845,15 +9827,30 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
     }
   }
 
-  /// <summary>Field number for the "role_id" field.</summary>
-  public const int RoleIdFieldNumber = 2;
-  private int roleId_;
+  /// <summary>Field number for the "enemy_instance_id" field.</summary>
+  public const int EnemyInstanceIdFieldNumber = 2;
+  private int enemyInstanceId_;
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-  public int RoleId {
-    get { return roleId_; }
+  public int EnemyInstanceId {
+    get { return enemyInstanceId_; }
     set {
-      roleId_ = value;
+      enemyInstanceId_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "state" field.</summary>
+  public const int StateFieldNumber = 3;
+  private int state_;
+  /// <summary>
+  /// 对应客户端 EnemyStateType：0=Idle 1=Attack 2=Hurt 3=Dead
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int State {
+    get { return state_; }
+    set {
+      state_ = value;
     }
   }
 
@@ -9873,7 +9870,8 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
       return true;
     }
     if (AnimationName != other.AnimationName) return false;
-    if (RoleId != other.RoleId) return false;
+    if (EnemyInstanceId != other.EnemyInstanceId) return false;
+    if (State != other.State) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -9882,7 +9880,8 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
   public override int GetHashCode() {
     int hash = 1;
     if (AnimationName.Length != 0) hash ^= AnimationName.GetHashCode();
-    if (RoleId != 0) hash ^= RoleId.GetHashCode();
+    if (EnemyInstanceId != 0) hash ^= EnemyInstanceId.GetHashCode();
+    if (State != 0) hash ^= State.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -9905,9 +9904,13 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
       output.WriteRawTag(10);
       output.WriteString(AnimationName);
     }
-    if (RoleId != 0) {
+    if (EnemyInstanceId != 0) {
       output.WriteRawTag(16);
-      output.WriteInt32(RoleId);
+      output.WriteInt32(EnemyInstanceId);
+    }
+    if (State != 0) {
+      output.WriteRawTag(24);
+      output.WriteInt32(State);
     }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
@@ -9923,9 +9926,13 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
       output.WriteRawTag(10);
       output.WriteString(AnimationName);
     }
-    if (RoleId != 0) {
+    if (EnemyInstanceId != 0) {
       output.WriteRawTag(16);
-      output.WriteInt32(RoleId);
+      output.WriteInt32(EnemyInstanceId);
+    }
+    if (State != 0) {
+      output.WriteRawTag(24);
+      output.WriteInt32(State);
     }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
@@ -9940,8 +9947,11 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
     if (AnimationName.Length != 0) {
       size += 1 + pb::CodedOutputStream.ComputeStringSize(AnimationName);
     }
-    if (RoleId != 0) {
-      size += 1 + pb::CodedOutputStream.ComputeInt32Size(RoleId);
+    if (EnemyInstanceId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(EnemyInstanceId);
+    }
+    if (State != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(State);
     }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
@@ -9958,8 +9968,11 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
     if (other.AnimationName.Length != 0) {
       AnimationName = other.AnimationName;
     }
-    if (other.RoleId != 0) {
-      RoleId = other.RoleId;
+    if (other.EnemyInstanceId != 0) {
+      EnemyInstanceId = other.EnemyInstanceId;
+    }
+    if (other.State != 0) {
+      State = other.State;
     }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
@@ -9985,7 +9998,11 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
           break;
         }
         case 16: {
-          RoleId = input.ReadInt32();
+          EnemyInstanceId = input.ReadInt32();
+          break;
+        }
+        case 24: {
+          State = input.ReadInt32();
           break;
         }
       }
@@ -10012,7 +10029,11 @@ public sealed partial class EnemySyncAniRet : pb::IMessage<EnemySyncAniRet>
           break;
         }
         case 16: {
-          RoleId = input.ReadInt32();
+          EnemyInstanceId = input.ReadInt32();
+          break;
+        }
+        case 24: {
+          State = input.ReadInt32();
           break;
         }
       }

@@ -31,28 +31,24 @@ namespace HotUpdate.Enemy
         // 脚步声
         private void PlayFootSound()
         {
-            if (!enemy.IsServer) return;
             _audioSource.PlayOneShot(AppContext.Sound.FootSound);
         }
 
         // 收脚的步声
         private void PlayFootBackSound()
         {
-            if (!enemy.IsServer) return;
             _audioSource.PlayOneShot(AppContext.Sound.FootBackSound);
         }
 
         // 收剑
         public void PlayWeaponBackSound()
         {
-            if (!enemy.IsServer) return;
             _audioSource.PlayOneShot(AppContext.Sound.WeaponBackSound);
         }
 
         // 结束收剑
         public void PlayWeaponEndSound()
         {
-            if (!enemy.IsServer) return;
             _audioSource.PlayOneShot(AppContext.Sound.WeaponEndSound);
         }
 
@@ -94,13 +90,12 @@ namespace HotUpdate.Enemy
 
         public void StartPin(int isStartPin = 0)
         {
-            if (!enemy.IsServer || enemy.isPinFinished) return;
+            if (enemy.isPinFinished) return;
             enemy.isStartPin = isStartPin == 1;
         }
 
         public void StartSkillHit(int weaponIndex = 0)
         {
-            if (!enemy.IsServer) return;
             _skillOwner.StartSkillHit(weaponIndex);
             //执行武器层伤害开始的的方法
             if (weaponIndex < weapons.Length && weapons[weaponIndex] != null)
@@ -111,7 +106,6 @@ namespace HotUpdate.Enemy
 
         public void StopSkillHit(int weaponIndex = 0)
         {
-            if (!enemy.IsServer) return;
             _skillOwner.StopSkillHit(weaponIndex);
             if (weaponIndex < weapons.Length && weapons[weaponIndex] != null)
             {
@@ -123,8 +117,6 @@ namespace HotUpdate.Enemy
 
         public void CanBeHurt()
         {
-            if (!enemy.IsServer) return;
-            enemy.isStartLock = false;
             enemy.isCanPlayHurtAni = true;
         }
 

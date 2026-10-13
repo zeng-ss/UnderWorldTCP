@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Diagnostics;
+using System.Threading;
 
 namespace LoginServer
 {
@@ -41,8 +42,6 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_PlayerReadyCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SyneAniCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PlayerVfxCode, loginCtrl);
-            server.RegistCommand(NetDefine.CMD_EnemyPositionSyncCode, loginCtrl);
-            server.RegistCommand(NetDefine.CMD_SyneEnemyAniCode, loginCtrl);
 
             client.RegistCommand(NetDefine.CMD_RegistCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_LoginCode, loginCtrl);
@@ -74,9 +73,27 @@ namespace LoginServer
             //
             // }, null, 5000, Timeout.Infinite);
 
+            // 之后的 while(true) 里跑服务端逻辑帧（敌人 AI + 位置/动作广播）
+            RunLogicTick();
+        }
+
+        /// <summary>
+        /// 固定频率推进服务端逻辑。敌人没有 Unity 侧的 Update，所有「AI」都在这里用纯数学推进。
+        /// </summary>
+        private static void RunLogicTick()
+        {
+            const int tickIntervalMs = 1000 / NetDefine.ServerTickRate;
+            Stopwatch watch = Stopwatch.StartNew();
+
             while (true)
             {
-                Thread.Sleep(1);
+                long start = watch.ElapsedMilliseconds;
+
+                EnemyMgr.Instance.Tick(1f / NetDefine.ServerTickRate);
+
+                int elapsed = (int)(watch.ElapsedMilliseconds - start);
+                int sleep = tickIntervalMs - elapsed;
+                Thread.Sleep(sleep > 0 ? sleep : 1);
             }
         }
     }

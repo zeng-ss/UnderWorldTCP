@@ -48,10 +48,9 @@ namespace HotUpdate.Player
                 if (attackState == null) return;
                 if (!attackState.IsInHitStop) attackState.EnterHitStop(); // 使用默认配置（0.08s顿帧，完全暂停）
             }
-            // 敌人只处理服务器的武器碰撞
+            // 敌人武器：动画事件开合碰撞盒，命中玩家（动作由服务端下发，命中表现仍走本地）
             else
             {
-                if (!enemy.IsServer) return;
                 if (!targetTagList.Contains(other.tag) || enemy.currentState != EnemyStateType.Attack) return;
                 IHurt target = other.GetComponent<IHurt>();
                 if (_enemyList.Contains(target)) return;

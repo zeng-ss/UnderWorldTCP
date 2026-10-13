@@ -10,7 +10,6 @@ namespace HotUpdate.Network
     public class RemotePlayerManager
     {
         private readonly Dictionary<int, RemotePlayer> _remotePlayers = new();
-        private readonly Dictionary<int, RemoteEnemy> _remoteEnemys = new();
 
         public void Init()
         {
@@ -121,41 +120,33 @@ namespace HotUpdate.Network
             Vector3 spawnPos = new Vector3(ret.PosX, ret.PosY, ret.PosZ);
             AppContext.Res.LoadAndInstantiateAsync("enemy", null, enemy =>
             {
-                enemy.transform.position = spawnPos;
                 EnemyCtrl ctrl = enemy.GetComponent<EnemyCtrl>();
-                if (ctrl)
+                if (ctrl == null)
                 {
-                    ctrl.IsServer = false;
-                    ctrl.serverInstanceId = ret.EnemyInstanceId;
-                    ctrl.roleId = ret.RoleId;
-                    ctrl.maxHealthValue = ret.MaxHp;
-                    ctrl.networkHealth = ret.CurrHp;
-                    ctrl.PlayerRef = Object.FindAnyObjectByType<PlayerCtrl>();
-                    ctrl.fillImage.fillAmount = ret.CurrHp / ret.MaxHp;
-                    ctrl.healthText.text = $"{ret.CurrHp}/{ret.MaxHp}";
-                    EnemyCtrl.Instances[ret.EnemyInstanceId] = ctrl;
+                    Debug.LogError("[RemotePlayerManager] enemy 预制体上缺少 EnemyCtrl");
+                    return;
                 }
 
-                var re = enemy.AddComponent<RemoteEnemy>();
-                re.Init(ret.RoleId, ret.EnemyInstanceId, spawnPos);
-                _remoteEnemys.Add(ret.RoleId, re);
+                // 敌人由服务端驱动，客户端只落地出生数据，之后位置/动作都等服务端下发
+                ctrl.InitFromServer(ret.EnemyInstanceId, ret.MaxHp, ret.CurrHp, spawnPos);
             });
         }
 
+        // 敌人位置同步（服务端权威）：按实例ID找到敌人，更新插值目标
         private void OnEnemyPositionSync(EnemyPositionSyncRet ret)
         {
-            if (_remoteEnemys.TryGetValue(ret.RoleId, out RemoteEnemy re))
+            if (EnemyCtrl.Instances.TryGetValue(ret.EnemyInstanceId, out EnemyCtrl enemy))
             {
-                re.targetPos = new Vector3(ret.PosX, ret.PosY, ret.PosZ);
-                re.targetRotation = Quaternion.Euler(0, ret.RotationY, 0);
+                enemy.ApplyServerPosition(ret.PosX, ret.PosY, ret.PosZ, ret.RotationY);
             }
         }
 
+        // 敌人动作/状态同步（服务端权威）：客户端只负责播
         private void OnSyncEnemyAni(EnemySyncAniRet ret)
         {
-            if (_remotePlayers.TryGetValue(ret.RoleId, out RemotePlayer rp))
+            if (EnemyCtrl.Instances.TryGetValue(ret.EnemyInstanceId, out EnemyCtrl enemy))
             {
-                rp.Ctrl.playerModel.Animator.CrossFadeInFixedTime(ret.AnimationName, 0.1f, 0, 0f);
+                enemy.ApplyServerAnim(ret.AnimationName, ret.State);
             }
         }
 

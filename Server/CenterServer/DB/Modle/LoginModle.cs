@@ -11,7 +11,7 @@ public class LoginModle
 {
     private readonly SqlSugarClient _db;
 
-    // 装备槽上限（与客户端 DepotService.MaxEquipSlots 保持一致）
+    // 装备槽上限
     private const int MaxEquipSlots = 5;
 
     // 每次强化投入的经验值（服务端权威，客户端不再自己算）
@@ -21,7 +21,7 @@ public class LoginModle
     private static readonly Random Rng = new Random();
     private static readonly object RngLock = new object();
 
-    /// <summary>[minInclusive, maxExclusive) 之间的随机整数，语义与 UnityEngine.Random.Range(int,int) 一致</summary>
+    // [minInclusive, maxExclusive) 之间的随机整数
     private static int NextRandom(int minInclusive, int maxExclusive)
     {
         if (maxExclusive <= minInclusive) return minInclusive;

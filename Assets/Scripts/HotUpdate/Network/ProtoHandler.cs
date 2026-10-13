@@ -21,10 +21,6 @@ namespace HotUpdate.Network
         private string _syncNickname;
         private int _syncRoleId;
 
-        // 敌人
-        private Transform _syncETarget;
-        private Transform _syncERotationTarget;
-
         #endregion
 
         #region 事件
@@ -153,23 +149,10 @@ namespace HotUpdate.Network
             _syncTimer = 0;
         }
 
-        public void StartEPositionSync(Transform positionTarget, int roleId, Transform rotationTarget = null)
-        {
-            _syncETarget = positionTarget;
-            _syncERotationTarget = rotationTarget;
-            _syncRoleId = roleId;
-        }
-
         public void StopPositionSync()
         {
             _syncTarget = null;
             _syncRotationTarget = null;
-        }
-
-        public void StopEPositionSync()
-        {
-            _syncETarget = null;
-            _syncERotationTarget = null;
         }
 
         #endregion
@@ -185,11 +168,7 @@ namespace HotUpdate.Network
         }
 
         // 敌人动画同步：单向广播，fire-and-forget。
-        public void RequestSyncEnemyAni(int roleId, string aniName)
-        {
-            EnemySyncAniRet req = new EnemySyncAniRet { RoleId = roleId, AnimationName = aniName };
-            NetClientMgr.Instance.Send(NetDefine.CMD_SyneEnemyAniCode, req.ToByteString());
-        }
+        // 敌人动作同步不再由客户端上报：服务端 tick 决定动作并广播（见 OnEnemySyncAniReceived）。
 
         public void RequestSyncVfx(PlayerVfxNtf ntf)
         {

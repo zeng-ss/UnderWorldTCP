@@ -78,7 +78,6 @@ message SpawnEnemyRet{
   float max_hp = 6;            // 最大血量
   float curr_hp = 7;           // 当前血量
   int32 enemy_config_id = 8;   // 敌人配置表ID
-  int32 role_id = 9;
 }
 
 // 玩家攻击返回
@@ -235,16 +234,19 @@ message PlayerVfxNtf{
   int32 vfx_index = 4;
 }
 
+// 敌人位置同步（服务端 → 客户端）。敌人不再有「归属玩家」，因此用服务端实例ID定位。
 message EnemyPositionSyncRet{
-  int32 role_id = 1;
-  float pos_x = 2;
+  int32 enemy_instance_id = 1;  // 服务端分配的敌人实例ID
+  float pos_x = 2;              // 服务端权威位置X
   float pos_y = 3;
   float pos_z = 4;
-  float rotation_y = 5;
+  float rotation_y = 5;         // 服务端权威朝向（绕Y轴角度）
 }
+// 敌人动作/状态同步（服务端 → 客户端）。服务端决定播哪个动作，客户端只负责演。
 message EnemySyncAniRet{
-  string animation_name = 1;
-  int32 role_id = 2;
+  string animation_name = 1;    // 服务端指定的动作名（Idle / Attack05Run / Attack01..04 / Dead）
+  int32 enemy_instance_id = 2;
+  int32 state = 3;              // 对应客户端 EnemyStateType：0=Idle 1=Attack 2=Hurt 3=Dead
 }
 
 // ========== 任务进度持久化 ==========

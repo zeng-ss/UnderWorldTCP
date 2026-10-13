@@ -172,17 +172,9 @@ message SyncAniReq{
   int32 skill_config_index = 3;
 }
 
-message EnemyPositionSyncReq{
-  int32 role_id = 1;
-  float pos_x = 2;
-  float pos_y = 3;
-  float pos_z = 4;
-  float rotation_y = 5;
-}
-message SyncEnemyAniReq{
-  int32 role_id = 1;
-  string animation_name = 2;
-}
+// 敌人同步说明：敌人的位置与动作改由服务端权威下发（见 ResultEntity.proto 的
+// EnemyPositionSyncRet / EnemySyncAniRet），客户端不再上报敌人数据，故此处已无对应请求。
+// 服务端生成敌人仍走 SpawnEnemyReq。
 
 // ========== 任务进度持久化 ==========
 

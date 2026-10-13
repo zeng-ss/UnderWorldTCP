@@ -404,49 +404,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_PlayerVfxCode:
                 OnPlayerVfxHandle(serverBase, basePackage);
                 break;
-            case NetDefine.CMD_EnemyPositionSyncCode:
-                OnEnemyPositionSyncHandle(serverBase, basePackage);
-                break;
-            case NetDefine.CMD_SyneEnemyAniCode:
-                OnSyneEnemyAniHandle(serverBase, basePackage);
-                break;
             default:
                 LogMsg.Info("[LoginCtrl]有没有注册的请求码", ConsoleColor.Red);
                 break;
-        }
-    }
-
-    private void OnEnemyPositionSyncHandle(ServerBase serverBase, BasePackage basePackage)
-    {
-        EnemyPositionSyncReq req = EnemyPositionSyncReq.Parser.ParseFrom(basePackage.Data);
-        EnemyPositionSyncRet ret = new EnemyPositionSyncRet
-        {
-            RoleId = req.RoleId,
-            PosX = req.PosX,
-            PosY = req.PosY,
-            PosZ = req.PosZ,
-            RotationY = req.RotationY
-        };
-        BasePackage pkg = new BasePackage
-            { ProtoCode = NetDefine.CMD_EnemyPositionSyncCode, Data = ret.ToByteString() };
-        foreach (var player in PlayerSceneMgr.Instance.GetOtherPlayersInScene(req.RoleId))
-        {
-            SessionMgr.Instance.GetSession(player.SessionId).SendData(pkg);
-        }
-    }
-
-    private void OnSyneEnemyAniHandle(ServerBase serverBase, BasePackage basePackage)
-    {
-        EnemySyncAniRet req = EnemySyncAniRet.Parser.ParseFrom(basePackage.Data);
-        EnemySyncAniRet ret = new EnemySyncAniRet
-        {
-            RoleId = req.RoleId,
-            AnimationName = req.AnimationName,
-        };
-        BasePackage pkg = new BasePackage { ProtoCode = NetDefine.CMD_SyneEnemyAniCode, Data = ret.ToByteString() };
-        foreach (var player in PlayerSceneMgr.Instance.GetOtherPlayersInScene(req.RoleId))
-        {
-            SessionMgr.Instance.GetSession(player.SessionId).SendData(pkg);
         }
     }
 
@@ -465,16 +425,14 @@ public class LoginCtrl : IContainer
             $"[Login]VFX同步: roleId={ntf.RoleId} config={ntf.SkillConfigIndex} atk={ntf.AttackIndex} vfx={ntf.VfxIndex}");
     }
 
-    // 敌人生成-在服务端创建并广播给所有客户端
+    // 敌人生成：服务端分配实例ID并把出生信息广播给场景内所有人。
+    // 生成后敌人的位置与动作全部由 EnemyMgr 的 tick 推进，客户端不再插手。
     private void OnSpawnEnemyHandle(ServerBase serverBase, BasePackage basePackage)
     {
         SpawnEnemyReq req = SpawnEnemyReq.Parser.ParseFrom(basePackage.Data);
 
         float maxHp = req.MaxHp > 0 ? req.MaxHp : 10000;
-        float posX = req.PosX; // 允许0值，用客户端实际位置
-        float posY = req.PosY;
-        float posZ = req.PosZ;
-        EnemyMgr.Instance.SpawnEnemy(req.RoleId, req.EnemyConfigId, maxHp, posX, posY, posZ);
+        EnemyMgr.Instance.SpawnEnemy(req.EnemyConfigId, maxHp, req.PosX, req.PosY, req.PosZ);
         LogMsg.Info("[Login]收到敌人生成请求:" + req);
     }
 

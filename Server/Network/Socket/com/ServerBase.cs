@@ -22,6 +22,9 @@ public class ServerBase
     //连接状态
     protected ConnState _connState;
 
+    //发送锁：位置/动作同步会从 tick 线程发出，与网络线程的发送必须串行
+    private readonly object _sendLock = new object();
+
     //作为服务端时需要拿到客户端的引用  
     public NetClient _Client;
 
@@ -116,10 +119,26 @@ public class ServerBase
 
             if (data != null) basePackage.Data = data;
 
-            if (basePackage.ProtoCode == NetDefine.CMD_PositionSyncCode ||
-                basePackage.ProtoCode == NetDefine.CMD_EnemyPositionSyncCode) return;
-            LogMsg.Info($"发送了数据:: ProtoCode: {basePackage.ProtoCode} , SessionId: {basePackage.UnitySessionId}");
-            _socket.Send(NetUtils.Instance.MakeData(basePackage.ToByteArray()));
+            // 高频同步包不打日志，否则 10Hz × 敌人数 × 玩家数会直接刷爆控制台
+            switch (basePackage.ProtoCode)
+            {
+                case NetDefine.CMD_PositionSyncCode:
+                case NetDefine.CMD_EnemyPositionSyncCode:
+                case NetDefine.CMD_SyneEnemyAniCode:
+                case NetDefine.CMD_SyneAniCode:
+                case NetDefine.CMD_PlayerVfxCode:
+                    break;
+                default:
+                    LogMsg.Info($"发送了数据:: ProtoCode: {basePackage.ProtoCode} , SessionId: {basePackage.UnitySessionId}");
+                    break;
+            }
+
+            byte[] bytes = NetUtils.Instance.MakeData(basePackage.ToByteArray());
+            lock (_sendLock)
+            {
+                if (_socket == null) return;
+                _socket.Send(bytes);
+            }
         }
         catch (Exception ex)
         {

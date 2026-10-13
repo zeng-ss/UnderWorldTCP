@@ -18,14 +18,14 @@ namespace HotUpdate.UI.UIItem
         public void Init(PlayerConfig playerConfig)
         {
             playerName.text = playerConfig.Name;
-            isReadyText.text = playerConfig.IsReady ? "已准备" : "未准备";
+            isReadyText.text = playerConfig.IsReady ? "Ready" : "No Ready";
             SetHeadImage(playerConfig.HeadImageName);
         }
 
         public void UpdateRoomItem(PlayerConfig playerConfig)
         {
             playerName.text = playerConfig.Name;
-            isReadyText.text = playerConfig.IsReady ? "已准备" : "未准备";
+            isReadyText.text = playerConfig.IsReady ? "Ready" : "No Ready";
             SetHeadImage(playerConfig.HeadImageName);
             DOVirtual.DelayedCall(0.2f, () => { SetHeadImage(playerConfig.HeadImageName); });
         }

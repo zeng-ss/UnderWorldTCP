@@ -41,6 +41,11 @@
     public const ushort CMD_DriverDiskEquipCode = 11290; // 驱动盘装备 / 卸下
     public const ushort CMD_BagInfoCode = 11300; // 背包信息拉取
 
+    // ========== 服务端逻辑帧 ==========
+
+    /// <summary>服务端逻辑帧率（Hz）。敌人 AI、位置与动作广播都按这个频率推进。</summary>
+    public const int ServerTickRate = 30;
+
     //...定义新的一些指令
 }
 
