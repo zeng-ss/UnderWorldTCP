@@ -12,7 +12,7 @@ namespace CenterServer
             NetServer server = new NetServer();
             server.StartServer(NetDefine.IPHost, NetDefine.CenterServerPort);
             SqlSugarClient db = DBMgr.Instance.InitDB(); //初始化数据库 
-            LubanMgr.Instance.Init(); //初始化 luban（技能表 + 任务配置表读进内存，供服务端校验用）
+            LubanMgr.Instance.Init(); //初始化 luban
 
             //创建负责和接收登录注册的模块对象 相关的数据  
             LoginModle loginModle = new LoginModle(db);
@@ -37,18 +37,29 @@ namespace CenterServer
             server.RegistCommand(NetDefine.CMD_DriverDiskEquipCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_BagInfoCode, loginCtrl);
 
-            //RoleTable role = db.Queryable<RoleTable>().Where(v => v.Id == 1).First();
-            /*var allRoles = db.Queryable<RoleTable>().ToList().Where(role => role.SceneName != "StartScene");
-            foreach (var role in allRoles)
+            /*
+            var allRoles = db.Queryable<RoleBagInfo>().ToList();
+            foreach (var roleBagInfo in allRoles)
             {
-                // 更新角色所在场景
-                role.SceneName = "StartScene";
-                role.UpdateDate = DateTime.Now;
-                if (db.Updateable(role).ExecuteCommand() > 0)
+                if (roleBagInfo.ItemId < 5)
+                {
+                    var info = LubanMgr.Instance.GetDriverDiskById(roleBagInfo.ItemId);
+                    roleBagInfo.BaseValue = info.BaseValue;
+                    roleBagInfo.AttackPercent = info.AttackPercent;
+                    roleBagInfo.DefensePercent = info.DefensePercent;
+                    roleBagInfo.HealthPercent = info.HealthPercent;
+                    roleBagInfo.BaoJiPercent = info.BaoJiPercent;
+                    roleBagInfo.Level = 1;
+                    roleBagInfo.CurMaxFillValue = 1000;
+                    roleBagInfo.CurFillValue = 0;
+                }
+
+                if (db.Updateable(roleBagInfo).ExecuteCommand() > 0)
                 {
                     LogMsg.Info("场景初始化成功！");
                 }
-            }*/
+            }
+            */
 
             while (true)
             {

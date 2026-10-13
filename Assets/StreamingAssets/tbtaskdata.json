@@ -6,10 +6,30 @@
     "targetCount": 1,
     "isUnlock": true,
     "depotIds": [
-      1
+      1,
+      2,
+      3,
+      4
     ],
     "materialsId": [
-      5
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "depotNums": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "materialNums": [
+      800,
+      20,
+      20,
+      20,
+      20
     ]
   },
   {
@@ -18,9 +38,31 @@
     "taskType": 1,
     "targetCount": 1,
     "isUnlock": false,
-    "depotIds": [],
+    "depotIds": [
+      1,
+      2,
+      3,
+      4
+    ],
     "materialsId": [
-      5
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "depotNums": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "materialNums": [
+      800,
+      20,
+      20,
+      20,
+      20
     ]
   }
 ]

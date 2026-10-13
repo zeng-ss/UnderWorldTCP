@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using SqlSugar;
 using cfg;
 
@@ -8,7 +9,7 @@ using cfg;
 /// </summary>
 public class LoginModle
 {
-    private SqlSugarClient _db;
+    private readonly SqlSugarClient _db;
 
     // 装备槽上限（与客户端 DepotService.MaxEquipSlots 保持一致）
     private const int MaxEquipSlots = 5;
@@ -253,8 +254,6 @@ public class LoginModle
 
     /// <summary>
     /// 创建角色时初始化任务进度：把所有 Luban 任务配置写入 role_task_progress 表。
-    /// 状态：IsUnlock 默认解锁 → InProgress(1)，否则 → Locked(0)。
-    /// 幂等：若该角色已存在任一任务进度记录则跳过，避免重复插入。
     /// </summary>
     private void InitRoleTaskProgress(int roleId)
     {
@@ -292,7 +291,6 @@ public class LoginModle
 
     /// <summary>
     /// 服务端启动时的补偿逻辑：扫描所有已存在角色，为「在 role_task_progress 里没有任何任务记录」的角色补初始化。
-    /// 保证老角色也能拿到任务配置对应的初始进度（幂等，不会重复插入）。
     /// </summary>
     public void CompensateRoleTaskProgress()
     {
@@ -392,8 +390,6 @@ public class LoginModle
 
     /// <summary>
     /// 保存角色数据。
-    /// 注意：背包（role_bag_item）已改为服务端权威 —— 由发奖 / 升级 / 装备接口增量维护，
-    /// 这里不能再按客户端上传的内容重建或清空，否则会把玩家背包抹掉。
     /// </summary>
     public SaveRoleRet SaveRole(SaveRoleReq req)
     {
@@ -452,7 +448,8 @@ public class LoginModle
     
     /// <summary>
     /// 处理并返回获得奖励相关的数据。
-    /// 任务奖励（reward_type=1）：奖励内容以服务端 Luban taskData 为权威，按 task_id 取 DepotIds / MaterialsId 发放；
+    /// 任务奖励（reward_type=1）：奖励内容与数量以服务端 Luban taskData 为权威，
+    /// 按 task_id 取 depotIds/depotNums、materialsId/materialNums 发放；
     /// 发放明细写入 role_bag_item（存在则累加），并把明细与展示文案回给客户端。
     /// </summary>
     public GetRewardRet GetReward(GetRewardReq req)
@@ -480,20 +477,21 @@ public class LoginModle
                 // 只允许「已接取(1) / 条件达成(2)」的任务领奖；Locked 没资格、Claimed 已领过，直接拒绝以防重复发奖
                 if (progress == null || progress.State < 1 || progress.State > 2)
                 {
-                    int state = progress == null ? -1 : progress.State;
+                    int state = progress?.State ?? -1;
                     LogMsg.Info($"[Center]任务 {req.TaskId} 当前不可领奖（state={state}）");
                     ret.CmdCode = CmdCode.ReqParamError;
                     return ret;
                 }
 
-                foreach (int depotId in taskData.DepotIds)
+                // 奖励内容与数量完全由 Luban taskData 配置驱动：
+                for (int i = 0; i < taskData.DepotIds.Count; i++)
                 {
-                    AddToRewardMap(ret.RewardMap, depotId, 1);
+                    AddToRewardMap(ret.RewardMap, taskData.DepotIds[i], GetRewardNum(taskData.DepotNums, i));
                 }
 
-                foreach (int materialId in taskData.MaterialsId)
+                for (int i = 0; i < taskData.MaterialsId.Count; i++)
                 {
-                    AddToRewardMap(ret.RewardMap, materialId, GetMaterialRewardCount(materialId));
+                    AddToRewardMap(ret.RewardMap, taskData.MaterialsId[i], GetRewardNum(taskData.MaterialNums, i));
                 }
 
                 // 发奖即置为已领（3=Claimed），与客户端状态机保持一致
@@ -518,16 +516,16 @@ public class LoginModle
     }
 
     /// <summary>
-    /// 任务奖励里材料的发放数量。金币按大额给，驱动材料按小额给。
-    /// TODO: 待奖励数量也进 Luban 配置后，改为从配置读取。
+    /// 取奖励数量
     /// </summary>
-    private static int GetMaterialRewardCount(int materialId)
+    private int GetRewardNum(IReadOnlyList<int> nums, int index)
     {
-        return materialId == ItemCatalog.Gold ? 800 : 20;
+        if (nums == null || index < 0 || index >= nums.Count) return 1;
+        return nums[index] > 0 ? nums[index] : 1;
     }
 
     /// <summary>累加奖励明细（同一 id 在配置里可能出现多次）</summary>
-    private static void AddToRewardMap(IDictionary<int, int> rewardMap, int itemId, int count)
+    private void AddToRewardMap(IDictionary<int, int> rewardMap, int itemId, int count)
     {
         if (itemId <= 0 || count <= 0) return;
         rewardMap.TryGetValue(itemId, out int current);
@@ -699,8 +697,7 @@ public class LoginModle
     #region 任务进度持久化
 
     /// <summary>
-    /// 保存任务进度（批量）：客户端任务状态机迁移 / 进度变化时上报。
-    /// 采用「存在则更新、不存在则插入」的 upsert，避免重复记录。
+    /// 保存任务进度
     /// </summary>
     public TaskProgressRet SaveTaskProgress(TaskProgressNtf ntf)
     {
@@ -740,9 +737,7 @@ public class LoginModle
     }
 
     /// <summary>
-    /// 拉取角色的全量任务（登录 / 进入游戏时）。
-    /// 任务定义以服务端 Luban taskData 为权威，进度取 role_task_progress —— 客户端不再维护任何本地任务配置。
-    /// 该角色尚无进度记录（老角色 / 未初始化）时，按 Luban 的 IsUnlock 给默认状态。
+    /// 拉取角色的全量任务
     /// </summary>
     public TaskProgressListRet LoadTaskProgress(TaskProgressReq req)
     {
@@ -760,7 +755,7 @@ public class LoginModle
             return ret;
         }
 
-        // 该角色已有的进度记录（可能缺项，缺的按 Luban 默认状态补）
+        // 该角色已有的进度记录
         var progressList = _db.Queryable<RoleTaskProgress>().Where(v => v.RoleId == req.RoleId).ToList();
         Dictionary<int, RoleTaskProgress> progressMap = new Dictionary<int, RoleTaskProgress>();
         foreach (RoleTaskProgress p in progressList)
@@ -768,9 +763,8 @@ public class LoginModle
             progressMap[p.TaskId] = p;
         }
 
-        foreach (var kv in taskDatas)
+        foreach (var t in taskDatas.Select(kv => kv.Value))
         {
-            var t = kv.Value;
             progressMap.TryGetValue(t.TaskID, out RoleTaskProgress progress);
 
             TaskInfo info = new TaskInfo
@@ -780,8 +774,8 @@ public class LoginModle
                 TaskType = (int)t.TaskType,
                 TargetCount = t.TargetCount,
                 // 1=InProgress 0=Locked（对应 TaskState 枚举）
-                State = progress != null ? progress.State : (t.IsUnlock ? 1 : 0),
-                CurrentCount = progress != null ? progress.CurrentCount : 0
+                State = progress?.State ?? (t.IsUnlock ? 1 : 0),
+                CurrentCount = progress?.CurrentCount ?? 0
             };
             info.DepotIds.Add(t.DepotIds);
             info.MaterialsId.Add(t.MaterialsId);
@@ -796,9 +790,7 @@ public class LoginModle
     #region 背包（驱动盘升级 / 装备 / 全量拉取）
 
     /// <summary>
-    /// 驱动盘升级（服务端权威）。
-    /// 流程：校验拥有 → 校验升级材料 → 扣除材料 → 加经验并随机升级词条 → 写 role_bag_item → 回传新状态。
-    /// 客户端只上报「要升级哪个驱动盘」，材料够不够、升级结果全由服务端判定，杜绝改内存刷材料 / 刷等级。
+    /// 驱动盘升级
     /// </summary>
     public DriverDiskUpgradeRet UpgradeDriverDisk(DriverDiskUpgradeReq req)
     {
@@ -876,8 +868,7 @@ public class LoginModle
     }
 
     /// <summary>
-    /// 装备 / 卸下驱动盘（服务端权威），写 role_bag_item.IsEquipped。
-    /// 装备时按服务端已装备数量校验装备槽上限，防止客户端绕过限制。
+    /// 装备 / 卸下驱动盘
     /// </summary>
     public DriverDiskEquipRet SetDriverDiskEquipped(DriverDiskEquipReq req)
     {
@@ -920,14 +911,12 @@ public class LoginModle
         _db.Updateable(disk).ExecuteCommand();
 
         ret.CmdCode = CmdCode.Succeed;
-        LogMsg.Info("[Center]驱动盘" + (req.Equip ? "装备" : "卸下")
-                    + "：roleId=" + req.RoleId + " depotId=" + req.DepotId);
+        LogMsg.Info("[Center]驱动盘" + (req.Equip ? "装备" : "卸下") + "：roleId=" + req.RoleId + " depotId=" + req.DepotId);
         return ret;
     }
 
     /// <summary>
-    /// 拉取角色全量背包（进入游戏 / 领奖后刷新）。
-    /// 物品模板仍在 Luban 配置里，这里只返回「拥有 + 穿戴 + 升级进度」这类角色私有状态。
+    /// 拉取角色全量背包
     /// </summary>
     public BagInfoRet GetBagInfo(BagInfoReq req)
     {

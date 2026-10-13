@@ -4,7 +4,6 @@ using SqlSugar;
 /// <summary>
 /// 角色背包物品表（含装备状态）
 /// IsEquipped: 0=背包中 1=已装备
-/// 物品模板数据由 Luban 管理，这里只存"拥有"和"穿戴"状态
 /// </summary>
 [SugarTable("role_bag_item", TableDescription = "角色背包物品表")]
 public class RoleBagInfo

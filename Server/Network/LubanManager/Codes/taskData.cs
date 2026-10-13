@@ -23,6 +23,8 @@ public sealed partial class taskData : Luban.BeanBase
         IsUnlock = _buf.ReadBool();
         {int n0 = System.Math.Min(_buf.ReadSize(), _buf.Size);DepotIds = new System.Collections.Generic.List<int>(n0);for(var i0 = 0 ; i0 < n0 ; i0++) { int _e0;  _e0 = _buf.ReadInt(); DepotIds.Add(_e0);}}
         {int n0 = System.Math.Min(_buf.ReadSize(), _buf.Size);MaterialsId = new System.Collections.Generic.List<int>(n0);for(var i0 = 0 ; i0 < n0 ; i0++) { int _e0;  _e0 = _buf.ReadInt(); MaterialsId.Add(_e0);}}
+        {int n0 = System.Math.Min(_buf.ReadSize(), _buf.Size);DepotNums = new System.Collections.Generic.List<int>(n0);for(var i0 = 0 ; i0 < n0 ; i0++) { int _e0;  _e0 = _buf.ReadInt(); DepotNums.Add(_e0);}}
+        {int n0 = System.Math.Min(_buf.ReadSize(), _buf.Size);MaterialNums = new System.Collections.Generic.List<int>(n0);for(var i0 = 0 ; i0 < n0 ; i0++) { int _e0;  _e0 = _buf.ReadInt(); MaterialNums.Add(_e0);}}
     }
 
     public static taskData DeserializetaskData(ByteBuf _buf)
@@ -51,13 +53,21 @@ public sealed partial class taskData : Luban.BeanBase
     /// </summary>
     public readonly bool IsUnlock;
     /// <summary>
-    /// 驱动盘奖励id列表
+    /// 驱动盘奖励id列表（见 ItemCatalog，1-4）
     /// </summary>
     public readonly System.Collections.Generic.List<int> DepotIds;
     /// <summary>
-    /// 材料奖励id列表
+    /// 材料奖励id列表（见 ItemCatalog，5-9）
     /// </summary>
     public readonly System.Collections.Generic.List<int> MaterialsId;
+    /// <summary>
+    /// 驱动盘奖励数量（与 depotIds 一一对应，缺省按 1）
+    /// </summary>
+    public readonly System.Collections.Generic.List<int> DepotNums;
+    /// <summary>
+    /// 材料奖励数量（与 materialsId 一一对应，缺省按 1）
+    /// </summary>
+    public readonly System.Collections.Generic.List<int> MaterialNums;
    
     public const int __ID__ = -410628401;
     public override int GetTypeId() => __ID__;
@@ -76,6 +86,8 @@ public sealed partial class taskData : Luban.BeanBase
         + "isUnlock:" + IsUnlock + ","
         + "depotIds:" + Luban.StringUtil.CollectionToString(DepotIds) + ","
         + "materialsId:" + Luban.StringUtil.CollectionToString(MaterialsId) + ","
+        + "depotNums:" + Luban.StringUtil.CollectionToString(DepotNums) + ","
+        + "materialNums:" + Luban.StringUtil.CollectionToString(MaterialNums) + ","
         + "}";
     }
 }

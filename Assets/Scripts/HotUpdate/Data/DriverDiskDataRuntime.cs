@@ -23,7 +23,7 @@ namespace HotUpdate.Data
         // 客户端里「已升过一级」的等级门槛：初始 1 级，升到 2 级即算升过一次
         public const int UpgradedLevel = 2;
 
-        // 由配置行构造（只取静态模板字段）
+        // 由静态模板配置行构造
         private DriverDiskDataRuntime(DriverDiskRow row)
         {
             if (row == null)
@@ -55,14 +55,9 @@ namespace HotUpdate.Data
         }
 
         // 由「配置行 + 服务端数据」构造：静态取模板，动态以服务端为准
-        public DriverDiskDataRuntime(DriverDiskRow row, DriverDiskInfo info) : this(row)
-        {
-            ApplyFrom(info);
-        }
+        public DriverDiskDataRuntime(DriverDiskRow row, DriverDiskInfo info) : this(row) => ApplyFrom(info);
 
-        /// <summary>
-        /// 用服务端数据覆盖动态字段
-        /// </summary>
+        // 用服务端数据覆盖动态字段
         public void ApplyFrom(DriverDiskInfo info)
         {
             if (info == null) return;
@@ -70,7 +65,6 @@ namespace HotUpdate.Data
             Level = info.Level;
             CurLevelMaxFill = info.CurMaxFillValue;
             CurLevelFillValue = info.CurFillValue;
-            DepotDriverDiskValue.baseValue = info.BaseValue;
             DepotDriverDiskValue.attackPercent = info.AttackPer;
             DepotDriverDiskValue.defensePercent = info.DefensePer;
             DepotDriverDiskValue.healthPercent = info.HealthPer;

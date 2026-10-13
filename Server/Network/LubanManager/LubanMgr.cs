@@ -5,7 +5,6 @@ using cfg;
 public class LubanMgr : Singleton<LubanMgr>
 {
     // 各张配置表的字典缓存
-    private Dictionary<int, SkillInfo> _skillInfoDic;
     private Dictionary<int, taskData> _taskDataDic;
     private Dictionary<int, materialData> _materialDic;
     private Dictionary<int, driverDisk> _driverDiskDic;
@@ -15,7 +14,6 @@ public class LubanMgr : Singleton<LubanMgr>
         // 读取 luban 导出的 byte 表文件
         Tables tables = new Tables(file => new Luban.ByteBuf(File.ReadAllBytes(ResolveTablePath(file))));
 
-        _skillInfoDic = tables.TbSkillInfo.DataMap;
         _taskDataDic = tables.TbtaskData.DataMap;
         _materialDic = tables.TbmaterialData.DataMap;
         _driverDiskDic = tables.TbdriverDisk.DataMap;
@@ -44,42 +42,6 @@ public class LubanMgr : Singleton<LubanMgr>
 
         throw new FileNotFoundException($"找不到 luban 表文件 {fileName}，已尝试: {string.Join("; ", candidates)}");
     }
-
-    #region 技能相关的方法
-
-    // 获取技能数据
-    public Dictionary<int, SkillInfo> GetSkillInfos()
-    {
-        return _skillInfoDic;
-    }
-
-    // 通过技能 id 获取技能信息
-    public SkillInfo GetSkillInfoById(int skillId)
-    {
-        if (_skillInfoDic.TryGetValue(skillId, out var skillInfoById))
-        {
-            return skillInfoById;
-        }
-
-        return null;
-    }
-
-    // 通过职业 id 获取所有该职业的技能信息
-    public Dictionary<int, SkillInfo> GetSkillInfoByJobId(int jobId)
-    {
-        Dictionary<int, SkillInfo> jobSkillInfos = new Dictionary<int, SkillInfo>();
-        foreach (var item in _skillInfoDic)
-        {
-            if (item.Value.JobId == jobId)
-            {
-                jobSkillInfos.Add(item.Key, item.Value);
-            }
-        }
-
-        return jobSkillInfos;
-    }
-
-    #endregion
 
     #region 任务相关的方法
 
