@@ -40,6 +40,8 @@
     public const ushort CMD_DriverDiskUpgradeCode = 11280; // 驱动盘升级（服务端权威）
     public const ushort CMD_DriverDiskEquipCode = 11290; // 驱动盘装备 / 卸下
     public const ushort CMD_BagInfoCode = 11300; // 背包信息拉取
+    public const ushort CMD_PlayerHurtCode = 11310; // 玩家受击广播（敌人攻击，服务端权威结算）
+    public const ushort CMD_PlayerStatsCode = 11320; // 玩家战斗属性上报（血量上限 / 防御）
 
     // ========== 服务端逻辑帧 ==========
 

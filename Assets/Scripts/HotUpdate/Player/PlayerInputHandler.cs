@@ -173,7 +173,8 @@ namespace HotUpdate.Player
 
         #endregion
 
-        // 调试用回血
+        // 调试用回血。注意：联机时玩家血量以服务端为准，这里加的血会在下一次受击广播时被覆盖，
+        // 只适合离线调试；要真正回血得走服务端（目前没有回血协议）。
         private void DebugHeal()
         {
             _core.Health = Mathf.Clamp(_core.Health + 50, 50, _core.MaxHealth);

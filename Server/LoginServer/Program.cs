@@ -34,6 +34,7 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_DriverDiskUpgradeCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_DriverDiskEquipCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_BagInfoCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_PlayerStatsCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PositionSyncCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_CreateRoomCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_JoinRoomCode, loginCtrl);

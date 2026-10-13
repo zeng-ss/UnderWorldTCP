@@ -25,7 +25,7 @@ namespace HotUpdate.Manager
 
         public void Init()
         {
-            _pool = new GameObject("ActiveAudio");
+            _pool = CreateActiveRoot();
             AppContext.Pool.Preload("AudioPrefab", PoolName, 30);
             StartPinSound = Resources.Load<AudioClip>("Audio/拼刀开始");
             FootSound = Resources.Load<AudioClip>(FootPath + "脚步声");
@@ -53,6 +53,7 @@ namespace HotUpdate.Manager
         public void PlaySound(AudioClip clip, Vector3 position, float volume = 1f, float pitch = 1f)
         {
             if (!clip) return;
+            if (_pool == null) _pool = CreateActiveRoot();
             // 从对象池获取播放器
             AppContext.Pool.GetObj(PoolName, audioPlayer =>
             {
@@ -70,6 +71,25 @@ namespace HotUpdate.Manager
                 float clipLength = clip.length;
                 AppContext.Pool.ReturnAfter(audioPlayer, clipLength);
             }, "AudioPrefab");
+        }
+
+        // 正在播放的音效的挂载根。必须 DontDestroyOnLoad：
+        // 场景是 LoadSceneMode.Single 切换的，挂在场景根上会随旧场景一起销毁，
+        // 正在播的音效会被掐断，回池时对象也已成空壳。
+        private static GameObject CreateActiveRoot()
+        {
+            var root = new GameObject("ActiveAudio");
+            UnityEngine.Object.DontDestroyOnLoad(root);
+            return root;
+        }
+
+        /// <summary>
+        /// 因为上面那个根是常驻（DontDestroyOnLoad）的，整套 AppContext 销毁时必须自己收掉，否则会留一个孤儿节点
+        /// </summary>
+        public void Clear()
+        {
+            if (_pool != null) UnityEngine.Object.Destroy(_pool);
+            _pool = null;
         }
     }
 }

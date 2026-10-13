@@ -15,9 +15,7 @@ public enum EnemyAiState
 }
 
 /// <summary>
-/// 敌人实例（纯数据，不依赖任何 Unity 类型）。
-/// 敌人的位置、朝向、状态、动作全部在服务端推进，客户端只是把它演出来。
-/// 敌人不再有「归属玩家」——生成者只影响日志与奖励，不影响这只怪归谁。
+/// 敌人实例
 /// </summary>
 public class EnemyInstance
 {
@@ -44,6 +42,10 @@ public class EnemyInstance
     // 攻击节奏
     public float AttackTimer;
 
+    // 本次挥招的结算：出招瞬间锁定目标并倒计时，到点才判定命中（对齐动画挥到中段的时刻）
+    public int TargetRoleId;
+    public float PendingHurtTimer;
+
     // 广播限频
     public float SyncTimer;
 
@@ -51,22 +53,31 @@ public class EnemyInstance
     public float DeadTimer;
 
     // AI 参数（后续可挪到 Luban 敌人配置表）
-    public float MoveSpeed = 3.5f;      // 追击速度（单位/秒）
-    public float AttackRange = 2.5f;    // 进入该距离即停下攻击
-    public float ChaseDistance = 10f;   // 超过该距离在客户端表现上算「奔跑」
+    public float MoveSpeed = 3.5f; // 追击速度（单位/秒）
+    public float AttackRange = 2.5f; // 进入该距离即停下攻击
+    public float ChaseDistance = 10f; // 超过该距离在客户端表现上算「奔跑」
     public float AttackInterval = 2.2f; // 两次攻击之间的最小间隔
-    public float RemoveDelay = 6f;      // 死亡后多久从服务端移除
+    public float RemoveDelay = 6f; // 死亡后多久从服务端移除
+
+    // 服务端结算用的攻击力。与客户端 enemy.prefab 上 HitData.damageValue 对齐（那边的值只用于表现参数，
+    // 伤害数值一律以本字段为准，后续挪到 Luban 敌人配置表）。
+    public float AttackDamage = 10f;
 }
 
 /// <summary>
-/// 敌人实例管理器（内存中管理，不需要数据库表）。
-/// 服务端权威：生成、AI 推进、受伤、死亡、位置与动作广播。
+/// 敌人实例管理器
 /// 本类会在【网络线程】和【tick 线程】上被并发访问，所有公共入口内部加锁。
 /// </summary>
 public class EnemyMgr : Singleton<EnemyMgr>
 {
     // 位置广播频率（秒）。10Hz 对插值跟随已经足够平滑。
     private const float PositionSyncInterval = 0.1f;
+
+    // 从抬手到命中的延迟（秒）：动画挥到中段才结算，避免「刚抬手玩家就掉血」
+    private const float AttackImpactDelay = 0.25f;
+
+    // 命中距离容差：出招后玩家跑了这么远仍算被擦到
+    private const float HitTolerance = 0.6f;
 
     private readonly object _lock = new object();
     private readonly Dictionary<int, EnemyInstance> _enemies = new Dictionary<int, EnemyInstance>();
@@ -81,11 +92,10 @@ public class EnemyMgr : Singleton<EnemyMgr>
     public int SpawnEnemy(int configId, float maxHp, float posX, float posY, float posZ)
     {
         int id;
-        EnemyInstance enemy;
         lock (_lock)
         {
             id = _nextInstanceId++;
-            enemy = new EnemyInstance
+            var enemy = new EnemyInstance
             {
                 InstanceId = id,
                 ConfigId = configId,
@@ -114,7 +124,8 @@ public class EnemyMgr : Singleton<EnemyMgr>
         };
 
         BroadcastAll(NetDefine.CMD_SpawnEnemyCode, ret.ToByteString());
-        LogMsg.Info($"[EnemyMgr]敌人生成: instanceId={id} configId={configId} pos=({posX:F1},{posY:F1},{posZ:F1}) maxHp={maxHp}",
+        LogMsg.Info(
+            $"[EnemyMgr]敌人生成: instanceId={id} configId={configId} pos=({posX:F1},{posY:F1},{posZ:F1}) maxHp={maxHp}",
             ConsoleColor.Magenta);
         return id;
     }
@@ -204,9 +215,10 @@ public class EnemyMgr : Singleton<EnemyMgr>
         }
 
         // 死亡立刻广播一次动作，让所有客户端同步倒下（不用等下一个 tick）
-        if (justDied) BroadcastAnim(enemy);
+        if (justDied) BroadcastAll(NetDefine.CMD_SyneEnemyAniCode, BuildAnimPackage(enemy).Data);
 
-        LogMsg.Info($"[EnemyMgr]攻击处理: enemyId={req.EnemyInstanceId} damage={ret.DamageDealt} hp={ret.EnemyCurrHp}/{ret.EnemyMaxHp} isDead={ret.IsDead} isBaoji={ret.IsBaoji}");
+        LogMsg.Info(
+            $"[EnemyMgr]攻击处理: enemyId={req.EnemyInstanceId} damage={ret.DamageDealt} hp={ret.EnemyCurrHp}/{ret.EnemyMaxHp} isDead={ret.IsDead} isBaoji={ret.IsBaoji}");
         return ret;
     }
 
@@ -226,7 +238,8 @@ public class EnemyMgr : Singleton<EnemyMgr>
 
         List<BasePackage> posPackets = new List<BasePackage>();
         List<BasePackage> animPackets = new List<BasePackage>();
-        List<int> toRemove = null;
+        List<BasePackage> hurtPackets = new List<BasePackage>();
+        List<int> toRemove = new List<int>();
 
         lock (_lock)
         {
@@ -237,29 +250,75 @@ public class EnemyMgr : Singleton<EnemyMgr>
                     enemy.DeadTimer += dt;
                     if (enemy.DeadTimer >= enemy.RemoveDelay)
                     {
-                        if (toRemove == null) toRemove = new List<int>();
                         toRemove.Add(enemy.InstanceId);
                     }
 
                     continue;
                 }
 
+                // 先结算上一招的命中，再决定这一帧做什么
+                ResolvePendingAttack(enemy, dt, hurtPackets);
                 UpdateEnemy(enemy, dt, posPackets, animPackets);
             }
 
-            if (toRemove != null)
-            {
-                foreach (int id in toRemove) _enemies.Remove(id);
-            }
+            foreach (int id in toRemove) _enemies.Remove(id);
         }
 
-        if (posPackets.Count == 0 && animPackets.Count == 0) return;
+        if (posPackets.Count == 0 && animPackets.Count == 0 && hurtPackets.Count == 0) return;
 
         List<int> sessionIds = PlayerSceneMgr.Instance.GetSessionIdsInScene();
         if (sessionIds.Count == 0) return;
 
         SendToSessions(sessionIds, posPackets);
         SendToSessions(sessionIds, animPackets);
+        // 受击广播发给场景内所有人（含被打者自己，他要更新血条与状态）
+        SendToSessions(sessionIds, hurtPackets);
+    }
+
+    /// <summary>
+    /// 结算一次挥招：出招时锁定了目标并起了倒计时，到点后校验「目标是否还在攻击距离内」——
+    /// 玩家在这 0.25 秒里跑开就算挥空，打中则扣血并广播。
+    /// 调用方必须已持有 _lock。
+    /// </summary>
+    private void ResolvePendingAttack(EnemyInstance enemy, float dt, List<BasePackage> hurtPackets)
+    {
+        if (enemy.PendingHurtTimer <= 0f) return;
+
+        enemy.PendingHurtTimer -= dt;
+        if (enemy.PendingHurtTimer > 0f) return;
+        enemy.PendingHurtTimer = 0f;
+
+        // 目标已死亡 / 已离开场景
+        if (!PlayerSceneMgr.Instance.TryGetPlayerPos(enemy.TargetRoleId, out float px, out float py, out float pz)) return;
+
+        float dx = px - enemy.PosX;
+        float dy = py - enemy.PosY;
+        float dz = pz - enemy.PosZ;
+        float dist = (float)Math.Sqrt(dx * dx + dy * dy + dz * dz);
+
+        // 玩家躲开了：这一招挥空
+        if (dist > enemy.AttackRange + HitTolerance) return;
+
+        // ±10% 浮动，避免每下都是同一个数字
+        float rawDamage = enemy.AttackDamage * (0.9f + (float)_rand.NextDouble() * 0.2f);
+
+        if (!PlayerSceneMgr.Instance.TryApplyHurt(enemy.TargetRoleId, rawDamage,
+                out float dealtDamage, out float currHp, out float maxHp, out bool isDead)) return;
+
+        PlayerHurtNtf ntf = new PlayerHurtNtf
+        {
+            RoleId = enemy.TargetRoleId,
+            EnemyInstanceId = enemy.InstanceId,
+            Damage = dealtDamage,
+            CurrHp = currHp,
+            MaxHp = maxHp,
+            IsDead = isDead,
+        };
+        hurtPackets.Add(new BasePackage { ProtoCode = NetDefine.CMD_PlayerHurtCode, Data = ntf.ToByteString() });
+
+        LogMsg.Info(
+            $"[EnemyMgr]敌人命中玩家: enemyId={enemy.InstanceId} roleId={enemy.TargetRoleId} damage={dealtDamage:F2} hp={currHp:F2}/{maxHp:F2} isDead={isDead}",
+            ConsoleColor.Yellow);
     }
 
     /// <summary>
@@ -278,9 +337,9 @@ public class EnemyMgr : Singleton<EnemyMgr>
         }
 
         if (!PlayerSceneMgr.Instance.TryGetNearestPlayer(enemy.PosX, enemy.PosY, enemy.PosZ,
-                out float targetX, out float targetY, out float targetZ))
+                out int targetRoleId, out float targetX, out float targetY, out float targetZ))
         {
-            // 场景里没人：原地待机
+            // 场景里没人（或都死了）：原地待机
             SetAnim(enemy, "Idle", EnemyAiState.Idle, animPackets);
             PushPosition(enemy, dt, posPackets);
             return;
@@ -313,8 +372,7 @@ public class EnemyMgr : Singleton<EnemyMgr>
             }
 
             // 没有独立的跑步动作，沿用地表最长的那段位移动画
-            SetAnim(enemy, dist > enemy.ChaseDistance ? "Attack05Run" : "Attack05Run",
-                EnemyAiState.Attack, animPackets);
+            SetAnim(enemy, "Attack05Run", EnemyAiState.Attack, animPackets);
             PushPosition(enemy, dt, posPackets);
             return;
         }
@@ -324,6 +382,9 @@ public class EnemyMgr : Singleton<EnemyMgr>
         if (enemy.AttackTimer <= 0f)
         {
             enemy.AttackTimer = enemy.AttackInterval;
+            // 出招瞬间锁定目标并起命中倒计时，0.25 秒后再由 ResolvePendingAttack 结算
+            enemy.TargetRoleId = targetRoleId;
+            enemy.PendingHurtTimer = AttackImpactDelay;
             SetAnim(enemy, PickAttackAnim(), EnemyAiState.Attack, animPackets);
         }
         else
@@ -346,8 +407,7 @@ public class EnemyMgr : Singleton<EnemyMgr>
     }
 
     /// <summary>动作或状态变化时才产生一个同步包。调用方必须已持有 _lock。</summary>
-    private static void SetAnim(EnemyInstance enemy, string anim, EnemyAiState state,
-        List<BasePackage> animPackets)
+    private static void SetAnim(EnemyInstance enemy, string anim, EnemyAiState state, List<BasePackage> animPackets)
     {
         if (enemy.Anim == anim && enemy.State == state) return;
 
@@ -393,12 +453,6 @@ public class EnemyMgr : Singleton<EnemyMgr>
         return new BasePackage { ProtoCode = NetDefine.CMD_SyneEnemyAniCode, Data = ret.ToByteString() };
     }
 
-    // 某只敌人的动作变化，立刻广播给场景内所有人
-    private void BroadcastAnim(EnemyInstance enemy)
-    {
-        BroadcastAll(NetDefine.CMD_SyneEnemyAniCode, BuildAnimPackage(enemy).Data);
-    }
-
     private static void BroadcastAll(int protoCode, ByteString data)
     {
         List<int> sessionIds = PlayerSceneMgr.Instance.GetSessionIdsInScene();
@@ -411,12 +465,10 @@ public class EnemyMgr : Singleton<EnemyMgr>
     private static void SendToSessions(List<int> sessionIds, List<BasePackage> packets)
     {
         if (packets.Count == 0) return;
-
         foreach (int sessionId in sessionIds)
         {
             Session session = SessionMgr.Instance.GetSession(sessionId);
             if (session == null) continue;
-
             // 同一份内容复用同一个包对象（SendData 只读它）
             foreach (BasePackage pkg in packets) session.SendData(pkg);
         }

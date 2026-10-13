@@ -208,3 +208,14 @@ message TaskProgressNtf{
 message TaskProgressReq{
   int32 role_id = 1;
 }
+
+// ========== 玩家战斗属性上报 ==========
+
+// 玩家战斗属性上报（客户端 → 服务端）：属性由客户端按「基础值 + 已装备驱动盘加成」算出，
+// 服务端需要同一份数值才能做敌人攻击的伤害结算（扣防御）与血量上限。
+// 进游戏时上报一次，之后每次属性重算（换装 / 升级）再上报一次，覆盖式生效。
+message PlayerStatsNtf{
+  int32 role_id = 1;
+  float max_hp = 2;    // 血量上限
+  float defense = 3;   // 防御值（服务端按 defense / 10 减伤）
+}

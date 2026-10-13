@@ -2,6 +2,7 @@ using System;
 using HotUpdate.Data;
 using HotUpdate.Enemy;
 using HotUpdate.Event;
+using HotUpdate.UI.UIPanel;
 using UnityEngine;
 using AppContext = HotUpdate.Core.AppContext;
 
@@ -15,6 +16,9 @@ namespace HotUpdate.Player
         private readonly PlayerPresentation _presentation;
         private readonly PlayerSkillCombo _skillCombo;
         private readonly GameObject _gameObject;
+
+        // 血量是否已由属性初始化过（进游戏首次拿到属性时补满血，之后交给服务端）
+        private bool _hpInitialized;
 
         public PlayerCombat(PlayerCore core, PlayerStateMachine stateMachine, PlayerPresentation presentation,
             PlayerSkillCombo skillCombo, GameObject gameObject)
@@ -60,6 +64,9 @@ namespace HotUpdate.Player
 
         /// <summary>
         /// 属性重算完成后的同步。统一以 PlayerDataService.Current 为唯一数据源。
+        /// 顺便把血量上限与防御上报服务端 —— 敌人攻击的伤害由服务端结算，那边需要同一份数值。
+        /// 注意：本方法不再重置血量。进游戏首次拿到属性时补满一次（与服务端的满血初始化对齐），
+        /// 之后血量只由服务端的受击广播修改。
         /// </summary>
         public void ApplyPlayerData(PlayerValueData valueData)
         {
@@ -67,7 +74,88 @@ namespace HotUpdate.Player
 
             _core.PlayerValueData = valueData;
             _core.MaxHealth = valueData.MaxHealthValue;
-            if (_core.Health <= 0 || _core.Health > _core.MaxHealth) _core.Health = _core.MaxHealth;
+
+            if (!_hpInitialized)
+            {
+                _core.Health = _core.MaxHealth;
+                _hpInitialized = true;
+                RefreshHealthUI();
+            }
+            else if (_core.Health > _core.MaxHealth)
+            {
+                _core.Health = _core.MaxHealth;
+                RefreshHealthUI();
+            }
+
+            AppContext.Proto.RequestPlayerStats(_core.MaxHealth, valueData.DefenseValue);
+        }
+
+        #endregion
+
+        #region 受击（服务端权威）
+
+        // 订阅服务端下发的受击广播。玩家血量只能由服务端结算，本地不做任何扣血。
+        public void RegisterHurtListener()
+        {
+            AppContext.Proto.OnPlayerHurtReceived -= ApplyServerHurt;
+            AppContext.Proto.OnPlayerHurtReceived += ApplyServerHurt;
+        }
+
+        public void UnregisterHurtListener()
+        {
+            AppContext.Proto.OnPlayerHurtReceived -= ApplyServerHurt;
+        }
+
+        /// <summary>
+        /// 服务端结算结果落地：覆盖血量 → 受击表现 / 死亡。广播对场景内所有人都发，
+        /// 但只有本人（本地玩家）需要更新血量与状态，别人的受击表现为「谁打谁」的动画同步负责。
+        /// </summary>
+        public void ApplyServerHurt(PlayerHurtNtf ntf)
+        {
+            if (ntf == null || !_core.IsLocalPlayer) return;
+
+            bool alreadyDead = _stateMachine.CurrentState == PlayerStateType.Dead;
+
+            if (ntf.MaxHp > 0f) _core.MaxHealth = ntf.MaxHp;
+            _core.Health = ntf.CurrHp;
+
+            if (!alreadyDead)
+            {
+                // 屏幕反馈的强度仍取本地配置（敌人 prefab 上的 HitData），伤害数值以服务端为准
+                HitData hitData = GetAttackerHitData(ntf.EnemyInstanceId);
+                _presentation.PlayHurtFeedback(ntf.Damage,
+                    hitData != null ? hitData.vignetteValue : 0f,
+                    hitData != null ? hitData.screenImpulseValue : 0f);
+
+                // 敌人武器的命中表现（特效 / 音效）。服务端只下发「命中了 + 伤害」，
+                // 命中点用本地玩家当前位置近似 —— 本地再没有武器碰撞盒参与判定。
+                AppContext.Enemy.PlayHitFeedback(ntf.EnemyInstanceId, _gameObject.transform.position);
+            }
+
+            if (ntf.IsDead)
+            {
+                if (alreadyDead) return;
+                _stateMachine.ChangeTo(PlayerStateType.Dead);
+                _gameObject.tag = "Untagged";
+                RefreshHealthUI();
+                return;
+            }
+
+            if (alreadyDead) return;
+            _stateMachine.ChangeTo(PlayerStateType.Hurt, true);
+            RefreshHealthUI();
+        }
+
+        // 血量变化后刷新 HUD 血条。面板没打开时 GetPanel 返回 null，直接跳过。
+        private void RefreshHealthUI()
+        {
+            AppContext.Ui.GetPanel<PlayerProPanel>()?.UpdateHealthFill(_core.Health, _core.MaxHealth);
+        }
+
+        // 挨打时用它取表现参数（震屏 / 暗角）。敌人可能已经被打死并注销，取不到就用 0。
+        private static HitData GetAttackerHitData(int enemyInstanceId)
+        {
+            return AppContext.Enemy.TryGet(enemyInstanceId, out EnemyCtrl enemy) ? enemy.hitData : null;
         }
 
         #endregion
@@ -99,17 +187,8 @@ namespace HotUpdate.Player
 
         public void OnHurt(HitData hitData, ISkillOwner hurtSource)
         {
-            _core.Health -= Math.Max(0,
-                hitData.damageValue - (float)Math.Round(_core.PlayerValueData.DefenseValue / 10, 2));
-            if (_core.Health <= 0)
-            {
-                _stateMachine.ChangeTo(PlayerStateType.Dead);
-                _gameObject.tag = "Untagged";
-                return;
-            }
-
-            _stateMachine.ChangeTo(PlayerStateType.Hurt, true);
-            _presentation.PlayHurtFeedback(hitData.damageValue, hitData.vignetteValue, hitData.screenImpulseValue);
+            // 空实现：玩家的血量由服务端结算（见 ApplyServerHurt），本地武器命中不再扣血。
+            // 敌人武器的碰撞盒也不再参与判定，命中表现改由服务端 PlayerHurtNtf 广播触发。
         }
     }
 }

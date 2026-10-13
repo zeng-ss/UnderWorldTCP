@@ -65,7 +65,9 @@ public static partial class RequestEntityReflection {
           "ZBgGIAMoBRINCgVzdGF0ZRgHIAEoBRIVCg1jdXJyZW50X2NvdW50GAggASgF",
           "IkwKD1Rhc2tQcm9ncmVzc050ZhIPCgdyb2xlX2lkGAEgASgFEigKDXByb2dy",
           "ZXNzX2xpc3QYAiADKAsyES5UYXNrUHJvZ3Jlc3NEYXRhIiIKD1Rhc2tQcm9n",
-          "cmVzc1JlcRIPCgdyb2xlX2lkGAEgASgFYgZwcm90bzM="));
+          "cmVzc1JlcRIPCgdyb2xlX2lkGAEgASgFIkIKDlBsYXllclN0YXRzTnRmEg8K",
+          "B3JvbGVfaWQYASABKAUSDgoGbWF4X2hwGAIgASgCEg8KB2RlZmVuc2UYAyAB",
+          "KAJiBnByb3RvMw=="));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { },
         new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -95,7 +97,8 @@ public static partial class RequestEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressData), global::TaskProgressData.Parser, new[]{ "TaskId", "State", "CurrentCount" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskInfo), global::TaskInfo.Parser, new[]{ "TaskId", "TaskDesc", "TaskType", "TargetCount", "DepotIds", "MaterialsId", "State", "CurrentCount" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressNtf), global::TaskProgressNtf.Parser, new[]{ "RoleId", "ProgressList" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressReq), global::TaskProgressReq.Parser, new[]{ "RoleId" }, null, null, null, null)
+          new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressReq), global::TaskProgressReq.Parser, new[]{ "RoleId" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::PlayerStatsNtf), global::PlayerStatsNtf.Parser, new[]{ "RoleId", "MaxHp", "Defense" }, null, null, null, null)
         }));
   }
   #endregion
@@ -7464,6 +7467,289 @@ public sealed partial class TaskProgressReq : pb::IMessage<TaskProgressReq>
           break;
         case 8: {
           RoleId = input.ReadInt32();
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+/// <summary>
+/// 玩家战斗属性上报（客户端 → 服务端）：属性由客户端按「基础值 + 已装备驱动盘加成」算出，
+/// 服务端需要同一份数值才能做敌人攻击的伤害结算（扣防御）与血量上限。
+/// 进游戏时上报一次，之后每次属性重算（换装 / 升级）再上报一次，覆盖式生效。
+/// </summary>
+[global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+public sealed partial class PlayerStatsNtf : pb::IMessage<PlayerStatsNtf>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<PlayerStatsNtf> _parser = new pb::MessageParser<PlayerStatsNtf>(() => new PlayerStatsNtf());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pb::MessageParser<PlayerStatsNtf> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::RequestEntityReflection.Descriptor.MessageTypes[27]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public PlayerStatsNtf() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public PlayerStatsNtf(PlayerStatsNtf other) : this() {
+    roleId_ = other.roleId_;
+    maxHp_ = other.maxHp_;
+    defense_ = other.defense_;
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public PlayerStatsNtf Clone() {
+    return new PlayerStatsNtf(this);
+  }
+
+  /// <summary>Field number for the "role_id" field.</summary>
+  public const int RoleIdFieldNumber = 1;
+  private int roleId_;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int RoleId {
+    get { return roleId_; }
+    set {
+      roleId_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "max_hp" field.</summary>
+  public const int MaxHpFieldNumber = 2;
+  private float maxHp_;
+  /// <summary>
+  /// 血量上限
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public float MaxHp {
+    get { return maxHp_; }
+    set {
+      maxHp_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "defense" field.</summary>
+  public const int DefenseFieldNumber = 3;
+  private float defense_;
+  /// <summary>
+  /// 防御值（服务端按 defense / 10 减伤）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public float Defense {
+    get { return defense_; }
+    set {
+      defense_ = value;
+    }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override bool Equals(object other) {
+    return Equals(other as PlayerStatsNtf);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equals(PlayerStatsNtf other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (RoleId != other.RoleId) return false;
+    if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(MaxHp, other.MaxHp)) return false;
+    if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Defense, other.Defense)) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (RoleId != 0) hash ^= RoleId.GetHashCode();
+    if (MaxHp != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(MaxHp);
+    if (Defense != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Defense);
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (RoleId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(RoleId);
+    }
+    if (MaxHp != 0F) {
+      output.WriteRawTag(21);
+      output.WriteFloat(MaxHp);
+    }
+    if (Defense != 0F) {
+      output.WriteRawTag(29);
+      output.WriteFloat(Defense);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (RoleId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(RoleId);
+    }
+    if (MaxHp != 0F) {
+      output.WriteRawTag(21);
+      output.WriteFloat(MaxHp);
+    }
+    if (Defense != 0F) {
+      output.WriteRawTag(29);
+      output.WriteFloat(Defense);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CalculateSize() {
+    int size = 0;
+    if (RoleId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(RoleId);
+    }
+    if (MaxHp != 0F) {
+      size += 1 + 4;
+    }
+    if (Defense != 0F) {
+      size += 1 + 4;
+    }
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(PlayerStatsNtf other) {
+    if (other == null) {
+      return;
+    }
+    if (other.RoleId != 0) {
+      RoleId = other.RoleId;
+    }
+    if (other.MaxHp != 0F) {
+      MaxHp = other.MaxHp;
+    }
+    if (other.Defense != 0F) {
+      Defense = other.Defense;
+    }
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          RoleId = input.ReadInt32();
+          break;
+        }
+        case 21: {
+          MaxHp = input.ReadFloat();
+          break;
+        }
+        case 29: {
+          Defense = input.ReadFloat();
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          RoleId = input.ReadInt32();
+          break;
+        }
+        case 21: {
+          MaxHp = input.ReadFloat();
+          break;
+        }
+        case 29: {
+          Defense = input.ReadFloat();
           break;
         }
       }

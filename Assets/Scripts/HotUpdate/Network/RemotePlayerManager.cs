@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
-using HotUpdate.Enemy;
 using HotUpdate.Player;
 using UnityEngine;
 
 namespace HotUpdate.Network
 {
+    // 远端玩家的落地与同步：位置插值、动画、VFX、受击打击表现。
+    // 敌人的生成 / 位置同步 / 动作同步 / 命中表现在由 EnemyManager（AppContext.Enemy）统一负责。
     public class RemotePlayerManager
     {
         private readonly Dictionary<int, RemotePlayer> _remotePlayers = new();
@@ -16,11 +17,18 @@ namespace HotUpdate.Network
             AppContext.Proto.OnPlayerEnterScene += OnPlayerEnterScene;
             AppContext.Proto.OnPositionSyncReceived += OnPositionSync;
             AppContext.Proto.OnPlayerLeaveScene += OnPlayerLeaveScene;
-            AppContext.Proto.OnPlayerAttackBroadcast += OnPlayerAttackBroadcast;
             AppContext.Proto.OnSyncAniReceived += OnSyncAni;
             AppContext.Proto.OnPlayerVfxReceived += OnPlayerVfxReceived;
-            AppContext.Proto.OnEnemyPositionSyncReceived += OnEnemyPositionSync;
-            AppContext.Proto.OnEnemySyncAniReceived += OnSyncEnemyAni;
+            AppContext.Proto.OnPlayerHurtReceived += OnPlayerHurt;
+        }
+
+        // 别人被敌人打中：血量与死亡表现由「他本人」的客户端落地（那边他才算本地玩家），
+        // 这里只补一件事 —— 在同一只敌人身上播武器命中表现，让所有人都看到这一下的打击特效。
+        private void OnPlayerHurt(PlayerHurtNtf ntf)
+        {
+            if (!_remotePlayers.TryGetValue(ntf.RoleId, out RemotePlayer rp) || rp == null) return;
+
+            AppContext.Enemy.PlayHitFeedback(ntf.EnemyInstanceId, rp.transform.position);
         }
 
         private void OnPlayerVfxReceived(PlayerVfxNtf ntf)
@@ -89,15 +97,6 @@ namespace HotUpdate.Network
             }
         }
 
-        // 别人的攻击广播 → 同步敌人状态 + 攻击者动画
-        private void OnPlayerAttackBroadcast(PlayerAttackRet ret)
-        {
-            if (EnemyCtrl.Instances.TryGetValue(ret.EnemyInstanceId, out EnemyCtrl enemy))
-            {
-                enemy.OnServerAttackResult(ret);
-            }
-        }
-
         public void ResetForNewScene()
         {
             foreach (var kv in _remotePlayers)
@@ -108,49 +107,6 @@ namespace HotUpdate.Network
             _remotePlayers.Clear();
         }
 
-
-        public void SpawnEnemy(SpawnEnemyRet ret)
-        {
-            if (ret.CmdCode != CmdCode.Succeed)
-            {
-                Debug.LogError("生成敌人失败：" + ret.CmdCode);
-                return;
-            }
-
-            Vector3 spawnPos = new Vector3(ret.PosX, ret.PosY, ret.PosZ);
-            AppContext.Res.LoadAndInstantiateAsync("enemy", null, enemy =>
-            {
-                EnemyCtrl ctrl = enemy.GetComponent<EnemyCtrl>();
-                if (ctrl == null)
-                {
-                    Debug.LogError("[RemotePlayerManager] enemy 预制体上缺少 EnemyCtrl");
-                    return;
-                }
-
-                // 敌人由服务端驱动，客户端只落地出生数据，之后位置/动作都等服务端下发
-                ctrl.InitFromServer(ret.EnemyInstanceId, ret.MaxHp, ret.CurrHp, spawnPos);
-            });
-        }
-
-        // 敌人位置同步（服务端权威）：按实例ID找到敌人，更新插值目标
-        private void OnEnemyPositionSync(EnemyPositionSyncRet ret)
-        {
-            if (EnemyCtrl.Instances.TryGetValue(ret.EnemyInstanceId, out EnemyCtrl enemy))
-            {
-                enemy.ApplyServerPosition(ret.PosX, ret.PosY, ret.PosZ, ret.RotationY);
-            }
-        }
-
-        // 敌人动作/状态同步（服务端权威）：客户端只负责播
-        private void OnSyncEnemyAni(EnemySyncAniRet ret)
-        {
-            if (EnemyCtrl.Instances.TryGetValue(ret.EnemyInstanceId, out EnemyCtrl enemy))
-            {
-                enemy.ApplyServerAnim(ret.AnimationName, ret.State);
-            }
-        }
-
-
         public void Clear()
         {
             if (!AppContext.IsAlive) return;
@@ -158,11 +114,9 @@ namespace HotUpdate.Network
             AppContext.Proto.OnPlayerEnterScene -= OnPlayerEnterScene;
             AppContext.Proto.OnPositionSyncReceived -= OnPositionSync;
             AppContext.Proto.OnPlayerLeaveScene -= OnPlayerLeaveScene;
-            AppContext.Proto.OnPlayerAttackBroadcast -= OnPlayerAttackBroadcast;
             AppContext.Proto.OnSyncAniReceived -= OnSyncAni;
             AppContext.Proto.OnPlayerVfxReceived -= OnPlayerVfxReceived;
-            AppContext.Proto.OnEnemyPositionSyncReceived -= OnEnemyPositionSync;
-            AppContext.Proto.OnEnemySyncAniReceived -= OnSyncEnemyAni;
+            AppContext.Proto.OnPlayerHurtReceived -= OnPlayerHurt;
         }
     }
 }

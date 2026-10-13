@@ -45,6 +45,117 @@ public class PlayerSceneMgr : Singleton<PlayerSceneMgr>
     }
 
     /// <summary>
+    /// 更新玩家战斗属性（血量上限 / 防御）。属性由客户端按「基础值 + 已装备驱动盘加成」算出后上报，
+    /// 服务端需要同一份数值才能结算敌人攻击的伤害。
+    /// 角色条目可能还没建立（属性上报早于首次位置同步），此处懒创建；后续 OnPlayerEnter 会把会话补上。
+    /// </summary>
+    public void SetPlayerStats(int roleId, float maxHp, float defense)
+    {
+        lock (_lock)
+        {
+            if (!_players.TryGetValue(roleId, out PlayerSceneInfo info))
+            {
+                info = new PlayerSceneInfo { RoleId = roleId };
+                _players[roleId] = info;
+            }
+
+            if (maxHp < 1f) maxHp = 1f;
+
+            if (!info.StatsInited)
+            {
+                // 首次上报：直接满血
+                info.MaxHp = maxHp;
+                info.CurrHp = maxHp;
+            }
+            else if (info.CurrHp > 0f)
+            {
+                // 已受伤：上限变化（换装 / 升级）时按当前血量比例折算，避免换装回血或暴毙
+                float ratio = info.MaxHp > 0f ? info.CurrHp / info.MaxHp : 1f;
+                float scaled = (float)Math.Round(ratio * maxHp, 2);
+                info.CurrHp = Math.Min(maxHp, Math.Max(1f, scaled));
+                info.MaxHp = maxHp;
+            }
+            else
+            {
+                // 已死亡：只更新上限，不复活
+                info.MaxHp = maxHp;
+            }
+
+            info.Defense = defense;
+            info.StatsInited = true;
+        }
+    }
+
+    /// <summary>
+    /// 复活：玩家重新进入场景（断线重连 / 重登）时回满血。返回是否发生了复活。
+    /// </summary>
+    public bool ReviveOnEnter(int roleId)
+    {
+        lock (_lock)
+        {
+            if (!_players.TryGetValue(roleId, out PlayerSceneInfo info)) return false;
+            if (!info.StatsInited || info.CurrHp > 0f) return false;
+
+            info.CurrHp = info.MaxHp;
+            LogMsg.Info($"[PlayerSceneMgr]玩家重新进入场景，血量重置: roleId={roleId} hp={info.MaxHp}");
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// 结算一次玩家受击：按防御减伤后扣血。血量唯一可写处，敌人攻击的伤害只能从这里进去。
+    /// 玩家不存在 / 属性未上报 / 已死亡时返回 false（调用方据此判定「这一拳挥空」）。
+    /// </summary>
+    public bool TryApplyHurt(int roleId, float rawDamage, out float dealtDamage, out float currHp,
+        out float maxHp, out bool isDead)
+    {
+        dealtDamage = 0f;
+        currHp = 0f;
+        maxHp = 0f;
+        isDead = false;
+
+        lock (_lock)
+        {
+            if (!_players.TryGetValue(roleId, out PlayerSceneInfo info)) return false;
+            if (!info.StatsInited) return false;
+            if (info.CurrHp <= 0f) return false;
+
+            // 减伤公式与客户端原有实现保持一致：伤害 - round(防御 / 10)，最低 0
+            float reduce = (float)Math.Round(info.Defense / 10f, 2);
+            float damage = rawDamage - reduce;
+            if (damage < 0f) damage = 0f;
+
+            info.CurrHp -= damage;
+            if (info.CurrHp <= 0f)
+            {
+                info.CurrHp = 0f;
+                isDead = true;
+            }
+
+            dealtDamage = damage;
+            currHp = info.CurrHp;
+            maxHp = info.MaxHp;
+            return true;
+        }
+    }
+
+    /// <summary>取玩家当前位置（敌人结算命中距离用）。玩家不存在时返回 false。</summary>
+    public bool TryGetPlayerPos(int roleId, out float px, out float py, out float pz)
+    {
+        px = py = pz = 0f;
+
+        lock (_lock)
+        {
+            if (!_players.TryGetValue(roleId, out PlayerSceneInfo info)) return false;
+
+            px = info.PosX;
+            py = info.PosY;
+            pz = info.PosZ;
+            return true;
+        }
+    }
+
+    /// <summary>
     /// 更新玩家位置（位置同步时记录，敌人 AI 索敌与进入场景通知都读这里）
     /// </summary>
     public void UpdatePosition(int roleId, float posX, float posY, float posZ, float rotationY)
@@ -129,10 +240,12 @@ public class PlayerSceneMgr : Singleton<PlayerSceneMgr>
     }
 
     /// <summary>
-    /// 找出距离指定点最近的玩家，供敌人 AI 索敌使用。没有任何玩家时返回 false。
+    /// 找出距离指定点最近的「活着的」玩家，供敌人 AI 索敌使用。没有任何可打目标时返回 false。
+    /// 已死亡的玩家不再被索敌（敌人会转而追别人）；还没上报过位置的玩家也不参与，避免敌人全挤向原点。
     /// </summary>
-    public bool TryGetNearestPlayer(float x, float y, float z, out float px, out float py, out float pz)
+    public bool TryGetNearestPlayer(float x, float y, float z, out int roleId, out float px, out float py, out float pz)
     {
+        roleId = 0;
         px = py = pz = 0f;
         bool found = false;
         float minSq = float.MaxValue;
@@ -142,8 +255,10 @@ public class PlayerSceneMgr : Singleton<PlayerSceneMgr>
             foreach (KeyValuePair<int, PlayerSceneInfo> kv in _players)
             {
                 PlayerSceneInfo info = kv.Value;
-                // 还没上报过位置的玩家（坐标为 0）不参与索敌，避免敌人全挤向原点
+                // 还没上报过位置的玩家（坐标为 0）不参与索敌
                 if (info.PosX == 0f && info.PosY == 0f && info.PosZ == 0f) continue;
+                // 属性上报过且血量归零 = 已死亡，不再是索敌目标
+                if (info.StatsInited && info.CurrHp <= 0f) continue;
 
                 float dx = info.PosX - x;
                 float dy = info.PosY - y;
@@ -152,6 +267,7 @@ public class PlayerSceneMgr : Singleton<PlayerSceneMgr>
                 if (sq >= minSq) continue;
 
                 minSq = sq;
+                roleId = info.RoleId;
                 px = info.PosX;
                 py = info.PosY;
                 pz = info.PosZ;
@@ -206,4 +322,13 @@ public class PlayerSceneInfo
     public float PosY;
     public float PosZ;
     public float RotationY;
+
+    // —— 会话内战斗状态（服务端权威，不落库）——
+    // 属性由客户端上报（MaxHp / Defense），血量只在服务端结算，客户端只能被动接收。
+    public float MaxHp = 1000f;
+    public float CurrHp = 1000f;
+    public float Defense;
+    public bool StatsInited;
+
+    public bool IsDead => StatsInited && CurrHp <= 0f;
 }

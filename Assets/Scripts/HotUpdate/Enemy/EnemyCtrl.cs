@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using DamageNumbersPro;
 using DG.Tweening;
 using HotUpdate.Data;
@@ -11,16 +10,14 @@ using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.Enemy
 {
-    /// 敌人控制器（纯表现层）。
+    /// 敌人控制器
     /// 位置、朝向、状态与动作全部由服务端下发，本类只做两件事：
     /// ① 把 transform 平滑插值到服务端权威位置；② 播放服务端指定的动作。
-    /// 受击与死亡表现由服务端下发的攻击结算触发。
-    /// 敌人没有「归属玩家」——所有客户端看到的是同一只怪，按 serverInstanceId 定位。
+    /// 受击、死亡、以及「打中玩家」的表现，全部由服务端结算后下发的广播触发，本地不做命中判定。
+    /// 敌人没有「归属玩家」——所有客户端看到的是同一只怪，按 serverInstanceId 定位，
+    /// 实例表由 EnemyManager 持有（AppContext.Enemy），本类只在落地/销毁时登记与注销。
     public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner
     {
-        // 服务端实例ID → 敌人。位置与动作同步都靠这张表找到目标。
-        public static readonly Dictionary<int, EnemyCtrl> Instances = new();
-
         // 服务端分配的敌人实例ID
         [HideInInspector] public int serverInstanceId;
 
@@ -31,7 +28,7 @@ namespace HotUpdate.Enemy
         public float networkHealth;
         public float maxHealthValue = 200f;
 
-        // 服务端下发的状态（武器命中判定等表现分支会读）
+        // 服务端下发的状态（受击动画保护窗口、死亡判定等内部逻辑会读）
         [HideInInspector] public EnemyStateType currentState = EnemyStateType.Idle;
 
         // 是否允许播受击动画（处决/拼刀期间会关掉）
@@ -118,17 +115,15 @@ namespace HotUpdate.Enemy
 
         private void OnDestroy()
         {
-            if (Instances.TryGetValue(serverInstanceId, out EnemyCtrl c) && c == this)
-            {
-                Instances.Remove(serverInstanceId);
-            }
+            // AppContext 可能已随退出流程先销毁（那时实例表也一并没了）
+            if (AppContext.IsAlive) AppContext.Enemy.Unregister(this);
         }
 
         #endregion
 
         #region 服务端同步入口
 
-        /// 服务端生成敌人后，由 RemotePlayerManager 调用落地基础数据
+        /// 服务端生成敌人后，由 EnemyManager 调用落地基础数据并向实例表登记
         public void InitFromServer(int instanceId, float maxHp, float currHp, Vector3 pos)
         {
             _inited = true;
@@ -138,7 +133,7 @@ namespace HotUpdate.Enemy
             _targetPos = pos;
             _hasServerPos = true;
             transform.position = pos;
-            Instances[instanceId] = this;
+            AppContext.Enemy.Register(this);
             RefreshHealthUI();
         }
 
@@ -184,8 +179,7 @@ namespace HotUpdate.Enemy
                 cur.y,
                 Mathf.Lerp(cur.z, _targetPos.z, k));
 
-            Transform model = enemyModel != null ? enemyModel.transform : null;
-            if (model == null) return;
+            Transform model = enemyModel.transform;
 
             float rk = 1f - Mathf.Exp(-RotationLerpSpeed * Time.deltaTime);
             model.rotation = Quaternion.Slerp(model.rotation, Quaternion.Euler(0f, _targetYaw, 0f), rk);
@@ -221,7 +215,7 @@ namespace HotUpdate.Enemy
 
         #endregion
 
-        #region 受击 / 死亡（全部由服务端结算驱动）
+        #region 受击 / 死亡
 
         /// 服务端攻击结算回包（自己打的走回调，别人打的走广播）
         public void OnServerAttackResult(PlayerAttackRet ret)
@@ -259,7 +253,7 @@ namespace HotUpdate.Enemy
         // 按攻击者方位选前/后受击动画
         private void PlayHurtAnimation()
         {
-            PlayerCtrl player = Object.FindAnyObjectByType<PlayerCtrl>();
+            PlayerCtrl player = FindAnyObjectByType<PlayerCtrl>();
             if (player == null)
             {
                 PlayAnimation("HurtFront");
@@ -283,7 +277,7 @@ namespace HotUpdate.Enemy
         {
             if (currentState == EnemyStateType.Dead) return;
 
-            Instances.Remove(serverInstanceId);
+            AppContext.Enemy.Unregister(this);
             currentState = EnemyStateType.Dead;
             isCanPlayHurtAni = false;
             _animBlockUntil = 0f;
@@ -295,7 +289,7 @@ namespace HotUpdate.Enemy
             tag = "Untagged";
 
             PlayAnimation("Dead");
-            DOVirtual.DelayedCall(5f, () => { if (this != null) Destroy(gameObject); });
+            DOVirtual.DelayedCall(5f, () => { Destroy(gameObject); });
         }
 
         /// 敌人受击入口（IHurt）。血量只认服务端结算，这里不做本地扣血。
@@ -305,17 +299,26 @@ namespace HotUpdate.Enemy
 
         #endregion
 
-        #region 武器（敌人打玩家，纯本地表现）
+        #region 武器
 
-        public void OnHit(IHurt hurt, Vector3 hurtPos)
+        // ISkillOwner 契约：敌人武器的命中回调。旧链路（动画事件开武器碰撞盒 → OnTriggerStay 命中玩家）
+        // 已废弃 —— 敌人打中玩家改由服务端结算后广播，表现由 EnemyManager 调 PlayHitFeedback，
+        // 这里保留实现只为满足接口。
+        public void OnHit(IHurt hurt, Vector3 hurtPos) => PlayHitFeedback(hurtPos);
+
+        // 命中表现：只播特效与音效，不做任何扣血。hurtPos 由调用方算好（被击中者位置 + 胸口高度）。
+        public void PlayHitFeedback(Vector3 hurtPos)
         {
             if (hitData == null) return;
 
-            GameObject obj = Instantiate(hitData.hitPrefabs[0]);
-            obj.transform.position = hurtPos;
-            Destroy(obj, obj.GetComponent<ParticleSystem>().main.duration);
+            if (hitData.hitPrefabs is { Count: > 0 })
+            {
+                GameObject obj = Instantiate(hitData.hitPrefabs[0]);
+                obj.transform.position = hurtPos;
+                Destroy(obj, obj.GetComponent<ParticleSystem>().main.duration);
+            }
+
             AppContext.Sound.PlaySound(hitData.hitClip, hurtPos);
-            hurt.OnHurt(hitData, this);
         }
 
         #endregion

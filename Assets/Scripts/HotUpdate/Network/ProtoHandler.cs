@@ -36,6 +36,9 @@ namespace HotUpdate.Network
         public event Action<EnemyPositionSyncRet> OnEnemyPositionSyncReceived;
         public event Action<EnemySyncAniRet> OnEnemySyncAniReceived;
 
+        // 玩家受击广播（敌人攻击玩家，服务端结算）。场景内所有人都会收到，本地玩家据此更新血量。
+        public event Action<PlayerHurtNtf> OnPlayerHurtReceived;
+
         #endregion
 
         #region 回调存储
@@ -102,6 +105,7 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerVfxCode, OnPlayerVfxResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_EnemyPositionSyncCode, OnEnemyPosSyncResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_SyneEnemyAniCode, OnEnemyAniSyncResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerHurtCode, OnPlayerHurtResult);
         }
 
         // 由 GameManager.Update 每帧驱动
@@ -347,6 +351,21 @@ namespace HotUpdate.Network
             NetClientMgr.Instance.Send(NetDefine.CMD_BagInfoCode, req.ToByteString());
         }
 
+        /// <summary>
+        /// 上报玩家战斗属性。属性由客户端算（基础值 + 已装备驱动盘加成），但敌人攻击的伤害结算在服务端，
+        /// 所以要把血量上限与防御同步过去。进游戏时一次，之后每次属性重算（换装 / 升级）再报一次。
+        /// </summary>
+        public void RequestPlayerStats(float maxHp, float defense)
+        {
+            PlayerStatsNtf ntf = new PlayerStatsNtf
+            {
+                RoleId = AppContext.Session.RoleId,
+                MaxHp = maxHp,
+                Defense = defense
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_PlayerStatsCode, ntf.ToByteString());
+        }
+
         public void RequestCreateRoom(int roleId, string roomName, string nickname,
             Action<CreateRoomRet> callback)
         {
@@ -473,7 +492,7 @@ namespace HotUpdate.Network
             else
             {
                 // 服务端广播给其他人 → 直接生成敌人
-                AppContext.RemotePlayer.SpawnEnemy(ret);
+                AppContext.Enemy.SpawnEnemy(ret);
             }
         }
 
@@ -617,6 +636,13 @@ namespace HotUpdate.Network
             OnEnemySyncAniReceived?.Invoke(ret);
         }
 
+        private void OnPlayerHurtResult(ByteString data)
+        {
+            PlayerHurtNtf ntf = PlayerHurtNtf.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 玩家受击 roleId={ntf.RoleId} damage={ntf.Damage} hp={ntf.CurrHp}/{ntf.MaxHp} isDead={ntf.IsDead}");
+            OnPlayerHurtReceived?.Invoke(ntf);
+        }
+
         #endregion
 
         #region 位置同步 / 场景事件
@@ -674,6 +700,7 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerVfxCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_EnemyPositionSyncCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_SyneEnemyAniCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerHurtCode);
         }
     }
 }

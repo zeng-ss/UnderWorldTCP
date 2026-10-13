@@ -233,7 +233,7 @@ namespace HotUpdate.Manager
                 {
                     Vector3 pos = new Vector3(17, -1.6f, -30);
                     AppContext.Proto.RequestSpawnEnemy(AppContext.Session.RoleId, 1, 20000, pos,
-                        AppContext.RemotePlayer.SpawnEnemy);
+                        AppContext.Enemy.SpawnEnemy);
                 }
 
                 AppContext.Ui.ShowTip("有新任务了，快去完成吧~");

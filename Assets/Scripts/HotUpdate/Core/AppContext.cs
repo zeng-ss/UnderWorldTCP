@@ -1,4 +1,5 @@
 using HotUpdate.Data;
+using HotUpdate.Enemy;
 using HotUpdate.Event;
 using HotUpdate.Manager;
 using HotUpdate.Network;
@@ -45,6 +46,7 @@ namespace HotUpdate.Core
         private readonly SoundManager _sound;
         private readonly ProtoHandler _proto;
         private readonly RemotePlayerManager _remotePlayer;
+        private readonly EnemyManager _enemy;
 
         public static EventMgr Events => _current._events;
         public static UIAssetLoader UILoader => _current._uiLoader;
@@ -54,6 +56,7 @@ namespace HotUpdate.Core
         public static PoolMgr Pool => _current._pool;
         public static SoundManager Sound => _current._sound;
         public static RemotePlayerManager RemotePlayer => _current._remotePlayer;
+        public static EnemyManager Enemy => _current._enemy;
         public static ProtoHandler Proto => _current._proto;
 
         #endregion
@@ -71,6 +74,7 @@ namespace HotUpdate.Core
             _sound = new SoundManager();
             _proto = new ProtoHandler();
             _remotePlayer = new RemotePlayerManager();
+            _enemy = new EnemyManager();
 
             _session = new SessionService();
             _config = new ConfigService();
@@ -95,6 +99,7 @@ namespace HotUpdate.Core
             _sound.Init();
             _proto.Init();
             _remotePlayer.Init();
+            _enemy.Init();
 
             _config.Load();
             _material.Init(_config.Materials);
@@ -115,7 +120,9 @@ namespace HotUpdate.Core
             _resMgr.ReleaseAll();
             _proto.Clear();
             _remotePlayer.Clear();
+            _enemy.Clear();
             _pool.Clear();
+            _sound.Clear();
             _uiManager.ClearAllPanel();
             _uiLoader.ReleaseAll();
             _current = null;

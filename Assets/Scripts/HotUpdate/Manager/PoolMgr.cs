@@ -22,27 +22,49 @@ namespace HotUpdate.Manager
 
         public void PushObj(GameObject obj)
         {
+            if (obj == null) return; // 已销毁的对象不入池（Unity 的 == 重载能识别被 Destroy 的对象）
             obj.SetActive(false);
             _poolList.Add(obj);
-            obj.transform.parent = FatherObj.transform;
+            if (FatherObj != null) obj.transform.parent = FatherObj.transform;
         }
 
         public GameObject PopObj()
         {
-            if (_poolList.Count == 0) return null;
+            // 池里的对象可能在外部被销毁（最典型的是场景 Single 切换），
+            // 这类「空壳」直接跳过丢弃，否则访问它的 transform 会抛 MissingReferenceException。
+            while (_poolList.Count > 0)
+            {
+                int last = _poolList.Count - 1;
+                var obj = _poolList[last]; // 尾取 O(1)
+                _poolList.RemoveAt(last); // 尾删 O(1)
+                if (obj == null) continue;
 
-            var obj = _poolList[^1]; // 尾取 O(1)
-            _poolList.RemoveAt(_poolList.Count - 1); // 尾删 O(1)
-            obj.transform.parent = null;
-            obj.SetActive(true);
-            return obj;
+                obj.transform.parent = null;
+                obj.SetActive(true);
+                return obj;
+            }
+
+            return null;
         }
 
-        public int Count => _poolList.Count;
+        public int Count
+        {
+            get
+            {
+                // 顺手清掉空壳，让统计与「池子里还有没有货」的判断都准确
+                for (int i = _poolList.Count - 1; i >= 0; i--)
+                {
+                    if (_poolList[i] == null) _poolList.RemoveAt(i);
+                }
+
+                return _poolList.Count;
+            }
+        }
     }
 
     /// <summary>
-    /// 缓存池管理器。普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.Pool。
+    /// 缓存池管理器。纯 C# 类，不是 MonoBehaviour —— 由 AppContext 统一创建与持有，访问走 AppContext.Pool。
+    /// 池子根节点是 DontDestroyOnLoad 的，跨场景存活（见 CreateRoot）。
     /// </summary>
     public class PoolMgr
     {
@@ -54,10 +76,15 @@ namespace HotUpdate.Manager
         /// </summary>
         public void GetObj(string name, Action<GameObject> callback = null, string address = null)
         {
-            if (_poolDic.TryGetValue(name, out var poolData) && poolData.Count > 0)
+            if (_poolDic.TryGetValue(name, out var poolData))
             {
-                callback?.Invoke(poolData.PopObj());
-                return;
+                GameObject pooled = poolData.PopObj();
+                // PopObj 可能返回 null（池内对象都已被外部销毁），这时不能把 null 交给回调，直接走新加载
+                if (pooled != null)
+                {
+                    callback?.Invoke(pooled);
+                    return;
+                }
             }
 
             AppContext.Res.LoadAndInstantiateAsync(address, null, obj =>
@@ -79,13 +106,24 @@ namespace HotUpdate.Manager
                 return;
             }
 
-            if (_grandFatherObj == null)
-                _grandFatherObj = new GameObject("Pool");
+            if (_grandFatherObj == null) _grandFatherObj = CreateRoot();
 
             if (_poolDic.TryGetValue(name, out var poolData))
                 poolData.PushObj(obj);
             else
                 _poolDic.Add(name, new PoolData(obj, _grandFatherObj));
+        }
+
+        /// <summary>
+        /// 创建池子根节点。必须是 DontDestroyOnLoad 的持久对象：
+        /// 场景是 LoadSceneMode.Single 切换的，根节点若留在场景里会随旧场景被销毁，
+        /// 而 PoolMgr 挂在 AppContext（常驻）上，字典不会跟着清，于是池里全是空壳。
+        /// </summary>
+        private static GameObject CreateRoot()
+        {
+            var root = new GameObject("Pool");
+            GameObject.DontDestroyOnLoad(root);
+            return root;
         }
 
         /// <summary>

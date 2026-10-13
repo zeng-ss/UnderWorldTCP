@@ -76,6 +76,7 @@ namespace HotUpdate.Player
 
             InputHandler.Register();
             Combat.RegisterDataListener();
+            Combat.RegisterHurtListener();
             Combat.ApplyPlayerData(AppContext.PlayerData.Current.Value);
             AppContext.Proto.StartPositionSync(transform, AppContext.Session.RoleId, playerModel.transform);
         }
@@ -90,6 +91,7 @@ namespace HotUpdate.Player
         {
             InputHandler?.Unregister();
             Combat?.UnregisterDataListener();
+            Combat?.UnregisterHurtListener();
             if (AppContext.IsAlive) AppContext.Proto.StopPositionSync();
         }
 

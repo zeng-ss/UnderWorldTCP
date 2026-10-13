@@ -82,16 +82,11 @@ namespace HotUpdate.Service
         public void ApplyDriverDiskData(DriverDiskInfo info)
         {
             if (info == null) return;
-
-            var runtime = FindOwned(info.DriverDiskId);
+            var runtime = Owned.Find(v => v.DepotId == info.DriverDiskId);
             if (runtime == null) return;
-
             runtime.ApplyFrom(info);
             RefreshDepotPanel();
         }
-
-        /// <summary>按驱动盘模板 id 找已拥有的实例，没有返回 null</summary>
-        public DriverDiskDataRuntime FindOwned(int depotId) => Owned.Find(v => v.DepotId == depotId);
 
         private DriverDiskRow FindTemplate(int depotId) => _templates.GetValueOrDefault(depotId);
 
@@ -99,28 +94,23 @@ namespace HotUpdate.Service
 
         #region 装备 / 卸下
 
-        public bool IsEquipped(DriverDiskDataRuntime item)
-        {
-            return item != null && Equipped.Contains(item);
-        }
+        public bool IsEquipped(DriverDiskDataRuntime item) => item != null && Equipped.Contains(item);
 
-        /// <summary>落地「已装备」状态（服务端确认成功后才调用）</summary>
-        public bool Equip(DriverDiskDataRuntime item)
+        // 落地「已装备」状态
+        public void Equip(DriverDiskDataRuntime item)
         {
-            if (item == null || IsEquipped(item)) return false;
-            if (!Owned.Contains(item) || !HasFreeEquipSlot) return false;
+            if (item == null || IsEquipped(item)) return;
+            if (!Owned.Contains(item) || !HasFreeEquipSlot) return;
 
             Equipped.Add(item);
             NotifyEquippedChanged();
-            return true;
         }
 
         /// <summary>落地「卸下」状态（服务端确认成功后才调用）</summary>
-        public bool Unequip(DriverDiskDataRuntime item)
+        public void Unequip(DriverDiskDataRuntime item)
         {
-            if (item == null || !Equipped.Remove(item)) return false;
+            if (item == null || !Equipped.Remove(item)) return;
             NotifyEquippedChanged();
-            return true;
         }
 
         public void UnequipAll()
@@ -135,9 +125,8 @@ namespace HotUpdate.Service
         // 同模块 data→view：仓库列表变化直接通知仓库面板刷新；面板没开就跳过（下次 OnEnable 会重建）
         private void RefreshDepotPanel()
         {
-            _depotPanel = AppContext.Ui.GetPanel<DepotPanel>();
-            if (_depotPanel == null) return;
-            _depotPanel.Refresh();
+            _depotPanel ??= AppContext.Ui.GetPanel<DepotPanel>();
+            _depotPanel?.Refresh();
         }
 
         private void NotifyEquippedChanged()

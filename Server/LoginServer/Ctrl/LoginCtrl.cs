@@ -380,6 +380,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_BagInfoCode:
                 OnBagInfoHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_PlayerStatsCode:
+                OnPlayerStatsHandle(serverBase, basePackage);
+                break;
             case NetDefine.CMD_PositionSyncCode:
                 OnPositionSyncHandle(serverBase, basePackage);
                 break;
@@ -483,6 +486,15 @@ public class LoginCtrl : IContainer
         LogMsg.Info("[Login]收到背包拉取转发:" + req);
     }
 
+    // 玩家战斗属性上报（血量上限 / 防御）。属性算在客户端（基础值 + 已装备驱动盘加成），
+    // 但伤害结算在服务端，所以服务端要留一份。此处直接消费，不转发给 CenterServer。
+    private void OnPlayerStatsHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        PlayerStatsNtf ntf = PlayerStatsNtf.Parser.ParseFrom(basePackage.Data);
+        PlayerSceneMgr.Instance.SetPlayerStats(ntf.RoleId, ntf.MaxHp, ntf.Defense);
+        LogMsg.Info($"[Login]玩家属性上报: roleId={ntf.RoleId} maxHp={ntf.MaxHp} defense={ntf.Defense}");
+    }
+
     // 位置同步处理（LoginServer直接广播，不经过CenterServer）
     private void OnPositionSyncHandle(ServerBase serverBase, BasePackage basePackage)
     {
@@ -520,6 +532,9 @@ public class LoginCtrl : IContainer
         // 首次进入场景：通知其他玩家"有新玩家进入"，并告知新玩家已有的其他玩家
         if (isFirstSync)
         {
+            // 重新进入场景 = 复活（客户端没有独立的复活流程，重登 / 重连即回满血）
+            PlayerSceneMgr.Instance.ReviveOnEnter(roleId);
+
             // 1. 通知其他玩家有新玩家
             PlayerEnterSceneNtf enterNtf = new PlayerEnterSceneNtf
             {

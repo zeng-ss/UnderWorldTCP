@@ -262,4 +262,18 @@ message TaskProgressListRet{
   repeated TaskInfo task_list = 2; // 该角色全部任务（定义 + 进度，TaskInfo 定义在 RequestEntity.proto）
 }
 
+// ========== 玩家受击（敌人攻击玩家，服务端权威） ==========
+
+// 玩家受击广播（服务端 → 客户端）：敌人攻击命中玩家的唯一结算来源。
+// 客户端收到后只覆盖血量并播受击表现，不再自行做命中判定与扣血。
+// 广播范围是场景内所有人（含被打者自己），被打者据此更新血条 / 切受击死亡状态。
+message PlayerHurtNtf{
+  int32 role_id = 1;             // 被打的玩家
+  int32 enemy_instance_id = 2;   // 发起攻击的敌人实例（客户端据此取本地受击表现参数）
+  float damage = 3;              // 本次实际伤害（服务端已扣减防御）
+  float curr_hp = 4;             // 结算后的当前血量
+  float max_hp = 5;              // 血量上限
+  bool is_dead = 6;              // 本次是否致死
+}
+
 

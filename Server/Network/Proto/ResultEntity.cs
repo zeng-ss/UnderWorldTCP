@@ -109,12 +109,15 @@ public static partial class ResultEntityReflection {
           "CRIZChFlbmVteV9pbnN0YW5jZV9pZBgCIAEoBRINCgVzdGF0ZRgDIAEoBSIt",
           "Cg9UYXNrUHJvZ3Jlc3NSZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2Rl",
           "Ik8KE1Rhc2tQcm9ncmVzc0xpc3RSZXQSGgoIY21kX2NvZGUYASABKA4yCC5D",
-          "bWRDb2RlEhwKCXRhc2tfbGlzdBgCIAMoCzIJLlRhc2tJbmZvKt8BCgdDbWRD",
-          "b2RlEgsKB1N1Y2NlZWQQABINCglBY2N0RXhpc3QQARIPCgtTZXJ2ZXJFcnJv",
-          "chACEhAKDEFjY3ROb3RFeGlzdBADEhEKDVBhc3N3b3JkRXJyb3IQBBIPCgtB",
-          "Y2N0RGlzYWJsZRAFEhEKDVJlcVBhcmFtRXJyb3IQBhIRCg1OaWNrbmFtZUV4",
-          "aXN0EAcSEgoOVXNlck5hbWVJbGVnYWwQCBISCg5wYXNzd29yZElsZWdhbBAK",
-          "EhAKDFJvbGVOb3RFeGlzdBALEhEKDUVuZW15Tm90RXhpc3QQDGIGcHJvdG8z"));
+          "bWRDb2RlEhwKCXRhc2tfbGlzdBgCIAMoCzIJLlRhc2tJbmZvIn0KDVBsYXll",
+          "ckh1cnROdGYSDwoHcm9sZV9pZBgBIAEoBRIZChFlbmVteV9pbnN0YW5jZV9p",
+          "ZBgCIAEoBRIOCgZkYW1hZ2UYAyABKAISDwoHY3Vycl9ocBgEIAEoAhIOCgZt",
+          "YXhfaHAYBSABKAISDwoHaXNfZGVhZBgGIAEoCCrfAQoHQ21kQ29kZRILCgdT",
+          "dWNjZWVkEAASDQoJQWNjdEV4aXN0EAESDwoLU2VydmVyRXJyb3IQAhIQCgxB",
+          "Y2N0Tm90RXhpc3QQAxIRCg1QYXNzd29yZEVycm9yEAQSDwoLQWNjdERpc2Fi",
+          "bGUQBRIRCg1SZXFQYXJhbUVycm9yEAYSEQoNTmlja25hbWVFeGlzdBAHEhIK",
+          "DlVzZXJOYW1lSWxlZ2FsEAgSEgoOcGFzc3dvcmRJbGVnYWwQChIQCgxSb2xl",
+          "Tm90RXhpc3QQCxIRCg1FbmVteU5vdEV4aXN0EAxiBnByb3RvMw=="));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { global::RequestEntityReflection.Descriptor, },
         new pbr::GeneratedClrTypeInfo(new[] {typeof(global::CmdCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -151,7 +154,8 @@ public static partial class ResultEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::EnemyPositionSyncRet), global::EnemyPositionSyncRet.Parser, new[]{ "EnemyInstanceId", "PosX", "PosY", "PosZ", "RotationY" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::EnemySyncAniRet), global::EnemySyncAniRet.Parser, new[]{ "AnimationName", "EnemyInstanceId", "State" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressRet), global::TaskProgressRet.Parser, new[]{ "CmdCode" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressListRet), global::TaskProgressListRet.Parser, new[]{ "CmdCode", "TaskList" }, null, null, null, null)
+          new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressListRet), global::TaskProgressListRet.Parser, new[]{ "CmdCode", "TaskList" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::PlayerHurtNtf), global::PlayerHurtNtf.Parser, new[]{ "RoleId", "EnemyInstanceId", "Damage", "CurrHp", "MaxHp", "IsDead" }, null, null, null, null)
         }));
   }
   #endregion
@@ -10465,6 +10469,412 @@ public sealed partial class TaskProgressListRet : pb::IMessage<TaskProgressListR
         }
         case 18: {
           taskList_.AddEntriesFrom(ref input, _repeated_taskList_codec);
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+/// <summary>
+/// 玩家受击广播（服务端 → 客户端）：敌人攻击命中玩家的唯一结算来源。
+/// 客户端收到后只覆盖血量并播受击表现，不再自行做命中判定与扣血。
+/// 广播范围是场景内所有人（含被打者自己），被打者据此更新血条 / 切受击死亡状态。
+/// </summary>
+[global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+public sealed partial class PlayerHurtNtf : pb::IMessage<PlayerHurtNtf>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<PlayerHurtNtf> _parser = new pb::MessageParser<PlayerHurtNtf>(() => new PlayerHurtNtf());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pb::MessageParser<PlayerHurtNtf> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[34]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public PlayerHurtNtf() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public PlayerHurtNtf(PlayerHurtNtf other) : this() {
+    roleId_ = other.roleId_;
+    enemyInstanceId_ = other.enemyInstanceId_;
+    damage_ = other.damage_;
+    currHp_ = other.currHp_;
+    maxHp_ = other.maxHp_;
+    isDead_ = other.isDead_;
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public PlayerHurtNtf Clone() {
+    return new PlayerHurtNtf(this);
+  }
+
+  /// <summary>Field number for the "role_id" field.</summary>
+  public const int RoleIdFieldNumber = 1;
+  private int roleId_;
+  /// <summary>
+  /// 被打的玩家
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int RoleId {
+    get { return roleId_; }
+    set {
+      roleId_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "enemy_instance_id" field.</summary>
+  public const int EnemyInstanceIdFieldNumber = 2;
+  private int enemyInstanceId_;
+  /// <summary>
+  /// 发起攻击的敌人实例（客户端据此取本地受击表现参数）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int EnemyInstanceId {
+    get { return enemyInstanceId_; }
+    set {
+      enemyInstanceId_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "damage" field.</summary>
+  public const int DamageFieldNumber = 3;
+  private float damage_;
+  /// <summary>
+  /// 本次实际伤害（服务端已扣减防御）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public float Damage {
+    get { return damage_; }
+    set {
+      damage_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "curr_hp" field.</summary>
+  public const int CurrHpFieldNumber = 4;
+  private float currHp_;
+  /// <summary>
+  /// 结算后的当前血量
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public float CurrHp {
+    get { return currHp_; }
+    set {
+      currHp_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "max_hp" field.</summary>
+  public const int MaxHpFieldNumber = 5;
+  private float maxHp_;
+  /// <summary>
+  /// 血量上限
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public float MaxHp {
+    get { return maxHp_; }
+    set {
+      maxHp_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "is_dead" field.</summary>
+  public const int IsDeadFieldNumber = 6;
+  private bool isDead_;
+  /// <summary>
+  /// 本次是否致死
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool IsDead {
+    get { return isDead_; }
+    set {
+      isDead_ = value;
+    }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override bool Equals(object other) {
+    return Equals(other as PlayerHurtNtf);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equals(PlayerHurtNtf other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (RoleId != other.RoleId) return false;
+    if (EnemyInstanceId != other.EnemyInstanceId) return false;
+    if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(Damage, other.Damage)) return false;
+    if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(CurrHp, other.CurrHp)) return false;
+    if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(MaxHp, other.MaxHp)) return false;
+    if (IsDead != other.IsDead) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (RoleId != 0) hash ^= RoleId.GetHashCode();
+    if (EnemyInstanceId != 0) hash ^= EnemyInstanceId.GetHashCode();
+    if (Damage != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(Damage);
+    if (CurrHp != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(CurrHp);
+    if (MaxHp != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(MaxHp);
+    if (IsDead != false) hash ^= IsDead.GetHashCode();
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (RoleId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(RoleId);
+    }
+    if (EnemyInstanceId != 0) {
+      output.WriteRawTag(16);
+      output.WriteInt32(EnemyInstanceId);
+    }
+    if (Damage != 0F) {
+      output.WriteRawTag(29);
+      output.WriteFloat(Damage);
+    }
+    if (CurrHp != 0F) {
+      output.WriteRawTag(37);
+      output.WriteFloat(CurrHp);
+    }
+    if (MaxHp != 0F) {
+      output.WriteRawTag(45);
+      output.WriteFloat(MaxHp);
+    }
+    if (IsDead != false) {
+      output.WriteRawTag(48);
+      output.WriteBool(IsDead);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (RoleId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(RoleId);
+    }
+    if (EnemyInstanceId != 0) {
+      output.WriteRawTag(16);
+      output.WriteInt32(EnemyInstanceId);
+    }
+    if (Damage != 0F) {
+      output.WriteRawTag(29);
+      output.WriteFloat(Damage);
+    }
+    if (CurrHp != 0F) {
+      output.WriteRawTag(37);
+      output.WriteFloat(CurrHp);
+    }
+    if (MaxHp != 0F) {
+      output.WriteRawTag(45);
+      output.WriteFloat(MaxHp);
+    }
+    if (IsDead != false) {
+      output.WriteRawTag(48);
+      output.WriteBool(IsDead);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CalculateSize() {
+    int size = 0;
+    if (RoleId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(RoleId);
+    }
+    if (EnemyInstanceId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(EnemyInstanceId);
+    }
+    if (Damage != 0F) {
+      size += 1 + 4;
+    }
+    if (CurrHp != 0F) {
+      size += 1 + 4;
+    }
+    if (MaxHp != 0F) {
+      size += 1 + 4;
+    }
+    if (IsDead != false) {
+      size += 1 + 1;
+    }
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(PlayerHurtNtf other) {
+    if (other == null) {
+      return;
+    }
+    if (other.RoleId != 0) {
+      RoleId = other.RoleId;
+    }
+    if (other.EnemyInstanceId != 0) {
+      EnemyInstanceId = other.EnemyInstanceId;
+    }
+    if (other.Damage != 0F) {
+      Damage = other.Damage;
+    }
+    if (other.CurrHp != 0F) {
+      CurrHp = other.CurrHp;
+    }
+    if (other.MaxHp != 0F) {
+      MaxHp = other.MaxHp;
+    }
+    if (other.IsDead != false) {
+      IsDead = other.IsDead;
+    }
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          RoleId = input.ReadInt32();
+          break;
+        }
+        case 16: {
+          EnemyInstanceId = input.ReadInt32();
+          break;
+        }
+        case 29: {
+          Damage = input.ReadFloat();
+          break;
+        }
+        case 37: {
+          CurrHp = input.ReadFloat();
+          break;
+        }
+        case 45: {
+          MaxHp = input.ReadFloat();
+          break;
+        }
+        case 48: {
+          IsDead = input.ReadBool();
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          RoleId = input.ReadInt32();
+          break;
+        }
+        case 16: {
+          EnemyInstanceId = input.ReadInt32();
+          break;
+        }
+        case 29: {
+          Damage = input.ReadFloat();
+          break;
+        }
+        case 37: {
+          CurrHp = input.ReadFloat();
+          break;
+        }
+        case 45: {
+          MaxHp = input.ReadFloat();
+          break;
+        }
+        case 48: {
+          IsDead = input.ReadBool();
           break;
         }
       }
