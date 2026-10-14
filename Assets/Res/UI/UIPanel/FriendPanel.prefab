@@ -1164,7 +1164,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ScrollRect
-  m_Content: {fileID: 0}
+  m_Content: {fileID: 5676202958342249756}
   m_Horizontal: 0
   m_Vertical: 1
   m_MovementType: 2
@@ -2785,7 +2785,7 @@ GameObject:
   - component: {fileID: 4354180509049031605}
   - component: {fileID: 5761799334696871380}
   m_Layer: 0
-  m_Name: content
+  m_Name: Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

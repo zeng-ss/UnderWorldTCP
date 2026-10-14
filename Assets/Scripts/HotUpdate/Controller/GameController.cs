@@ -82,8 +82,17 @@ namespace HotUpdate.Controller
 
         private void TogglePlayerDataPanel()
         {
-            _playerDataPanel ??= AppContext.Ui.GetPanel<PlayerDataPanel>();
-            if (_playerDataPanel.isAnimating) return;
+            if (_playerDataPanel == null) _playerDataPanel = AppContext.Ui.GetPanel<PlayerDataPanel>();
+            if (_playerDataPanel == null)
+            {
+                // 首次按 B，面板还没加载过，直接打开
+                AppContext.Ui.OpenPanel<PlayerDataPanel>();
+                return;
+            }
+
+            // 打开动画途中忽略（避免动画没播完就被关掉）；正在关闭时允许重新打开
+            if (_playerDataPanel.isAnimating && !_playerDataPanel.IsClosing) return;
+
             if (!_playerDataPanel.gameObject.activeInHierarchy) AppContext.Ui.OpenPanel<PlayerDataPanel>();
             else AppContext.Ui.ClosePanel<PlayerDataPanel>();
         }

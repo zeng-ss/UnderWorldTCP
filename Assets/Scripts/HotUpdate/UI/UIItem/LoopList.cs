@@ -103,6 +103,11 @@ namespace HotUpdate.UI.UIItem
             }
 
             RefreshVisibleItems();
+
+            // RefreshVisibleItems 只会「新建」缺失下标的 item，已经在可视范围内的下标会被直接跳过，
+            // 但数据本身可能已经变了（例如好友申请被同意后，同一下标从「申请」变成「好友」）。
+            // 所以这里再整体重填一次，保证「数量不变、内容变了」的情况也能正确刷新。
+            RefreshItems();
         }
 
         /// <summary>数据没变、但需要重画当前可视项时调用（例如选中态变化、在线状态刷新）</summary>
@@ -217,7 +222,8 @@ namespace HotUpdate.UI.UIItem
         {
             foreach (var kv in _activeItems)
             {
-                if (kv.Value != null) kv.Value.SetActive(false);
+                if (kv.Value == null) continue;
+                kv.Value.SetActive(false);
                 _recyclePool.Push(kv.Value);
             }
 

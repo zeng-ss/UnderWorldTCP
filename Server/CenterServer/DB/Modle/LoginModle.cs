@@ -1123,7 +1123,11 @@ public class LoginModle
             Content = req.Content,
             SendTime = now
         };
-        int id = _db.Insertable(msg).ExecuteCommand();
+        // 取自增主键必须用 ExecuteReturnIdentity()：
+        // ExecuteCommand() 返回的是「受影响行数」（插入成功恒为 1），拿它当 id 会让每条消息的
+        // Id 都变成 1 —— 客户端按 Id 去重（实时推送可能先到）时，第 2 条起会被全部当成重复丢掉，
+        // 表现就是「服务端已落库，但发送方本地不生成气泡」（接收方的实时推送同理）。
+        int id = _db.Insertable(msg).ExecuteReturnIdentity();
         if (id <= 0)
         {
             ret.CmdCode = CmdCode.ServerError;

@@ -48,12 +48,14 @@ namespace HotUpdate.UI.UIItem
         }
 
         // 同意 / 拒绝一条申请：处理完重新与服务端对齐（申请消失，同意的变成好友）
+        // 失败也要重拉：这条申请可能是「已经被处理过」的陈旧 UI（例如上一次同意后列表没刷新），
+        // 重拉一次能让界面自动纠正回真实状态。
         private void OnHandleRequest(int fromRoleId, bool accept, Action refresh)
         {
             _friendService?.RequestHandleFriend(fromRoleId, accept, (ok, tip) =>
             {
                 AppContext.Ui.ShowTip(tip);
-                if (ok) _friendService?.RequestFriendList(refresh);
+                _friendService?.RequestFriendList(refresh);
             });
         }
 

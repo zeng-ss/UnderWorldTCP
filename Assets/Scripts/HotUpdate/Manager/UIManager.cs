@@ -87,7 +87,8 @@ namespace HotUpdate.Manager
         public void TogglePanel<T>() where T : BasePanel
         {
             T panel = GetPanel<T>();
-            if (panel == null || !panel.gameObject.activeInHierarchy)
+            // 正在播关闭动画的面板视作「已关」：再按一次应该重新打开，而不是把关动画重播一遍
+            if (panel == null || panel.IsClosing || !panel.gameObject.activeInHierarchy)
             {
                 OpenPanel<T>();
                 AppContext.Events.EventTrigger(GameEvent.CursorShow);
@@ -125,6 +126,9 @@ namespace HotUpdate.Manager
 
         private void DoClosePanel(string path, BasePanel panel)
         {
+            // Hide 会先播关闭动画、动画结束才 SetActive(false)；
+            // reparent 与解锁照旧立即执行（_currentPanel 与 Canvas 根都是全屏拉伸且 pivot 一致，
+            // 带 worldPositionStays=false 换父节点不会让动画中的面板位移 / 缩放跳变）
             panel.Hide();
             panel.transform.SetParent(Canvas.transform, false);
             PopInputLock(path);
@@ -143,7 +147,8 @@ namespace HotUpdate.Manager
 
         public void ClearAllPanel()
         {
-            foreach (var kv in _uiPanelDict) kv.Value.Hide();
+            // 整体清理（退出游戏 / 卸载资源）不需要动画，直接立即隐藏
+            foreach (var kv in _uiPanelDict) kv.Value.HideImmediate();
         }
 
         /// <summary>
