@@ -9,6 +9,9 @@ namespace HotUpdate.UI.UIPanel
     [PanelPath("ExitPanel")]
     public class ExitPanel : BasePanel
     {
+        // 面板自带打开动画（OnEnable 里从上方 DOLocalMove 滑入），关掉通用打开动画
+        protected override PanelTween.Config? AnimConfig => PanelTween.Config.None;
+
         public Button yesBtn;
         public Button noBtn;
         private Vector3 _startPos = new(0, 840, 0);

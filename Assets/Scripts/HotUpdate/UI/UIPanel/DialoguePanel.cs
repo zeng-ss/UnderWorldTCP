@@ -12,6 +12,9 @@ namespace HotUpdate.UI.UIPanel
     [PanelPath("DialoguePanel")]
     public class DialoguePanel : BasePanel
     {
+        // 面板自带打开动画（OnEnable 里 DOScale 弹出），关掉通用打开动画，避免两套动画抢 scale
+        protected override PanelTween.Config? AnimConfig => PanelTween.Config.None;
+
         #region 数据
 
         [Header("对话控制器")] public DialogueController dialogueController;

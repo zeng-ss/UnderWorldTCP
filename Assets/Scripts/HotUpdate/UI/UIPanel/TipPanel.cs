@@ -10,6 +10,9 @@ namespace HotUpdate.UI.UIPanel
     [PanelPath("TipPanel")]
     public class TipPanel : BasePanel
     {
+        // 面板自带淡入淡出（ShowTip 里直接驱动 CanvasGroup），关掉通用打开动画避免抢 alpha
+        protected override PanelTween.Config? AnimConfig => PanelTween.Config.None;
+
         public TMP_Text tipText;
         public CanvasGroup canvasGroup;
         [HideInInspector] public float showTime = 1f;

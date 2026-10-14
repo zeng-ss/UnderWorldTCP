@@ -12,6 +12,9 @@ namespace HotUpdate.UI.UIPanel
     [PanelPath("TaskPanel")]
     public class TaskPanel : BasePanel
     {
+        // 面板自带打开动画（OnEnable 里卷轴式 ScaleY + 淡入），关掉通用打开动画
+        protected override PanelTween.Config? AnimConfig => PanelTween.Config.None;
+
         private TaskController _taskController;
         [Header("任务面板UI组件")] public Transform taskContent; // 任务项父物体
 
