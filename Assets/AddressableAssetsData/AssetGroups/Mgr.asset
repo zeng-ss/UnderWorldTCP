@@ -15,11 +15,6 @@ MonoBehaviour:
   m_GroupName: Mgr
   m_GUID: 04ee2f52c882f6f4c9bb7a85997a66a9
   m_SerializeEntries:
-  - m_GUID: 32bff15ea8be21e4898274e50c65f110
-    m_Address: LobbyController
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 379ee9d0e1634134cad7f0ae80fa0eb9
     m_Address: GameController
     m_ReadOnly: 0

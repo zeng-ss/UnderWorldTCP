@@ -13,12 +13,20 @@ MonoBehaviour:
   m_Name: UIItem
   m_EditorClassIdentifier: 
   m_GroupName: UIItem
-  m_Data:
-    m_SerializedData: []
   m_GUID: 3be7b7adfcab09845ab3769a9e1fd73f
   m_SerializeEntries:
+  - m_GUID: 1cdb7dc8ea5260345b7bbca6e9b28dc9
+    m_Address: FriendItem
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 24dfba8563bc31a4c811cd84a2e87e7d
     m_Address: ChatRootLeft
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 5e1c572c64dcf57438e2cb2f0afa8dc9
+    m_Address: RoomListItem
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -32,8 +40,8 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a5f24d3e39099c9448a701b2335cdd9c
-    m_Address: PlayerRoomItem
+  - m_GUID: 9aea4f0b1ff70af4ba49e147f117bc52
+    m_Address: RoomPlayerItem
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -58,3 +66,8 @@ MonoBehaviour:
     m_Schemas:
     - {fileID: 11400000, guid: 5dffec6043ff86240bcf5940c7841a9e, type: 2}
     - {fileID: 11400000, guid: 7222f3f2fd98d7143a105145309235a0, type: 2}
+    m_SchemaDisplayOrder:
+    - UIItem_BundledAssetGroupSchema
+    - UIItem_ContentUpdateGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

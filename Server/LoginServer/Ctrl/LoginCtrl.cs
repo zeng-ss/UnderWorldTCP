@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Google.Protobuf;
 
 public class LoginCtrl : IContainer
@@ -62,6 +63,21 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_BagInfoCode:
                 OnBagInfoResultHandle(session, basePackage);
                 break;
+            case NetDefine.CMD_FriendListCode:
+                OnFriendListResultHandle(session, basePackage);
+                break;
+            case NetDefine.CMD_AddFriendCode:
+                OnAddFriendResultHandle(session, basePackage);
+                break;
+            case NetDefine.CMD_HandleFriendCode:
+                OnHandleFriendResultHandle(session, basePackage);
+                break;
+            case NetDefine.CMD_SendFriendMsgCode:
+                OnSendFriendMsgResultHandle(session, basePackage);
+                break;
+            case NetDefine.CMD_FriendHistoryCode:
+                OnFriendHistoryResultHandle(session, basePackage);
+                break;
             default:
                 LogMsg.Info("[LoginCtrl]中心服务器发过来的结果的请求码没有注册");
                 break;
@@ -97,6 +113,107 @@ public class LoginCtrl : IContainer
 
         LogMsg.Info("[Login]背包拉取结果: 驱动盘=" + ret.DriverDiskMap.Count + " 材料=" + ret.MaterialMap.Count);
         session.SendData(basePackage);
+    }
+
+    // 好友列表返回：补充每个好友的在线状态后透传
+    private void OnFriendListResultHandle(Session session, BasePackage basePackage)
+    {
+        FriendListRet ret = FriendListRet.Parser.ParseFrom(basePackage.Data);
+        if (ret.CmdCode != CmdCode.Succeed)
+        {
+            session.SendError(basePackage, ret.CmdCode);
+            return;
+        }
+
+        // 补充在线状态：LoginServer 的 PlayerSceneMgr 维护着「进入过场景」的玩家，
+        // 用它来近似在线判断（进入过场景且未离开即视为在线）。
+        foreach (FriendInfo info in ret.Friends)
+        {
+            info.IsOnline = GetSessionIdByRole(info.RoleId) > 0;
+        }
+
+        // 待处理申请里的角色同样补一次，保持两个列表的字段口径一致（UI 目前不展示）
+        foreach (FriendInfo info in ret.Applies)
+        {
+            info.IsOnline = GetSessionIdByRole(info.RoleId) > 0;
+        }
+
+        LogMsg.Info("[Login]好友列表结果: 好友数=" + ret.Friends.Count + " 待处理申请=" + ret.Applies.Count);
+        session.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 添加好友返回：成功则实时通知被申请者（若在线）
+    private void OnAddFriendResultHandle(Session session, BasePackage basePackage)
+    {
+        AddFriendRet ret = AddFriendRet.Parser.ParseFrom(basePackage.Data);
+        // 失败也原样透传，客户端拿 Tip 弹提示（不用 SendError，避免回调悬挂）
+        session.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+
+        if (ret.CmdCode != CmdCode.Succeed) return;
+
+        int targetSessionId = GetSessionIdByRole(ret.ToRoleId);
+        if (targetSessionId <= 0) return;
+
+        FriendApplyNtf ntf = new FriendApplyNtf
+        {
+            FromRoleId = ret.FromRoleId,
+            FromNickname = ret.FromNickname
+        };
+        BasePackage push = new BasePackage
+            { ProtoCode = NetDefine.CMD_FriendApplyNtfCode, Data = ntf.ToByteString() };
+        SessionMgr.Instance.GetSession(targetSessionId)?.SendData(push);
+        LogMsg.Info("[Login]好友申请实时通知: 申请者=" + ret.FromNickname + " -> roleId=" + ret.ToRoleId);
+    }
+
+    // 处理好友申请返回：透传
+    private void OnHandleFriendResultHandle(Session session, BasePackage basePackage)
+    {
+        HandleFriendRet ret = HandleFriendRet.Parser.ParseFrom(basePackage.Data);
+        session.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+        LogMsg.Info("[Login]处理好友申请结果:" + ret.CmdCode);
+    }
+
+    // 发送私聊返回：透传给发送者，并把消息实时推送给接收者（若在线）
+    private void OnSendFriendMsgResultHandle(Session session, BasePackage basePackage)
+    {
+        SendFriendMsgRet ret = SendFriendMsgRet.Parser.ParseFrom(basePackage.Data);
+        // 原样透传（含完整消息 id / 时间），客户端据此回填本地
+        session.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+
+        if (ret.CmdCode != CmdCode.Succeed || ret.Message == null) return;
+
+        int receiverId = ret.Message.ReceiverRoleId;
+        int targetSessionId = GetSessionIdByRole(receiverId);
+        if (targetSessionId <= 0) return; // 接收者离线，等下次拉历史
+
+        FriendMsgPushNtf ntf = new FriendMsgPushNtf { Message = ret.Message };
+        BasePackage push = new BasePackage
+            { ProtoCode = NetDefine.CMD_FriendMsgPushCode, Data = ntf.ToByteString() };
+        SessionMgr.Instance.GetSession(targetSessionId)?.SendData(push);
+        LogMsg.Info("[Login]私聊消息实时推送: " + ret.Message.SenderRoleId + " -> " + receiverId);
+    }
+
+    // 聊天记录返回：透传
+    private void OnFriendHistoryResultHandle(Session session, BasePackage basePackage)
+    {
+        FriendHistoryRet ret = FriendHistoryRet.Parser.ParseFrom(basePackage.Data);
+        if (ret.CmdCode != CmdCode.Succeed)
+        {
+            session.SendError(basePackage, ret.CmdCode);
+            return;
+        }
+
+        LogMsg.Info("[Login]聊天记录结果: 条数=" + ret.Messages.Count);
+        session.SendData(basePackage);
+    }
+
+    // 通过 roleId 找在线 sessionId（进入过场景即视为在线）
+    private int GetSessionIdByRole(int roleId)
+    {
+        // PlayerSceneMgr 维护 roleId → sessionId（进入场景时写入）
+        Dictionary<int, PlayerSceneInfo> players = PlayerSceneMgr.Instance.GetAllPlayers();
+        if (players.TryGetValue(roleId, out PlayerSceneInfo info)) return info.SessionId;
+        return 0;
     }
 
     private void OnGetRewardResultHandle(Session session, BasePackage basePackage)
@@ -380,6 +497,21 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_BagInfoCode:
                 OnBagInfoHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_FriendListCode:
+                OnFriendListHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_AddFriendCode:
+                OnAddFriendHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_HandleFriendCode:
+                OnHandleFriendHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_SendFriendMsgCode:
+                OnSendFriendMsgHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_FriendHistoryCode:
+                OnFriendHistoryHandle(serverBase, basePackage);
+                break;
             case NetDefine.CMD_PlayerStatsCode:
                 OnPlayerStatsHandle(serverBase, basePackage);
                 break;
@@ -391,6 +523,12 @@ public class LoginCtrl : IContainer
                 break;
             case NetDefine.CMD_JoinRoomCode:
                 OnJoinRoomHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_RoomListCode:
+                OnRoomListHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_RoomChatCode:
+                OnRoomChatHandle(serverBase, basePackage);
                 break;
             case NetDefine.CMD_LeaveRoomCode:
                 OnLeaveRoomHandle(serverBase, basePackage);
@@ -484,6 +622,46 @@ public class LoginCtrl : IContainer
         BagInfoReq req = BagInfoReq.Parser.ParseFrom(basePackage.Data);
         serverBase._Client.SendData(basePackage);
         LogMsg.Info("[Login]收到背包拉取转发:" + req);
+    }
+
+    // 好友列表拉取转发（透传 CenterServer）
+    private void OnFriendListHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        FriendListReq req = FriendListReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到好友列表转发: roleId=" + req.RoleId);
+    }
+
+    // 添加好友转发
+    private void OnAddFriendHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        AddFriendReq req = AddFriendReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到添加好友转发: " + req.FromRoleId + " -> " + req.ToRoleId);
+    }
+
+    // 处理好友申请转发
+    private void OnHandleFriendHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        HandleFriendReq req = HandleFriendReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到处理好友申请转发: roleId=" + req.RoleId);
+    }
+
+    // 发送私聊消息转发
+    private void OnSendFriendMsgHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        SendFriendMsgReq req = SendFriendMsgReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到私聊消息转发: " + req.SenderRoleId + " -> " + req.ReceiverRoleId);
+    }
+
+    // 聊天记录拉取转发
+    private void OnFriendHistoryHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        FriendHistoryReq req = FriendHistoryReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到聊天记录转发: roleId=" + req.RoleId);
     }
 
     // 玩家战斗属性上报（血量上限 / 防御）。属性算在客户端（基础值 + 已装备驱动盘加成），
@@ -599,12 +777,41 @@ public class LoginCtrl : IContainer
         }
     }
 
-    // 离开房间
+    // 拉取房间列表（房间只存在于 LoginServer 内存，直接本地返回，不经过 CenterServer）
+    private void OnRoomListHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        RoomListReq req = RoomListReq.Parser.ParseFrom(basePackage.Data);
+        if (!(serverBase is Session session)) return;
+
+        RoomListRet ret = new RoomListRet { CmdCode = CmdCode.Succeed };
+        ret.Rooms.AddRange(RoomMgr.Instance.GetRoomList());
+
+        session.SendData(basePackage, NetDefine.CMD_RoomListCode, ret.ToByteString());
+        LogMsg.Info($"[Login]房间列表结果: roleId={req.RoleId} 房间数={ret.Rooms.Count}");
+    }
+
+    // 房间内聊天：服务端补昵称与时间后广播给房间内所有人（含发送者）
+    private void OnRoomChatHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        RoomChatReq req = RoomChatReq.Parser.ParseFrom(basePackage.Data);
+        bool ok = RoomMgr.Instance.BroadcastChat(req.RoleId, req.Content);
+        LogMsg.Info($"[Login]房间聊天: roleId={req.RoleId} ok={ok}");
+    }
+
+    // 离开房间：先离开再回包，客户端据此关闭房间界面
     private void OnLeaveRoomHandle(ServerBase serverBase, BasePackage basePackage)
     {
         LeaveRoomReq req = LeaveRoomReq.Parser.ParseFrom(basePackage.Data);
-        RoomMgr.Instance.LeaveRoom(req.RoleId);
-        LogMsg.Info($"[Login]离开房间: roleId={req.RoleId}");
+        if (!(serverBase is Session session)) return;
+
+        bool ok = RoomMgr.Instance.LeaveRoom(req.RoleId);
+        LeaveRoomRet ret = new LeaveRoomRet
+        {
+            CmdCode = ok ? CmdCode.Succeed : CmdCode.ReqParamError,
+            Tip = ok ? "" : "你当前不在任何房间"
+        };
+        session.SendData(basePackage, NetDefine.CMD_LeaveRoomCode, ret.ToByteString());
+        LogMsg.Info($"[Login]离开房间: roleId={req.RoleId} ok={ok}");
     }
 
     // 玩家切换准备状态：更新后由 RoomMgr 广播 RoomInfoNtf 给房间所有人

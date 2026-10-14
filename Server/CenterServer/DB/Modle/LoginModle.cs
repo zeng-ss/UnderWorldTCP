@@ -945,4 +945,266 @@ public class LoginModle
     }
 
     #endregion
+
+    #region 好友系统
+
+    /// <summary>每个玩家对最多保留的私聊消息条数</summary>
+    private const int MaxFriendMsgPerPair = 100;
+
+    /// <summary>
+    /// 拉取好友列表（status==1 且与当前角色相关）。
+    /// 好友昵称从 role 表查询；is_online 由 LoginServer 转发回包时补充（DB 层不知道在线状态）。
+    /// </summary>
+    public FriendListRet GetFriendList(FriendListReq req)
+    {
+        FriendListRet ret = new FriendListRet();
+        if (req.RoleId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        List<FriendRelation> relations = _db.Queryable<FriendRelation>()
+            .Where(v => v.Status == 1 && (v.FromRoleId == req.RoleId || v.ToRoleId == req.RoleId))
+            .ToList();
+
+        foreach (FriendRelation rel in relations)
+        {
+            int friendId = rel.FromRoleId == req.RoleId ? rel.ToRoleId : rel.FromRoleId;
+            RoleTable friend = _db.Queryable<RoleTable>().Where(v => v.Id == friendId).First();
+            ret.Friends.Add(new FriendInfo
+            {
+                RoleId = friendId,
+                Nickname = friend != null ? friend.NickName : ("Player" + friendId),
+                IsOnline = false // 由 LoginServer 转发时按在线状态覆盖
+            });
+        }
+
+        // 待处理申请：别人向我发起、我还没处理（status==0 且 to == 我）。
+        // 不能只靠 FriendApplyNtf 实时推送 —— 我不在线时推送直接丢掉且无法补，
+        // 所以每次拉列表都把待处理申请一并带回，客户端打开面板就能看到。
+        List<FriendRelation> applies = _db.Queryable<FriendRelation>()
+            .Where(v => v.Status == 0 && v.ToRoleId == req.RoleId)
+            .ToList();
+
+        foreach (FriendRelation rel in applies)
+        {
+            RoleTable applicant = _db.Queryable<RoleTable>().Where(v => v.Id == rel.FromRoleId).First();
+            ret.Applies.Add(new FriendInfo
+            {
+                RoleId = rel.FromRoleId,
+                Nickname = applicant != null ? applicant.NickName : ("Player" + rel.FromRoleId),
+                IsOnline = false // 申请项不展示在线状态，仅保持字段一致
+            });
+        }
+
+        ret.CmdCode = CmdCode.Succeed;
+        return ret;
+    }
+
+    /// <summary>
+    /// 添加好友：from 向 to 发起申请（status=0）。幂等保护与防重复：
+    /// ① to 不存在 → 报错；② 已存在 from→to 或 to→from 的 status<=1 记录 → 已是好友 / 重复申请。
+    /// </summary>
+    public AddFriendRet AddFriend(AddFriendReq req)
+    {
+        AddFriendRet ret = new AddFriendRet();
+        if (req.FromRoleId <= 0 || req.ToRoleId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "参数错误";
+            return ret;
+        }
+
+        if (req.FromRoleId == req.ToRoleId)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "不能添加自己为好友";
+            return ret;
+        }
+
+        RoleTable target = _db.Queryable<RoleTable>().Where(v => v.Id == req.ToRoleId).First();
+        if (target == null)
+        {
+            ret.CmdCode = CmdCode.RoleNotExist;
+            ret.Tip = "对方不存在";
+            return ret;
+        }
+
+        // 已存在正向或反向的有效关系（待处理 / 已同意）
+        bool exists = _db.Queryable<FriendRelation>()
+            .Where(v => v.Status <= 1 &&
+                        ((v.FromRoleId == req.FromRoleId && v.ToRoleId == req.ToRoleId) ||
+                         (v.FromRoleId == req.ToRoleId && v.ToRoleId == req.FromRoleId)))
+            .Any();
+        if (exists)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "你们已经是好友或已有待处理申请";
+            return ret;
+        }
+
+        _db.Insertable(new FriendRelation
+        {
+            FromRoleId = req.FromRoleId,
+            ToRoleId = req.ToRoleId,
+            Status = 0,
+            CreateDate = DateTime.Now,
+            UpdateDate = DateTime.Now
+        }).ExecuteCommand();
+
+        ret.CmdCode = CmdCode.Succeed;
+        ret.FromRoleId = req.FromRoleId;
+        ret.ToRoleId = req.ToRoleId;
+        ret.ToNickname = target.NickName;
+        // 申请者昵称（供推送通知展示）
+        RoleTable from = _db.Queryable<RoleTable>().Where(v => v.Id == req.FromRoleId).First();
+        ret.FromNickname = from != null ? from.NickName : ("Player" + req.FromRoleId);
+        return ret;
+    }
+
+    /// <summary>
+    /// 处理好友申请：同意 → 该条 status 置 1（成为好友）；拒绝 → 置 2。
+    /// 返回处理结果，同时带上被处理申请的申请者昵称，供 LoginServer 推送通知。
+    /// </summary>
+    public HandleFriendRet HandleFriend(HandleFriendReq req)
+    {
+        HandleFriendRet ret = new HandleFriendRet();
+        if (req.RoleId <= 0 || req.TargetRoleId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "参数错误";
+            return ret;
+        }
+
+        // 申请方向固定为 target(申请者) → role(处理者)
+        FriendRelation rel = _db.Queryable<FriendRelation>()
+            .Where(v => v.FromRoleId == req.TargetRoleId && v.ToRoleId == req.RoleId && v.Status == 0)
+            .First();
+        if (rel == null)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            ret.Tip = "申请不存在或已处理";
+            return ret;
+        }
+
+        rel.Status = req.Accept ? 1 : 2;
+        rel.UpdateDate = DateTime.Now;
+        _db.Updateable(rel).ExecuteCommand();
+
+        ret.CmdCode = CmdCode.Succeed;
+        return ret;
+    }
+
+    /// <summary>
+    /// 发送私聊消息：落库（带发送时间），并把该玩家对的消息裁剪到最多 100 条。
+    /// 返回完整消息（含自增 id 与格式化时间）给发送者。
+    /// </summary>
+    public SendFriendMsgRet SendFriendMsg(SendFriendMsgReq req)
+    {
+        SendFriendMsgRet ret = new SendFriendMsgRet();
+        if (req.SenderRoleId <= 0 || req.ReceiverRoleId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        if (string.IsNullOrEmpty(req.Content))
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        DateTime now = DateTime.Now;
+        FriendMessage msg = new FriendMessage
+        {
+            SenderRoleId = req.SenderRoleId,
+            ReceiverRoleId = req.ReceiverRoleId,
+            Content = req.Content,
+            SendTime = now
+        };
+        int id = _db.Insertable(msg).ExecuteCommand();
+        if (id <= 0)
+        {
+            ret.CmdCode = CmdCode.ServerError;
+            return ret;
+        }
+
+        msg.Id = id;
+        TrimFriendMessages(req.SenderRoleId, req.ReceiverRoleId);
+
+        ret.Message = ToFriendMsg(msg);
+        ret.CmdCode = CmdCode.Succeed;
+        return ret;
+    }
+
+    /// <summary>
+    /// 拉取与某好友的最近聊天记录（升序，最多 100 条）。
+    /// </summary>
+    public FriendHistoryRet GetFriendHistory(FriendHistoryReq req)
+    {
+        FriendHistoryRet ret = new FriendHistoryRet();
+        if (req.RoleId <= 0 || req.FriendRoleId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        int a = req.RoleId;
+        int b = req.FriendRoleId;
+        List<FriendMessage> list = _db.Queryable<FriendMessage>()
+            .Where(v => (v.SenderRoleId == a && v.ReceiverRoleId == b) ||
+                        (v.SenderRoleId == b && v.ReceiverRoleId == a))
+            .OrderBy(v => v.Id, OrderByType.Desc)
+            .Take(MaxFriendMsgPerPair)
+            .ToList();
+
+        // 倒序取出后反转为时间升序，方便客户端直接按顺序渲染
+        list.Reverse();
+        foreach (FriendMessage m in list)
+        {
+            ret.Messages.Add(ToFriendMsg(m));
+        }
+
+        ret.CmdCode = CmdCode.Succeed;
+        return ret;
+    }
+
+    /// <summary>裁剪某玩家对的私聊消息到上限（保留最新 N 条）。</summary>
+    private void TrimFriendMessages(int roleA, int roleB)
+    {
+        int count = _db.Queryable<FriendMessage>()
+            .Where(v => (v.SenderRoleId == roleA && v.ReceiverRoleId == roleB) ||
+                        (v.SenderRoleId == roleB && v.ReceiverRoleId == roleA))
+            .Count();
+        if (count <= MaxFriendMsgPerPair) return;
+
+        // 找出该玩家对里最旧的 (count - 100) 条，删除
+        List<FriendMessage> oldest = _db.Queryable<FriendMessage>()
+            .Where(v => (v.SenderRoleId == roleA && v.ReceiverRoleId == roleB) ||
+                        (v.SenderRoleId == roleB && v.ReceiverRoleId == roleA))
+            .OrderBy(v => v.Id, OrderByType.Asc)
+            .Take(count - MaxFriendMsgPerPair)
+            .ToList();
+
+        foreach (FriendMessage m in oldest)
+        {
+            _db.Deleteable<FriendMessage>().Where(v => v.Id == m.Id).ExecuteCommand();
+        }
+    }
+
+    /// <summary>DB 消息 → 协议消息（时间格式化为 HH:mm:ss）</summary>
+    private static FriendMsg ToFriendMsg(FriendMessage m)
+    {
+        return new FriendMsg
+        {
+            Id = m.Id,
+            SenderRoleId = m.SenderRoleId,
+            ReceiverRoleId = m.ReceiverRoleId,
+            Content = m.Content,
+            SendTime = m.SendTime.ToString("HH:mm:ss")
+        };
+    }
+
+    #endregion
 }

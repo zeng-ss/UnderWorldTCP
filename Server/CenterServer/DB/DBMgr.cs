@@ -21,7 +21,7 @@ namespace CenterServer.DB
             db.DbMaintenance.CreateDatabase();
             //建表 用户信息表  服务器信息表    
             db.CodeFirst.InitTables(typeof(AccountTable), typeof(GameServerTable), typeof(RoleTable),
-                typeof(RoleBagInfo), typeof(RoleTaskProgress));
+                typeof(RoleBagInfo), typeof(RoleTaskProgress), typeof(FriendRelation), typeof(FriendMessage));
 
 
             //给服务器信息表添加一个默认数据 这里就模拟创建20个服务器信息 

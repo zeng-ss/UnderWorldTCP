@@ -41,8 +41,15 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_LeaveRoomCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_RoomStartGameCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PlayerReadyCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_RoomListCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_RoomChatCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SyneAniCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PlayerVfxCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_FriendListCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_AddFriendCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_HandleFriendCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_SendFriendMsgCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_FriendHistoryCode, loginCtrl);
 
             client.RegistCommand(NetDefine.CMD_RegistCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_LoginCode, loginCtrl);
@@ -60,6 +67,11 @@ namespace LoginServer
             client.RegistCommand(NetDefine.CMD_DriverDiskUpgradeCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_DriverDiskEquipCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_BagInfoCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_FriendListCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_AddFriendCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_HandleFriendCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_SendFriendMsgCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_FriendHistoryCode, loginCtrl);
 
             // new Timer(_ =>
             // {

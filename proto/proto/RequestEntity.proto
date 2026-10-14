@@ -166,6 +166,17 @@ message PlayerReadyReq{
   bool is_ready = 2;
 }
 
+// 拉取房间列表请求（由 LoginServer 从内存直接返回）
+message RoomListReq{
+  int32 role_id = 1;
+}
+
+// 房间内聊天请求（服务端补上昵称与时间后广播给房间内所有人）
+message RoomChatReq{
+  int32 role_id = 1;
+  string content = 2;
+}
+
 message SyncAniReq{
   int32 role_id = 1;
   string animation_name = 2;
@@ -218,4 +229,39 @@ message PlayerStatsNtf{
   int32 role_id = 1;
   float max_hp = 2;    // 血量上限
   float defense = 3;   // 防御值（服务端按 defense / 10 减伤）
+}
+
+// ========== 好友系统 ==========
+
+// 拉取好友列表请求
+message FriendListReq{
+  int32 role_id = 1;
+}
+
+// 添加好友请求（from 向 to 发起申请）
+message AddFriendReq{
+  int32 from_role_id = 1;
+  int32 to_role_id = 2;
+}
+
+// 处理好友申请请求（同意 / 拒绝）
+message HandleFriendReq{
+  int32 role_id = 1;        // 处理者（即申请里的 to_role_id）
+  int32 target_role_id = 2; // 申请者（即申请里的 from_role_id）
+  bool accept = 3;          // true=同意 false=拒绝
+}
+
+// ========== 好友私聊 ==========
+
+// 发送私聊消息请求
+message SendFriendMsgReq{
+  int32 sender_role_id = 1;
+  int32 receiver_role_id = 2;
+  string content = 3;
+}
+
+// 拉取与某好友的最近聊天记录请求（服务端最多返回 100 条）
+message FriendHistoryReq{
+  int32 role_id = 1;
+  int32 friend_role_id = 2;
 }

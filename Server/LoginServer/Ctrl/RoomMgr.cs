@@ -4,10 +4,13 @@ using System.Linq;
 using Google.Protobuf;
 
 /// <summary>
-/// 房间管理器（LoginServer内存管理）
+/// 房间管理器（房间只存在 LoginServer 内存里，不落库；进程重启即清空）
 /// </summary>
 public class RoomMgr : Singleton<RoomMgr>
 {
+    // 单个房间的人数上限
+    public const int MaxPlayer = 4;
+
     private int _nextRoomId = 1;
     private Dictionary<int, Room> _rooms = new Dictionary<int, Room>();
     private Dictionary<int, int> _playerRoom = new Dictionary<int, int>();
@@ -26,7 +29,7 @@ public class RoomMgr : Singleton<RoomMgr>
         Room room = new Room
         {
             RoomId = roomId,
-            RoomName = roomName,
+            RoomName = string.IsNullOrEmpty(roomName) ? (nickname + "的房间") : roomName,
             MasterRoleId = roleId,
             State = RoomState.Waiting
         };
@@ -66,6 +69,11 @@ public class RoomMgr : Singleton<RoomMgr>
             LogMsg.Info($"[RoomMgr]玩家：{roleId} 加入的房间：{roleId} 已经开始游戏了", ConsoleColor.Red);
             return new JoinRoomRet { CmdCode = CmdCode.ServerError };
         }
+        if (room.Players.Count >= room.MaxPlayer)
+        {
+            LogMsg.Info($"[RoomMgr]玩家：{roleId} 加入的房间：{roomId} 人数已满", ConsoleColor.Red);
+            return new JoinRoomRet { CmdCode = CmdCode.ServerError };
+        }
 
         room.Players.Add(new RoomPlayerData
         {
@@ -86,10 +94,14 @@ public class RoomMgr : Singleton<RoomMgr>
         return ret;
     }
 
-    public void LeaveRoom(int roleId)
+    /// <summary>
+    /// 离开房间（房主离开会移交给下一位玩家；最后一人离开则解散房间）。
+    /// 返回是否真的离开了某个房间。
+    /// </summary>
+    public bool LeaveRoom(int roleId)
     {
-        if (!_playerRoom.TryGetValue(roleId, out int roomId)) return;
-        if (!_rooms.TryGetValue(roomId, out Room room)) return;
+        if (!_playerRoom.TryGetValue(roleId, out int roomId)) return false;
+        if (!_rooms.TryGetValue(roomId, out Room room)) return false;
 
         var player = room.Players.Find(p => p.RoleId == roleId);
         if (player != null) _sessionRole.Remove(player.SessionId);
@@ -110,8 +122,11 @@ public class RoomMgr : Singleton<RoomMgr>
                 room.MasterRoleId = room.Players[0].RoleId;
                 room.Players[0].IsMaster = true;
             }
+            // 新加入的玩家默认未准备，房主交接后也要重置，避免残留准备态
             BroadcastRoomInfo(room);
         }
+
+        return true;
     }
 
     /// <summary>
@@ -167,6 +182,61 @@ public class RoomMgr : Singleton<RoomMgr>
         return CmdCode.Succeed;
     }
 
+    /// <summary>
+    /// 获取所有房间的摘要（房间列表面板用）。按房间 id 升序，方便客户端稳定展示。
+    /// </summary>
+    public List<RoomSummary> GetRoomList()
+    {
+        List<RoomSummary> list = new List<RoomSummary>();
+        foreach (Room room in _rooms.Values.OrderBy(r => r.RoomId))
+        {
+            RoomPlayerData master = room.Players.Find(p => p.RoleId == room.MasterRoleId);
+            list.Add(new RoomSummary
+            {
+                RoomId = room.RoomId,
+                RoomName = room.RoomName,
+                MasterRoleId = room.MasterRoleId,
+                MasterNickname = master != null ? master.Nickname : "",
+                PlayerCount = room.Players.Count,
+                MaxPlayer = room.MaxPlayer,
+                State = (int)room.State
+            });
+        }
+
+        return list;
+    }
+
+    /// <summary>
+    /// 房间内聊天：服务端补上发送者昵称与时间后广播给房间内所有人（含发送者自己）。
+    /// 发送者不在任何房间则忽略。
+    /// </summary>
+    public bool BroadcastChat(int roleId, string content)
+    {
+        Room room = GetRoomByRoleId(roleId);
+        if (room == null || string.IsNullOrEmpty(content)) return false;
+
+        RoomPlayerData sender = room.Players.Find(p => p.RoleId == roleId);
+        if (sender == null) return false;
+
+        RoomChatNtf ntf = new RoomChatNtf
+        {
+            RoomId = room.RoomId,
+            Message = new RoomChatMsg
+            {
+                SenderRoleId = roleId,
+                SenderNickname = sender.Nickname,
+                Content = content,
+                SendTime = DateTime.Now.ToString("HH:mm:ss")
+            }
+        };
+
+        BasePackage pkg = new BasePackage { ProtoCode = NetDefine.CMD_RoomChatNtfCode, Data = ntf.ToByteString() };
+        foreach (var p in room.Players)
+            SessionMgr.Instance.GetSession(p.SessionId)?.SendData(pkg);
+
+        return true;
+    }
+
     private Room GetRoomByRoleId(int roleId)
     {
         if (_playerRoom.TryGetValue(roleId, out int roomId))
@@ -176,7 +246,6 @@ public class RoomMgr : Singleton<RoomMgr>
         }
         return null;
     }
-
     /// <summary>
     /// 获取同一房间的所有 sessionId（用于广播）
     /// </summary>
@@ -210,6 +279,7 @@ public class Room
     public string RoomName;
     public int MasterRoleId;
     public RoomState State;
+    public int MaxPlayer = RoomMgr.MaxPlayer;
     public List<RoomPlayerData> Players = new List<RoomPlayerData>();
 }
 

@@ -74,7 +74,8 @@ namespace HotUpdate.Manager
             switch (sceneName)
             {
                 case "LobbyScene":
-                    AppContext.Res.LoadAndInstantiateAsync("LobbyController");
+                    // 大厅 = 房间面板（由 UIManager 统一打开，无需场景里摆预制体）
+                    AppContext.Ui.OpenPanel<RoomPanel>();
                     break;
                 case "GameScene":
                     // 首次访问会自动创建并注册位置同步网络事件；同时清理上一局残留

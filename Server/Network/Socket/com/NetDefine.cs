@@ -31,6 +31,9 @@
     public const ushort CMD_RoomStartGameCode = 11180; // 房主开始游戏
     public const ushort CMD_RoomInfoCode = 11190; // 房间信息广播通知
     public const ushort CMD_PlayerReadyCode = 11200; // 玩家准备状态切换
+    public const ushort CMD_RoomListCode = 11201; // 拉取房间列表（LoginServer 内存返回）
+    public const ushort CMD_RoomChatCode = 11202; // 房间内聊天（发送）
+    public const ushort CMD_RoomChatNtfCode = 11203; // 房间聊天广播（服务端→房间内所有人）
     public const ushort CMD_SyneAniCode = 11210;
     public const ushort CMD_PlayerVfxCode = 11230;
     public const ushort CMD_SyneEnemyAniCode = 11240;
@@ -42,6 +45,15 @@
     public const ushort CMD_BagInfoCode = 11300; // 背包信息拉取
     public const ushort CMD_PlayerHurtCode = 11310; // 玩家受击广播（敌人攻击，服务端权威结算）
     public const ushort CMD_PlayerStatsCode = 11320; // 玩家战斗属性上报（血量上限 / 防御）
+
+    // ========== 好友系统 ==========
+    public const ushort CMD_FriendListCode = 11400; // 拉取好友列表
+    public const ushort CMD_AddFriendCode = 11410; // 添加好友申请
+    public const ushort CMD_HandleFriendCode = 11420; // 处理好友申请（同意/拒绝）
+    public const ushort CMD_SendFriendMsgCode = 11430; // 发送私聊消息
+    public const ushort CMD_FriendHistoryCode = 11440; // 拉取聊天记录
+    public const ushort CMD_FriendApplyNtfCode = 11450; // 好友申请实时通知（服务端→客户端）
+    public const ushort CMD_FriendMsgPushCode = 11460; // 私聊消息实时推送（服务端→客户端）
 
     // ========== 服务端逻辑帧 ==========
 

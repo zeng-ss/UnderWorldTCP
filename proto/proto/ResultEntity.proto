@@ -221,6 +221,43 @@ message RoomStartGameNtf{
   int32 map_id = 2;
 }
 
+// 房间摘要（房间列表项）
+message RoomSummary{
+  int32 room_id = 1;
+  string room_name = 2;
+  int32 master_role_id = 3;     // 房主角色 id
+  string master_nickname = 4;   // 房主昵称
+  int32 player_count = 5;       // 当前人数
+  int32 max_player = 6;         // 人数上限
+  int32 state = 7;              // 0=等待中 1=游戏中
+}
+
+// 房间列表回包
+message RoomListRet{
+  CmdCode cmd_code = 1;
+  repeated RoomSummary rooms = 2;
+}
+
+// 离开房间回包（离开成功后客户端关闭房间界面）
+message LeaveRoomRet{
+  CmdCode cmd_code = 1;
+  string tip = 2;
+}
+
+// 房间内聊天消息
+message RoomChatMsg{
+  int32 sender_role_id = 1;
+  string sender_nickname = 2;
+  string content = 3;
+  string send_time = 4;
+}
+
+// 房间聊天广播（服务端 → 房间内所有人，含发送者自己）
+message RoomChatNtf{
+  int32 room_id = 1;
+  RoomChatMsg message = 2;
+}
+
 message SyncAniRet{
   string animation_name = 1;
   int32 role_id = 2;
@@ -274,6 +311,72 @@ message PlayerHurtNtf{
   float curr_hp = 4;             // 结算后的当前血量
   float max_hp = 5;              // 血量上限
   bool is_dead = 6;              // 本次是否致死
+}
+
+// ========== 好友系统 ==========
+
+// 好友信息（好友列表项）
+message FriendInfo{
+  int32 role_id = 1;      // 好友的角色 id
+  string nickname = 2;    // 好友昵称
+  bool is_online = 3;     // 是否在线（由 LoginServer 在线状态填充）
+}
+
+// 拉取好友列表回包
+message FriendListRet{
+  CmdCode cmd_code = 1;
+  repeated FriendInfo friends = 2;
+  repeated FriendInfo applies = 3;  // 别人向我发起、我尚未处理的申请（role_id/nickname 都是申请者）
+}
+
+// 添加好友回包
+message AddFriendRet{
+  CmdCode cmd_code = 1;
+  string tip = 2;         // 失败提示（对方不存在 / 已是好友 / 重复申请等），成功为空
+  int32 from_role_id = 3; // 申请者角色 id（成功时填充，供 LoginServer 实时推送）
+  int32 to_role_id = 4;   // 被申请者角色 id（同上）
+  string from_nickname = 5; // 申请者昵称（推送通知展示用）
+  string to_nickname = 6; // 被申请者昵称
+}
+
+// 处理好友申请回包
+message HandleFriendRet{
+  CmdCode cmd_code = 1;
+  string tip = 2;
+}
+
+// 好友申请实时通知（服务端 → 被申请者）。被申请者在线时实时推送，用于刷新申请列表 / 弹提示。
+message FriendApplyNtf{
+  int32 from_role_id = 1;    // 申请者
+  string from_nickname = 2;  // 申请者昵称
+}
+
+// ========== 好友私聊 ==========
+
+// 单条私聊消息
+message FriendMsg{
+  int32 id = 1;               // 数据库自增 id（客户端据此去重 / 排序）
+  int32 sender_role_id = 2;   // 发送者
+  int32 receiver_role_id = 3; // 接收者
+  string content = 4;         // 消息内容
+  string send_time = 5;       // 发送时间（"HH:mm:ss" 或完整时间，由服务端格式化）
+}
+
+// 发送私聊回包（服务端落库后回给发送者，带完整消息信息与自增 id）
+message SendFriendMsgRet{
+  CmdCode cmd_code = 1;
+  FriendMsg message = 2;
+}
+
+// 拉取聊天记录回包（按时间升序，最多 100 条）
+message FriendHistoryRet{
+  CmdCode cmd_code = 1;
+  repeated FriendMsg messages = 2;
+}
+
+// 私聊消息实时推送（服务端 → 接收者）。接收者在线时实时推送，离线则等下次拉历史时看到。
+message FriendMsgPushNtf{
+  FriendMsg message = 1;
 }
 
 

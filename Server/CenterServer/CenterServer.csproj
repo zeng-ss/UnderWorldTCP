@@ -101,6 +101,8 @@
     <Compile Include="DB\ItemCatalog.cs" />
     <Compile Include="DB\Modle\LoginModle.cs" />
     <Compile Include="DB\Table\AccountTable.cs" />
+    <Compile Include="DB\Table\FriendMessage.cs" />
+    <Compile Include="DB\Table\FriendRelation.cs" />
     <Compile Include="DB\Table\GameServerTable.cs" />
     <Compile Include="DB\Table\RoleBagInfo.cs" />
     <Compile Include="DB\Table\RoleTable.cs" />

@@ -30,10 +30,11 @@ public class Session : ServerBase
     /// </summary>
     protected override void HandleCommand(BasePackage basePackage)
     {
-        IContainer container = _cmdDic[basePackage.ProtoCode];
-        if (container == null)
+        // 必须用 TryGetValue：索引器取不到会抛 KeyNotFoundException，
+        // 而该异常会被 OnReceiveCB 的 catch 当成网络错误把玩家踢下线（踩过坑）。
+        if (!_cmdDic.TryGetValue(basePackage.ProtoCode, out IContainer container) || container == null)
         {
-            LogMsg.Info("command not regist..");
+            LogMsg.Info($"[Session]未注册的请求码: {basePackage.ProtoCode}", ConsoleColor.Red);
             return;
         }
 

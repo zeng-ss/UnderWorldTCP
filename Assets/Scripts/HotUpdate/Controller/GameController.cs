@@ -23,6 +23,7 @@ namespace HotUpdate.Controller
             InputManager.Instance.RegisterKeyDown(KeyCode.C, ToggleChatPanel);
             InputManager.Instance.RegisterKeyDown(KeyCode.V, ToggleDepotPanel);
             InputManager.Instance.RegisterKeyDown(KeyCode.B, TogglePlayerDataPanel);
+            InputManager.Instance.RegisterKeyDown(KeyCode.G, ToggleFriendPanel);
 
             // 预加载任务面板，避免首次按 Tab 时才加载造成卡顿
             AppContext.Ui.OpenPanel<TaskPanel>(_ => AppContext.Ui.ClosePanel<TaskPanel>());
@@ -37,6 +38,7 @@ namespace HotUpdate.Controller
             InputManager.Instance.UnregisterKeyDown(KeyCode.C, ToggleChatPanel);
             InputManager.Instance.UnregisterKeyDown(KeyCode.V, ToggleDepotPanel);
             InputManager.Instance.UnregisterKeyDown(KeyCode.B, TogglePlayerDataPanel);
+            InputManager.Instance.UnregisterKeyDown(KeyCode.G, ToggleFriendPanel);
         }
 
         #region 光标
@@ -84,6 +86,11 @@ namespace HotUpdate.Controller
             if (_playerDataPanel.isAnimating) return;
             if (!_playerDataPanel.gameObject.activeInHierarchy) AppContext.Ui.OpenPanel<PlayerDataPanel>();
             else AppContext.Ui.ClosePanel<PlayerDataPanel>();
+        }
+
+        private void ToggleFriendPanel()
+        {
+            AppContext.Ui.TogglePanel<FriendPanel>();
         }
 
         #endregion

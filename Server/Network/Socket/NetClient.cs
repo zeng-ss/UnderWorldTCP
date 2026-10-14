@@ -95,10 +95,9 @@ public class NetClient : ServerBase
             return;
         }
 
-        IContainer container = _cmdDic[basePackage.ProtoCode];
-        if (container == null)
+        if (!_cmdDic.TryGetValue(basePackage.ProtoCode, out IContainer container) || container == null)
         {
-            LogMsg.Info("command not regist..");
+            LogMsg.Info($"[NetClient]未注册的请求码: {basePackage.ProtoCode}", ConsoleColor.Red);
             return;
         }
 

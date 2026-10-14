@@ -59,7 +59,9 @@ public class ServerBase
                         {
                             BasePackage basePackage = BasePackage.Parser.ParseFrom(data);
                             //Console.WriteLine("basePackage::" + basePackage.ToString());
-                            HandleCommand(basePackage);
+                            // 单条消息的处理异常必须就地吃掉：否则会被外层 catch 当成网络故障，
+                            // 把一个没在 Program.cs 注册的协议码变成「玩家被踢下线」（踩过坑）。
+                            SafeHandleCommand(basePackage);
                         }
 
                         len -= msgLen + 2;
@@ -85,6 +87,19 @@ public class ServerBase
 
     protected virtual void HandleCommand(BasePackage basePackage)
     {
+    }
+
+    // 分发单条消息：任何处理异常只记日志，不向上抛（上层 catch 会断开连接）
+    private void SafeHandleCommand(BasePackage basePackage)
+    {
+        try
+        {
+            HandleCommand(basePackage);
+        }
+        catch (Exception ex)
+        {
+            LogMsg.Info($"[Net]处理协议 {basePackage?.ProtoCode} 出错: {ex.Message}", ConsoleColor.Red);
+        }
     }
 
     public virtual void Disconnect()

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Google.Protobuf;
 using HotUpdate.Data;
+using HotUpdate.UI.UIPanel;
 using UnityEngine;
 using AppContext = HotUpdate.Core.AppContext;
 
@@ -9,7 +10,6 @@ namespace HotUpdate.Network
 {
     /// <summary>
     /// 协议处理层：统一管理请求发送、响应处理、事件广播。
-    /// 普通 MonoBehaviour，不再自己当单例 —— 由 AppContext 统一创建与持有，访问走 AppContext.Proto。
     /// </summary>
     public class ProtoHandler
     {
@@ -28,8 +28,6 @@ namespace HotUpdate.Network
         public event Action<PositionSyncNtf> OnPositionSyncReceived;
         public event Action<PlayerEnterSceneNtf> OnPlayerEnterScene;
         public event Action<PlayerLeaveSceneNtf> OnPlayerLeaveScene;
-        public event Action<RoomInfoNtf> OnRoomInfoChanged;
-        public event Action<RoomStartGameNtf> OnRoomStartGame;
         public event Action<PlayerAttackRet> OnPlayerAttackBroadcast;
         public event Action<SyncAniRet> OnSyncAniReceived;
         public event Action<PlayerVfxNtf> OnPlayerVfxReceived;
@@ -38,6 +36,7 @@ namespace HotUpdate.Network
 
         // 玩家受击广播（敌人攻击玩家，服务端结算）。场景内所有人都会收到，本地玩家据此更新血量。
         public event Action<PlayerHurtNtf> OnPlayerHurtReceived;
+        public event Action<FriendMsgPushNtf> OnServerPushMessageReceived;
 
         #endregion
 
@@ -62,6 +61,14 @@ namespace HotUpdate.Network
         private Action<BagInfoRet> _bagInfoCallback;
         private Action<CreateRoomRet> _createRoomCallback;
         private Action<JoinRoomRet> _joinRoomCallback;
+        private Action<RoomListRet> _roomListCallback;
+        private Action<LeaveRoomRet> _leaveRoomCallback;
+        private Action<FriendListRet> _friendListCallback;
+        private Action<AddFriendRet> _addFriendCallback;
+        private Action<HandleFriendRet> _handleFriendCallback;
+        private Action<SendFriendMsgRet> _sendFriendMsgCallback;
+        private Action<FriendHistoryRet> _friendHistoryCallback;
+        private Action<RoomChatNtf> _roomChatCallback;
 
         #endregion
 
@@ -95,8 +102,11 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_BagInfoCode, OnBagInfoResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoomCode, OnCreateRoomResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_JoinRoomCode, OnJoinRoomResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_RoomListCode, OnRoomListResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_LeaveRoomCode, OnLeaveRoomResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_RoomInfoCode, OnRoomInfoNtf);
             AppContext.Events.AddNetHandler(NetDefine.CMD_RoomStartGameCode, OnRoomStartGameNtf);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_RoomChatNtfCode, OnRoomChatNtf);
             AppContext.Events.AddNetHandler(NetDefine.CMD_ErrCode, OnErrorResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_PositionSyncCode, OnPositionSync);
             AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerEnterSceneCode, OnPlayerEnterSceneEvent);
@@ -106,6 +116,13 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_EnemyPositionSyncCode, OnEnemyPosSyncResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_SyneEnemyAniCode, OnEnemyAniSyncResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerHurtCode, OnPlayerHurtResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_FriendListCode, OnFriendListResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_AddFriendCode, OnAddFriendResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_HandleFriendCode, OnHandleFriendResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_SendFriendMsgCode, OnSendFriendMsgResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_FriendHistoryCode, OnFriendHistoryResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_FriendApplyNtfCode, OnFriendApplyNtf);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_FriendMsgPushCode, OnFriendMsgPushNtf);
         }
 
         // 由 GameManager.Update 每帧驱动
@@ -351,6 +368,60 @@ namespace HotUpdate.Network
             NetClientMgr.Instance.Send(NetDefine.CMD_BagInfoCode, req.ToByteString());
         }
 
+        /// <summary>拉取好友列表</summary>
+        public void RequestFriendList(Action<FriendListRet> callback)
+        {
+            _friendListCallback = callback;
+            FriendListReq req = new FriendListReq { RoleId = AppContext.Session.RoleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_FriendListCode, req.ToByteString());
+        }
+
+        /// <summary>发起好友申请</summary>
+        public void RequestAddFriend(int fromRoleId, int toRoleId, Action<AddFriendRet> callback)
+        {
+            _addFriendCallback = callback;
+            AddFriendReq req = new AddFriendReq { FromRoleId = fromRoleId, ToRoleId = toRoleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_AddFriendCode, req.ToByteString());
+        }
+
+        /// <summary>处理好友申请（同意/拒绝）</summary>
+        public void RequestHandleFriend(int roleId, int targetRoleId, bool accept, Action<HandleFriendRet> callback)
+        {
+            _handleFriendCallback = callback;
+            HandleFriendReq req = new HandleFriendReq
+            {
+                RoleId = roleId,
+                TargetRoleId = targetRoleId,
+                Accept = accept
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_HandleFriendCode, req.ToByteString());
+        }
+
+        /// <summary>发送私聊消息</summary>
+        public void RequestSendFriendMsg(int receiverRoleId, string content, Action<SendFriendMsgRet> callback)
+        {
+            _sendFriendMsgCallback = callback;
+            SendFriendMsgReq req = new SendFriendMsgReq
+            {
+                SenderRoleId = AppContext.Session.RoleId,
+                ReceiverRoleId = receiverRoleId,
+                Content = content
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_SendFriendMsgCode, req.ToByteString());
+        }
+
+        /// <summary>拉取与某好友的聊天记录（最多 100 条）</summary>
+        public void RequestFriendHistory(int friendRoleId, Action<FriendHistoryRet> callback)
+        {
+            _friendHistoryCallback = callback;
+            FriendHistoryReq req = new FriendHistoryReq
+            {
+                RoleId = AppContext.Session.RoleId,
+                FriendRoleId = friendRoleId
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_FriendHistoryCode, req.ToByteString());
+        }
+
         /// <summary>
         /// 上报玩家战斗属性。属性由客户端算（基础值 + 已装备驱动盘加成），但敌人攻击的伤害结算在服务端，
         /// 所以要把血量上限与防御同步过去。进游戏时一次，之后每次属性重算（换装 / 升级）再报一次。
@@ -392,10 +463,28 @@ namespace HotUpdate.Network
             NetClientMgr.Instance.Send(NetDefine.CMD_JoinRoomCode, req.ToByteString());
         }
 
-        public void RequestLeaveRoom(int roleId)
+        /// <summary>拉取房间列表（房间在 LoginServer 内存里，本地直接返回）</summary>
+        public void RequestRoomList(Action<RoomListRet> callback)
         {
+            _roomListCallback = callback;
+            RoomListReq req = new RoomListReq { RoleId = AppContext.Session.RoleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_RoomListCode, req.ToByteString());
+        }
+
+        /// <summary>离开房间（服务端离开后回包，客户端据此关闭房间界面）</summary>
+        public void RequestLeaveRoom(int roleId, Action<LeaveRoomRet> callback = null)
+        {
+            _leaveRoomCallback = callback;
             LeaveRoomReq req = new LeaveRoomReq { RoleId = roleId };
             NetClientMgr.Instance.Send(NetDefine.CMD_LeaveRoomCode, req.ToByteString());
+        }
+
+        /// <summary>发送房间内聊天（服务端补昵称 / 时间后广播给房间内所有人）</summary>
+        public void RequestRoomChat(int roleId, string content, Action<RoomChatNtf> callback)
+        {
+            _roomChatCallback = callback;
+            RoomChatReq req = new RoomChatReq { RoleId = roleId, Content = content };
+            NetClientMgr.Instance.Send(NetDefine.CMD_RoomChatCode, req.ToByteString());
         }
 
         public void RequestRoomStartGame(int roleId)
@@ -567,9 +656,67 @@ namespace HotUpdate.Network
         private void OnBagInfoResult(ByteString data)
         {
             BagInfoRet ret = BagInfoRet.Parser.ParseFrom(data);
-            Debug.Log($"ProtoHandler: 背包拉取结果 CmdCode={ret.CmdCode} 驱动盘={ret.DriverDiskMap.Count} 材料={ret.MaterialMap.Count}");
+            Debug.Log(
+                $"ProtoHandler: 背包拉取结果 CmdCode={ret.CmdCode} 驱动盘={ret.DriverDiskMap.Count} 材料={ret.MaterialMap.Count}");
             _bagInfoCallback?.Invoke(ret);
             _bagInfoCallback = null;
+        }
+
+        private void OnFriendListResult(ByteString data)
+        {
+            FriendListRet ret = FriendListRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 好友列表结果 CmdCode={ret.CmdCode} 好友数={ret.Friends.Count}");
+            _friendListCallback?.Invoke(ret);
+            _friendListCallback = null;
+        }
+
+        private void OnAddFriendResult(ByteString data)
+        {
+            AddFriendRet ret = AddFriendRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 添加好友结果 CmdCode={ret.CmdCode} tip={ret.Tip}");
+            _addFriendCallback?.Invoke(ret);
+            _addFriendCallback = null;
+        }
+
+        private void OnHandleFriendResult(ByteString data)
+        {
+            HandleFriendRet ret = HandleFriendRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 处理好友申请结果 CmdCode={ret.CmdCode}");
+            _handleFriendCallback?.Invoke(ret);
+            _handleFriendCallback = null;
+        }
+
+        private void OnSendFriendMsgResult(ByteString data)
+        {
+            SendFriendMsgRet ret = SendFriendMsgRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 发送私聊结果 CmdCode={ret.CmdCode} id={ret.Message?.Id}");
+            _sendFriendMsgCallback?.Invoke(ret);
+            _sendFriendMsgCallback = null;
+        }
+
+        private void OnFriendHistoryResult(ByteString data)
+        {
+            FriendHistoryRet ret = FriendHistoryRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 聊天记录结果 CmdCode={ret.CmdCode} 条数={ret.Messages.Count}");
+            _friendHistoryCallback?.Invoke(ret);
+            _friendHistoryCallback = null;
+        }
+
+        // 服务端推送：直接交给 FriendService 落地（不再经事件中转）
+        private void OnFriendApplyNtf(ByteString data)
+        {
+            FriendApplyNtf ntf = FriendApplyNtf.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 好友申请通知 from={ntf.FromRoleId} nickname={ntf.FromNickname}");
+            AppContext.Ui.ShowTip($"收到好友申请：{ntf.FromNickname}");
+            // 面板开着就立刻重拉，把申请顶到列表最前面；没开则下次 Show() 时会拉到
+            AppContext.Ui.GetPanel<FriendPanel>()?.OnFriendApplyReceived();
+        }
+
+        private void OnFriendMsgPushNtf(ByteString data)
+        {
+            FriendMsgPushNtf ntf = FriendMsgPushNtf.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 私聊推送 id={ntf.Message?.Id} from={ntf.Message?.SenderRoleId}");
+            OnServerPushMessageReceived?.Invoke(ntf);
         }
 
         private void OnCreateRoomResult(ByteString data)
@@ -588,18 +735,44 @@ namespace HotUpdate.Network
             _joinRoomCallback = null;
         }
 
+        private void OnRoomListResult(ByteString data)
+        {
+            RoomListRet ret = RoomListRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 房间列表结果 CmdCode={ret.CmdCode} 房间数={ret.Rooms.Count}");
+            _roomListCallback?.Invoke(ret);
+            _roomListCallback = null;
+        }
+
+        private void OnLeaveRoomResult(ByteString data)
+        {
+            LeaveRoomRet ret = LeaveRoomRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 离开房间结果 CmdCode={ret.CmdCode} tip={ret.Tip}");
+            _leaveRoomCallback?.Invoke(ret);
+            _leaveRoomCallback = null;
+        }
+
+        // 房间信息 / 开局 / 聊天都是服务端推给房间内的推送，直接交给当前打开的房间面板
+        // （面板没开 = 人不在房间界面，丢弃即可；下次打开会重新拉列表）
         private void OnRoomInfoNtf(ByteString data)
         {
             RoomInfoNtf ntf = RoomInfoNtf.Parser.ParseFrom(data);
             Debug.Log($"ProtoHandler: 房间信息变更 roomId={ntf.RoomId} players={ntf.Players.Count}");
-            OnRoomInfoChanged?.Invoke(ntf);
+            AppContext.Ui.GetPanel<RoomPanel>()?.OnRoomInfoChanged(ntf);
         }
 
         private void OnRoomStartGameNtf(ByteString data)
         {
             RoomStartGameNtf ntf = RoomStartGameNtf.Parser.ParseFrom(data);
             Debug.Log($"ProtoHandler: 房间开始游戏 roomId={ntf.RoomId}");
-            OnRoomStartGame?.Invoke(ntf);
+            AppContext.Ui.ClosePanel<RoomPanel>();
+            AppContext.Scene.LoadScene("GameScene");
+        }
+
+        private void OnRoomChatNtf(ByteString data)
+        {
+            RoomChatNtf ntf = RoomChatNtf.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 房间聊天信息 message = {ntf.Message}");
+            _roomChatCallback?.Invoke(ntf);
         }
 
         private void OnErrorResult(ByteString data)
@@ -639,7 +812,8 @@ namespace HotUpdate.Network
         private void OnPlayerHurtResult(ByteString data)
         {
             PlayerHurtNtf ntf = PlayerHurtNtf.Parser.ParseFrom(data);
-            Debug.Log($"ProtoHandler: 玩家受击 roleId={ntf.RoleId} damage={ntf.Damage} hp={ntf.CurrHp}/{ntf.MaxHp} isDead={ntf.IsDead}");
+            Debug.Log(
+                $"ProtoHandler: 玩家受击 roleId={ntf.RoleId} damage={ntf.Damage} hp={ntf.CurrHp}/{ntf.MaxHp} isDead={ntf.IsDead}");
             OnPlayerHurtReceived?.Invoke(ntf);
         }
 
@@ -690,8 +864,11 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_BagInfoCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoomCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_JoinRoomCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomListCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_LeaveRoomCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomInfoCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomStartGameCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomChatNtfCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_ErrCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_PositionSyncCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerEnterSceneCode);
@@ -701,6 +878,13 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_EnemyPositionSyncCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_SyneEnemyAniCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerHurtCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendListCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_AddFriendCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_HandleFriendCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_SendFriendMsgCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendHistoryCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendApplyNtfCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendMsgPushCode);
         }
     }
 }

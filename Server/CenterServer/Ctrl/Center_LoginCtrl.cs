@@ -76,6 +76,21 @@ public class Center_LoginCtrl : IContainer
             case NetDefine.CMD_BagInfoCode:
                 OnBagInfoHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_FriendListCode:
+                OnFriendListHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_AddFriendCode:
+                OnAddFriendHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_HandleFriendCode:
+                OnHandleFriendHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_SendFriendMsgCode:
+                OnSendFriendMsgHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_FriendHistoryCode:
+                OnFriendHistoryHandle(serverBase, basePackage);
+                break;
         }
     }
 
@@ -106,6 +121,56 @@ public class Center_LoginCtrl : IContainer
         LogMsg.Info("[Center]收到背包拉取请求:" + req);
         BagInfoRet ret = _loginModle.GetBagInfo(req);
         LogMsg.Info("[Center]背包拉取处理完成: 驱动盘=" + ret.DriverDiskMap.Count + " 材料=" + ret.MaterialMap.Count);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 好友列表拉取
+    private void OnFriendListHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        FriendListReq req = FriendListReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到好友列表请求: roleId=" + req.RoleId);
+        FriendListRet ret = _loginModle.GetFriendList(req);
+        LogMsg.Info("[Center]好友列表处理完成: 好友数=" + ret.Friends.Count + " 待处理申请=" + ret.Applies.Count);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 添加好友申请
+    private void OnAddFriendHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        AddFriendReq req = AddFriendReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到添加好友请求: " + req.FromRoleId + " -> " + req.ToRoleId);
+        AddFriendRet ret = _loginModle.AddFriend(req);
+        LogMsg.Info("[Center]添加好友处理完成:" + ret.CmdCode + " " + ret.Tip);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 处理好友申请（同意/拒绝）
+    private void OnHandleFriendHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        HandleFriendReq req = HandleFriendReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到处理好友申请: roleId=" + req.RoleId + " target=" + req.TargetRoleId + " accept=" + req.Accept);
+        HandleFriendRet ret = _loginModle.HandleFriend(req);
+        LogMsg.Info("[Center]处理好友申请完成:" + ret.CmdCode);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 发送私聊消息
+    private void OnSendFriendMsgHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        SendFriendMsgReq req = SendFriendMsgReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到私聊消息: " + req.SenderRoleId + " -> " + req.ReceiverRoleId);
+        SendFriendMsgRet ret = _loginModle.SendFriendMsg(req);
+        LogMsg.Info("[Center]私聊消息落库完成: id=" + (ret.Message != null ? ret.Message.Id : 0));
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
+    }
+
+    // 拉取聊天记录
+    private void OnFriendHistoryHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        FriendHistoryReq req = FriendHistoryReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到聊天记录请求: roleId=" + req.RoleId + " friend=" + req.FriendRoleId);
+        FriendHistoryRet ret = _loginModle.GetFriendHistory(req);
+        LogMsg.Info("[Center]聊天记录处理完成: 条数=" + ret.Messages.Count);
         serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
     }
 
