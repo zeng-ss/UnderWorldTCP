@@ -6,10 +6,6 @@ namespace HotUpdate.Controller
 {
     /// <summary>
     /// 开始界面 Controller：加载角色数据、切换场景、退出游戏。
-    ///
-    /// 普通类，由 StartPanel 自己 new 并持有，生命周期跟着面板走。
-    /// 它不持有面板引用 —— 面板只调用它的方法，结果一律写回 Service，
-    /// 需要弹提示就直接调 UIManager.ShowTip，不反向调用 View。
     /// </summary>
     public class StartPanelController
     {
@@ -20,6 +16,18 @@ namespace HotUpdate.Controller
             int roleId = AppContext.Session.RoleId;
             Debug.Log($"从数据库加载角色数据 roleId={roleId}");
             AppContext.Proto.RequestStartGame(roleId, OnStartGameResult);
+        }
+
+        /// <summary>打开好友 / 私聊面板（EnterScene 里没有 GameController，由开始面板直接开）</summary>
+        public void OpenFriendPanel()
+        {
+            AppContext.Ui.OpenPanel<FriendPanel>();
+        }
+
+        /// <summary>打开背包面板</summary>
+        public void OpenDepotPanel()
+        {
+            AppContext.Ui.OpenPanel<DepotPanel>();
         }
 
         public void ExitGame()

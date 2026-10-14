@@ -29,7 +29,6 @@ namespace HotUpdate.UI.UIPanel
         {
             base.Awake();
             _taskController = new TaskController();
-            _taskController.Initialize();
             _taskCanvasGroup = GetComponent<CanvasGroup>();
             // 初始状态 - Y轴缩放为0（卷起状态）
             transform.localScale = new Vector3(1, 0, 1);
@@ -122,7 +121,6 @@ namespace HotUpdate.UI.UIPanel
         protected override void OnDestroy()
         {
             _openTween?.Kill();
-            _taskController.Dispose();
         }
     }
 }

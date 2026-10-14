@@ -75,6 +75,7 @@ namespace HotUpdate.Manager
             {
                 case "LobbyScene":
                     // 大厅 = 房间面板（由 UIManager 统一打开，无需场景里摆预制体）
+                    AppContext.Ui.ClosePanel<PlayerProPanel>(); // 离开战斗场景时收掉 HUD
                     AppContext.Ui.OpenPanel<RoomPanel>();
                     break;
                 case "GameScene":
@@ -85,6 +86,8 @@ namespace HotUpdate.Manager
                     AppContext.Res.LoadAndInstantiateAsync("GameController");
                     // 联机时从服务端恢复任务进度（离线调试内部会跳过）
                     AppContext.Task.LoadFromServer();
+                    // 战斗 HUD：头像 / 血条 + 底部面板快捷栏
+                    AppContext.Ui.OpenPanel<PlayerProPanel>();
                     break;
             }
 

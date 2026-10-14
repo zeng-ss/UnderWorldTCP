@@ -1,47 +1,17 @@
 using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.UI.UIPanel;
-using UnityEngine;
 
 namespace HotUpdate.Controller
 {
     /// <summary>
-    /// 任务 Controller：负责面板开关与「领奖」流程编排。
+    /// 任务 Controller：只负责「领奖」流程编排。
+    ///
+    /// 面板开关（Tab）已交给 <c>PanelShortcut</c> 总表 + GameController 统一注册，
+    /// 这里不再自己注册按键，避免同一颗键被注册两遍。
     /// </summary>
     public class TaskController
     {
-        private bool _initialized;
-        private TaskPanel _taskPanel;
-
-        public void Initialize()
-        {
-            if (_initialized) return;
-            _initialized = true;
-
-            InputManager.Instance.RegisterKeyDown(KeyCode.Tab, TogglePanel);
-        }
-
-        public void Dispose()
-        {
-            if (!_initialized) return;
-            _initialized = false;
-
-            InputManager.Instance.UnregisterKeyDown(KeyCode.Tab, TogglePanel);
-        }
-
-        private void TogglePanel()
-        {
-            _taskPanel ??= AppContext.Ui.GetPanel<TaskPanel>();
-            if (_taskPanel == null)
-            {
-                AppContext.Ui.OpenPanel<TaskPanel>();
-                return;
-            }
-
-            if (_taskPanel.gameObject.activeInHierarchy) _taskPanel.ClosePanel();
-            else AppContext.Ui.OpenPanel<TaskPanel>();
-        }
-
         /// <summary>
         /// 处理面板上报的「领取奖励」：请服务端校验并发放（奖励已写入 role_bag_item），
         /// 之后再回拉一次背包，把新到手的驱动盘（含等级 / 词条）与材料数量落到本地。
