@@ -36,7 +36,10 @@ namespace HotUpdate.Player
             ResolveVolumeEffects();
         }
 
-        public void BindCamera(PlayerCameraRig camera) => _camera = camera;
+        public void Bind(PlayerCameraRig camera)
+        {
+            _camera = camera;
+        }
 
         /// <summary>注入特效 → 所有者的绑定委托</summary>
         public void BindVfxOwner(Action<ParticleCtrl> initVfxOwner) => _initVfxOwner = initVfxOwner;

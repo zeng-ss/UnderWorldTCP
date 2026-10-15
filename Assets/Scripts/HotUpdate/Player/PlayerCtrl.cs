@@ -14,7 +14,8 @@ namespace HotUpdate.Player
         public CharacterController CharacterController { get; private set; }
         public PlayerModel playerModel;
         public float rotationSpeed;
-        public DamageNumber damageNumber;
+        [SerializeField] private DamageNumber damageNumber;
+        [SerializeField] private Camera ultCutsceneCamera;
 
         [Header("技能连招配置（按序号：0 普攻 / 1 第二套连招 / 2 重击 / 3 EX；拼刀与防御反击复用序号 1）")] [SerializeField]
         private List<SkillConfig> skillConfigList = new();
@@ -30,6 +31,9 @@ namespace HotUpdate.Player
 
         // 相机绑定
         public PlayerCameraBinder CameraBinder { get; private set; }
+
+        // 大招过场（RenderTexture cut-in + 上下黑边）
+        public PlayerUltCutscene UltCutscene { get; private set; }
 
         // 玩法输入注册与按键动作
         public PlayerInputHandler InputHandler { get; private set; }
@@ -54,6 +58,7 @@ namespace HotUpdate.Player
             Presentation.BindVfxOwner(particle => particle.Init(this));
 
             CameraBinder = new PlayerCameraBinder();
+            UltCutscene = new PlayerUltCutscene();
             StateMachine = new PlayerStateMachine(Core);
             StateMachine.Init(this);
             Locomotion = new PlayerLocomotion(CharacterController, StateMachine);
@@ -70,7 +75,8 @@ namespace HotUpdate.Player
 
             Combat.InitializeFromServer(AppContext.Session.MainRoleInfo);
             CameraBinder.Bind(transform, playerModel.transform);
-            Presentation.BindCamera(CameraBinder.Rig);
+            Presentation.Bind(CameraBinder.Rig);
+            UltCutscene.Init(ultCutsceneCamera);
             Locomotion.Init();
             StateMachine.ChangeTo(PlayerStateType.Idle);
             _isInit = true;

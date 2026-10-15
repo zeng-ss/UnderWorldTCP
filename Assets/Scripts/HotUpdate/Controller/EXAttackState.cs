@@ -29,12 +29,13 @@ namespace HotUpdate.Controller
             _targetEnemy = FindNearestEnemyByTag();
             // 播放音效
             AppContext.Sound.PlaySound
-            (AppContext.Sound.ExSounds[Random.Range(0, AppContext.Sound.ExSounds.Count)],
-                Player.transform.position);
+            (AppContext.Sound.ExSounds[Random.Range(0, AppContext.Sound.ExSounds.Count)], Player.transform.position);
             // 进入开始状态
             TransitionAttackState(ExState.Start);
             Player.Core.IsLock = true;
             Player.CameraBinder.Rig.EnterEx();
+            // 大招过场：全屏 RenderTexture cut-in + 上下黑边滑入（PlayerUltCutscene 内部有兜底时长）
+            Player.UltCutscene.Play();
         }
 
         public override void Update()
@@ -51,17 +52,25 @@ namespace HotUpdate.Controller
                 case ExState.Start:
                     _isDistanceLocked = true;
                     FaceToEnemy();
-                    if (IsAnimationMoreThanTime("AttackEx_Start", 0.8f))
+                    if (IsAnimationMoreThanTime("AttackEx_Start", 0.9f))
+                    {
                         Player.CameraBinder.Rig.ExitEx();
+                        Player.UltCutscene.Stop();
+                    }
                     if (IsAnimationFinished("AttackEx_Start"))
                     {
                         Player.SkillCombo.StartSkillByIndex(0);
                         TransitionAttackState(ExState.Attack);
+                        //Player.UltCutscene.Stop();
                     }
 
                     break;
                 case ExState.Attack:
-                    if (IsAnimationFinished("AttackEx")) TransitionAttackState(ExState.PutBack);
+                    if (IsAnimationFinished("AttackEx"))
+                    {
+                        TransitionAttackState(ExState.PutBack);
+                    }
+
                     break;
                 case ExState.PutBack:
                     _isDistanceLocked = false;
@@ -157,6 +166,8 @@ namespace HotUpdate.Controller
 
         public override void Exit()
         {
+            // 兜底：无论从哪个阶段被打断（换状态 / 死亡），都要收场
+            Player.UltCutscene.Stop();
             Player.CameraBinder.Rig.ExitEx();
             Player.Core.IsLock = false;
         }
