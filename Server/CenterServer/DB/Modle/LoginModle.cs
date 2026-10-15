@@ -1157,11 +1157,8 @@ public class LoginModle
         int a = req.RoleId;
         int b = req.FriendRoleId;
         List<FriendMessage> list = _db.Queryable<FriendMessage>()
-            .Where(v => (v.SenderRoleId == a && v.ReceiverRoleId == b) ||
-                        (v.SenderRoleId == b && v.ReceiverRoleId == a))
-            .OrderBy(v => v.Id, OrderByType.Desc)
-            .Take(MaxFriendMsgPerPair)
-            .ToList();
+            .Where(v => (v.SenderRoleId == a && v.ReceiverRoleId == b) || (v.SenderRoleId == b && v.ReceiverRoleId == a))
+            .OrderBy(v => v.Id, OrderByType.Desc).Take(MaxFriendMsgPerPair).ToList();
 
         // 倒序取出后反转为时间升序，方便客户端直接按顺序渲染
         list.Reverse();

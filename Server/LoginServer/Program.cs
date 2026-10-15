@@ -43,6 +43,7 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_PlayerReadyCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_RoomListCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_RoomChatCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_KickPlayerCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SyneAniCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PlayerVfxCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_FriendListCode, loginCtrl);

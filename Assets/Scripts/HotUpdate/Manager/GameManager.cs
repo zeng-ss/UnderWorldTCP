@@ -17,6 +17,11 @@ namespace HotUpdate.Manager
         public override void Awake()
         {
             base.Awake();
+
+            // 多余的那一份（场景里手摆的 GameManager 在重新进入场景时又实例化了一份）：
+            // base.Awake 已经把它销毁了，必须立刻 return，否则会再建一整套运行时（多 Canvas / 多池子根节点）
+            if (IsDuplicateInstance) return;
+
             _appContext = AppContext.Create();
             _appContext.InitAll(_basePlayerValueData);
             RegisterGlobalHotkeys();
@@ -43,8 +48,12 @@ namespace HotUpdate.Manager
 
         private void OnDestroy()
         {
+            // 重复实例没初始化过，没什么可拆的（这里以前会空引用）
+            if (IsDuplicateInstance) return;
+
             InputManager.Instance.UnregisterKeyDown(KeyCode.Escape, OnEscapePressed);
-            _appContext.Dispose();
+            _appContext?.Dispose();
+            _appContext = null;
         }
 
         private void OnApplicationQuit()

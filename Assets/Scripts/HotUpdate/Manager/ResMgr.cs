@@ -87,7 +87,7 @@ namespace HotUpdate.Manager
             {
                 Addressables.Release(locHandle);
 
-                if (h.Result != null && h.Result.Count > 0)
+                if (h.Result is { Count: > 0 })
                 {
                     LoadAssetAsync<Sprite>(address, sprite =>
                     {

@@ -30,6 +30,8 @@ namespace HotUpdate.Core
         public override void Awake()
         {
             base.Awake();
+            if (IsDuplicateInstance) return; // 重复实例已被销毁，别再初始化
+
             _blockingUILayerMask = LayerMask.GetMask("LockInput");
         }
 

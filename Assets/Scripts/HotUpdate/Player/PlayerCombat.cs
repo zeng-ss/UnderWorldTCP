@@ -110,7 +110,7 @@ namespace HotUpdate.Player
         /// 服务端结算结果落地：覆盖血量 → 受击表现 / 死亡。广播对场景内所有人都发，
         /// 但只有本人（本地玩家）需要更新血量与状态，别人的受击表现为「谁打谁」的动画同步负责。
         /// </summary>
-        public void ApplyServerHurt(PlayerHurtNtf ntf)
+        private void ApplyServerHurt(PlayerHurtNtf ntf)
         {
             if (ntf == null || !_core.IsLocalPlayer) return;
 
@@ -123,9 +123,7 @@ namespace HotUpdate.Player
             {
                 // 屏幕反馈的强度仍取本地配置（敌人 prefab 上的 HitData），伤害数值以服务端为准
                 HitData hitData = GetAttackerHitData(ntf.EnemyInstanceId);
-                _presentation.PlayHurtFeedback(ntf.Damage,
-                    hitData != null ? hitData.vignetteValue : 0f,
-                    hitData != null ? hitData.screenImpulseValue : 0f);
+                _presentation.PlayHurtFeedback(ntf.Damage, hitData?.vignetteValue ?? 0f, hitData?.screenImpulseValue ?? 0f);
 
                 // 敌人武器的命中表现（特效 / 音效）。服务端只下发「命中了 + 伤害」，
                 // 命中点用本地玩家当前位置近似 —— 本地再没有武器碰撞盒参与判定。
@@ -146,10 +144,12 @@ namespace HotUpdate.Player
             RefreshHealthUI();
         }
 
-        // 血量变化后刷新 HUD 血条。面板没打开时 GetPanel 返回 null，直接跳过。
+        private PlayerProPanel _playerProPanel;
+        // 血量变化后刷新 HUD 血条
         private void RefreshHealthUI()
         {
-            AppContext.Ui.GetPanel<PlayerProPanel>()?.UpdateHealthFill(_core.Health, _core.MaxHealth);
+            _playerProPanel ??= AppContext.Ui.GetPanel<PlayerProPanel>();
+            _playerProPanel?.UpdateHealthFill(_core.Health, _core.MaxHealth);
         }
 
         // 挨打时用它取表现参数（震屏 / 暗角）。敌人可能已经被打死并注销，取不到就用 0。

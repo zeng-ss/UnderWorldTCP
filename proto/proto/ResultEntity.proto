@@ -244,6 +244,17 @@ message LeaveRoomRet{
   string tip = 2;
 }
 
+// 踢人回包（回给房主；被踢者走 RoomKickedNtf）
+message KickPlayerRet{
+  CmdCode cmd_code = 1;
+  string tip = 2;
+}
+
+// 被房主踢出通知（服务端 → 被踢者本人，客户端据此退回房间列表页）
+message RoomKickedNtf{
+  string tip = 1;
+}
+
 // 房间内聊天消息
 message RoomChatMsg{
   int32 sender_role_id = 1;

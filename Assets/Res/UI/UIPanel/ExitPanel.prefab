@@ -303,6 +303,7 @@ GameObject:
   - component: {fileID: 4547297610690803009}
   - component: {fileID: 3098308096067598978}
   - component: {fileID: 6365285956936114348}
+  - component: {fileID: 5254705979467038425}
   m_Layer: 5
   m_Name: RectButtonYes
   m_TagString: Untagged
@@ -412,6 +413,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5254705979467038425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3109086497463691694}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66030787cc60af4478d41399d971f591, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HotUpdate::HotUpdate.UI.UIItem.HoverScale
+  target: {fileID: 0}
+  scale: 1.12
+  duration: 0.12
+  ease: 6
+  useUnscaledTime: 1
 --- !u!1 &3189371602478459519
 GameObject:
   m_ObjectHideFlags: 0
@@ -640,6 +658,7 @@ GameObject:
   - component: {fileID: 7841018603654001021}
   - component: {fileID: 1845358483912259847}
   - component: {fileID: 9172698405012976468}
+  - component: {fileID: 2960980544449645236}
   m_Layer: 5
   m_Name: RectButtonNo
   m_TagString: Untagged
@@ -749,6 +768,23 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &2960980544449645236
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4108212029036076561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66030787cc60af4478d41399d971f591, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HotUpdate::HotUpdate.UI.UIItem.HoverScale
+  target: {fileID: 0}
+  scale: 1.12
+  duration: 0.12
+  ease: 6
+  useUnscaledTime: 1
 --- !u!1 &4659743434952837079
 GameObject:
   m_ObjectHideFlags: 0

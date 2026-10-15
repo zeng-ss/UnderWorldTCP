@@ -30,6 +30,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 97103bfb31ba8444fa8811bc8d6555bd
+    m_Address: ShortcutBtnConfig
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c7222d4512bb75a4f9a1ff3e8825ecab
     m_Address: SkillConfig01
     m_ReadOnly: 0

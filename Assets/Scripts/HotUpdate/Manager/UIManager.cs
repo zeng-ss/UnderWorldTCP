@@ -204,6 +204,9 @@ namespace HotUpdate.Manager
 
         public void Init()
         {
+            // 幂等：重复初始化会再 new 一个 Canvas + EventSystem 并覆盖引用，旧的留在场景里（Hierarchy 里一堆 Canvas）
+            if (_isCanvasInitialized && Canvas != null) return;
+
             InitCanvas();
             InitEventSystem();
             _isCanvasInitialized = true;

@@ -34,6 +34,8 @@
     public const ushort CMD_RoomListCode = 11201; // 拉取房间列表（LoginServer 内存返回）
     public const ushort CMD_RoomChatCode = 11202; // 房间内聊天（发送）
     public const ushort CMD_RoomChatNtfCode = 11203; // 房间聊天广播（服务端→房间内所有人）
+    public const ushort CMD_KickPlayerCode = 11204; // 房主踢人（房主→LoginServer）
+    public const ushort CMD_RoomKickedNtfCode = 11205; // 被踢通知（服务端→被踢者）
     public const ushort CMD_SyneAniCode = 11210;
     public const ushort CMD_PlayerVfxCode = 11230;
     public const ushort CMD_SyneEnemyAniCode = 11240;

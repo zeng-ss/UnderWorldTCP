@@ -1,29 +1,46 @@
 using DG.Tweening;
+using HotUpdate.Data;
 using HotUpdate.Manager;
+using HotUpdate.UI.UIItem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.UI.UIPanel
 {
-    /// <summary>
-    /// 游戏内 HUD：左上角头像 / 血条，底边一条面板快捷栏。
-    ///
-    /// 整套界面（含快捷栏）都摆在预制体上（见 PlayerProPanelBuilder），这里不再生成任何 UI；
-    /// 快捷格的点击由 ShortcutButton 在 Awake 里按 PanelShortcut 总表自己接好。
-    /// </summary>
     [PanelPath("PlayerProPanel")]
     public class PlayerProPanel : BasePanel
     {
-        // 血条 / 能量条（预制体上绑好）
-        public Image healthFill;
-        public TMP_Text healthText;
-        public Image powerFill;
+        [SerializeField] private Image healthFill;
+        [SerializeField] private TMP_Text healthText;
+        [SerializeField] private Image powerFill;
+        [SerializeField] private ShortcutBtnConfig shortcutBtnConfig;
+        [SerializeField] private Transform shortcutBtnParent;
 
         // HUD 是常驻的全屏信息条，打开时不需要缩放淡入
         protected override PanelTween.Config? AnimConfig => PanelTween.Config.None;
 
-        /// <summary>刷新血条（数值由 PlayerCombat 在服务端回包后覆盖过来）</summary>
+        protected override void Awake()
+        {
+            base.Awake();
+            if (shortcutBtnConfig == null)
+            {
+                Debug.LogWarning("[PlayerProPanel] 没绑 shortcutBtnConfig，快捷栏不生成。");
+                return;
+            }
+
+            // 快捷格按 Config 生成：加 / 删 / 改按钮只动 ShortcutBtnConfig.asset，不用改代码和预制体
+            foreach (ShortcutBtnData data in shortcutBtnConfig.shortcutButtonsConfig)
+            {
+                AppContext.Res.LoadAndInstantiateAsync("HUDSlotItem", shortcutBtnParent, obj =>
+                {
+                    obj?.GetComponent<ShortcutButton>()?.Init(data);
+                });
+            }
+        }
+
+        // 刷新血条
         public void UpdateHealthFill(float currentHealth, float maxHealth)
         {
             healthFill.DOFillAmount(maxHealth > 0f ? Mathf.Clamp01(currentHealth / maxHealth) : 0f, 0.5f);

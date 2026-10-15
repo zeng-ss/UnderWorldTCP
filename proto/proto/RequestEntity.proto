@@ -155,6 +155,12 @@ message LeaveRoomReq{
   int32 role_id = 1;
 }
 
+// 房主踢人请求（服务端校验：只有房主能踢、只能踢同房间的人、不能踢自己）
+message KickPlayerReq{
+  int32 role_id = 1;        // 操作者（房主）
+  int32 target_role_id = 2; // 被踢者
+}
+
 // 房主开始游戏请求
 message RoomStartGameReq{
   int32 role_id = 1;

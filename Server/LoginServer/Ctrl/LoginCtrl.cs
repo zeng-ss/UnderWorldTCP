@@ -539,6 +539,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_PlayerReadyCode:
                 OnPlayerReadyHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_KickPlayerCode:
+                OnKickPlayerHandle(serverBase, basePackage);
+                break;
             case NetDefine.CMD_SyneAniCode:
                 OnSyncAniHandle(serverBase, basePackage);
                 break;
@@ -812,6 +815,19 @@ public class LoginCtrl : IContainer
         };
         session.SendData(basePackage, NetDefine.CMD_LeaveRoomCode, ret.ToByteString());
         LogMsg.Info($"[Login]离开房间: roleId={req.RoleId} ok={ok}");
+    }
+
+    // 房主踢人：RoomMgr 校验后通知被踢者退回列表页，并给房主回包
+    private void OnKickPlayerHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        KickPlayerReq req = KickPlayerReq.Parser.ParseFrom(basePackage.Data);
+        if (!(serverBase is Session session)) return;
+
+        string tip;
+        CmdCode code = RoomMgr.Instance.KickPlayer(req.RoleId, req.TargetRoleId, out tip);
+        KickPlayerRet ret = new KickPlayerRet { CmdCode = code, Tip = tip };
+        session.SendData(basePackage, NetDefine.CMD_KickPlayerCode, ret.ToByteString());
+        LogMsg.Info($"[Login]踢人: master={req.RoleId} target={req.TargetRoleId} cmd={code}");
     }
 
     // 玩家切换准备状态：更新后由 RoomMgr 广播 RoomInfoNtf 给房间所有人

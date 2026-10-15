@@ -5,6 +5,7 @@ using HotUpdate.Manager;
 using HotUpdate.Network;
 using HotUpdate.RedDot;
 using HotUpdate.Service;
+using UnityEngine;
 
 namespace HotUpdate.Core
 {
@@ -14,6 +15,7 @@ namespace HotUpdate.Core
     public class AppContext
     {
         private static AppContext _current;
+        private bool _initialized;
 
         #region Model
 
@@ -99,6 +101,17 @@ namespace HotUpdate.Core
         /// </summary>
         public void InitAll(PlayerValueData basePlayerValueData)
         {
+            // 整个客户端只应初始化一次：重复调用会再建一套 Canvas / 事件系统 / 对象池根节点，
+            // 而旧的还挂在场景里（表现为 Hierarchy 里多出一堆 Canvas 和池子父物体）。
+            if (_initialized)
+            {
+                Debug.LogError("[AppContext] 重复初始化！通常是有第二个 GameManager 被实例化了" +
+                               "（场景里手摆了一份 + 单例基类又 new 了一份），请检查 IsDuplicateInstance 判断。");
+                return;
+            }
+
+            _initialized = true;
+
             _playerData.Init(basePlayerValueData ?? new PlayerValueData());
             _task.Init(); // 任务内容全部由服务端下发（TaskService.LoadFromServer），这里只清空本地数据
             _uiManager.Init();
@@ -133,6 +146,7 @@ namespace HotUpdate.Core
             _uiManager.ClearAllPanel();
             _uiLoader.ReleaseAll();
             _current = null;
+            _initialized = false;
         }
     }
 }

@@ -529,6 +529,7 @@ GameObject:
   - component: {fileID: 6089924481302891780}
   - component: {fileID: 7931485115425764829}
   - component: {fileID: 4906977164343630737}
+  - component: {fileID: 565823188902258659}
   m_Layer: 5
   m_Name: FriendItem
   m_TagString: Untagged
@@ -661,6 +662,23 @@ MonoBehaviour:
   applyButtons: {fileID: 6331652863938114301}
   agreeBtn: {fileID: 8584230991971236418}
   rejectBtn: {fileID: 1037500023816194582}
+--- !u!114 &565823188902258659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3346411234661368735}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66030787cc60af4478d41399d971f591, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HotUpdate::HotUpdate.UI.UIItem.HoverScale
+  target: {fileID: 1533921803852793936}
+  scale: 1.12
+  duration: 0.12
+  ease: 6
+  useUnscaledTime: 1
 --- !u!1 &4431188608768322044
 GameObject:
   m_ObjectHideFlags: 0

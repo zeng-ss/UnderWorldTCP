@@ -44,7 +44,6 @@ namespace ProjectEditor
         private const string SpriteInput = TexDir + "rect_input.png";
         private const string SpriteListItem = TexDir + "list_item_background.png";
         private const string SpriteListItemSel = TexDir + "list_item_background_selected.png";
-        private const string SpriteClose = TexDir + "icon_close_light.png";
         private const string SpriteScrollBg = TexDir + "scroll_background.png";
         private const string SpriteScrollHandle = TexDir + "scroll_handle.png";
 
@@ -260,7 +259,7 @@ namespace ProjectEditor
             ApplySprite(panel.AddComponent<Image>(), SpritePanelBg, true);
 
             BuildHeader(panel.transform);
-            BuildCloseButton(panel.transform);
+            BuildHomeButton(panel.transform);
             BuildListArea(panel.transform);
             BuildRoomArea(panel.transform);
 
@@ -281,14 +280,15 @@ namespace ProjectEditor
             Stretch(title.rectTransform);
         }
 
-        private static void BuildCloseButton(Transform parent)
+        // 顶部右上角的「返回主界面」：两种形态共用（房间面板不提供直接关闭，避免玩家卡在房间里）
+        private static void BuildHomeButton(Transform parent)
         {
-            var closeBtn = NewIconButton("CloseBtn", parent, SpriteClose);
-            var crt = closeBtn.GetComponent<RectTransform>();
-            Anchor(crt, new Vector2(1f, 1f), new Vector2(1f, 1f));
-            crt.pivot = new Vector2(0.5f, 0.5f);
-            crt.sizeDelta = new Vector2(46, 46);
-            crt.anchoredPosition = new Vector2(-42, -38);
+            var homeBtn = NewButton("HomeBtn", parent, "返回主界面");
+            var hrt = homeBtn.GetComponent<RectTransform>();
+            Anchor(hrt, new Vector2(1f, 1f), new Vector2(1f, 1f));
+            hrt.pivot = new Vector2(1f, 1f);
+            hrt.sizeDelta = new Vector2(170, 46);
+            hrt.anchoredPosition = new Vector2(-20, -13);
         }
 
         // ---------------- 形态一：房间大厅 ----------------
@@ -370,8 +370,9 @@ namespace ProjectEditor
             var startBtn = NewButton("StartBtn", listBg.transform, "开始游戏");
             PlaceBottomLeft((RectTransform)startBtn.transform, new Vector2(184, 20), new Vector2(170, 46));
 
-            var leaveBtn = NewButton("LeaveBtn", listBg.transform, "退出房间");
-            PlaceBottomRight((RectTransform)leaveBtn.transform, new Vector2(-20, 20), new Vector2(150, 46));
+            // 房间内不留「关闭」：LeaveBtn 是「返回上一级」（回房间列表），HomeBtn 才是回主界面
+            var leaveBtn = NewButton("LeaveBtn", listBg.transform, "返回房间列表");
+            PlaceBottomRight((RectTransform)leaveBtn.transform, new Vector2(-20, 20), new Vector2(170, 46));
 
             // 右：聊天区
             var chatBg = NewUI("ChatBg", area.transform);
@@ -531,6 +532,13 @@ namespace ProjectEditor
             ApplySprite(img, SpriteListItem, true);
             SetupSpriteSwap(btn, img);
 
+            // 房主视角：鼠标移到这一行时盖上「踢出该玩家」蒙层，点整行即踢人。
+            // 蒙层 Image 的 raycastTarget 必须为 false，否则会挡住整行点击。
+            GameObject kickTip = BuildKickTip(item.transform);
+
+            // 悬停放大（通用组件）
+            if (item.GetComponent<HoverScale>() == null) item.AddComponent<HoverScale>();
+
             var view = item.GetComponent<RoomPlayerItem>();
             if (view == null) view = item.AddComponent<RoomPlayerItem>();
 
@@ -538,7 +546,26 @@ namespace ProjectEditor
             SetRef(so, "headImage", head != null ? FindDeep(head, "headImage")?.GetComponent<Image>() : null);
             SetRef(so, "nameText", name);
             SetRef(so, "stateText", state);
+            SetRef(so, "kickTip", kickTip);
+            SetRef(so, "rowButton", btn);
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // 盖满整行的踢人蒙层：半透明红底 + 居中「踢出该玩家」
+        private static GameObject BuildKickTip(Transform parent)
+        {
+            var tip = NewUI("KickTip", parent);
+            Stretch((RectTransform)tip.transform);
+
+            var bg = tip.AddComponent<Image>();
+            bg.color = new Color(0.62f, 0.15f, 0.15f, 0.55f);
+            bg.raycastTarget = false; // 不能挡住整行点击
+
+            TMP_Text label = NewText("Text", tip.transform, "踢出该玩家", 22, TextAlignmentOptions.Center, Color.white);
+            Stretch(label.rectTransform);
+
+            tip.SetActive(false); // 默认隐藏，运行时由 RoomPlayerItem 悬停控制
+            return tip;
         }
 
         // 列表项底座：复用 SharpUI ListItemCustom（Image + Button + 左右文本），解包并清掉缺失脚本

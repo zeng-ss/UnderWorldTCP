@@ -96,6 +96,16 @@ namespace HotUpdate.UI.UIPanel
             RefreshMessages();
         }
 
+        /// <summary>自己被房主踢出：退回房间列表页（创建 / 查找房间那一页）</summary>
+        public void OnKicked(string tip)
+        {
+            _room?.ApplyKicked();
+            if (!gameObject.activeInHierarchy) return;
+
+            AppContext.Ui.ShowTip(string.IsNullOrEmpty(tip) ? "你已被移出房间" : tip);
+            EnterListView();
+        }
+
         #endregion
 
         #region 绑定层级
@@ -130,7 +140,7 @@ namespace HotUpdate.UI.UIPanel
             _readyBtn = FindDeep(panel, "ReadyBtn")?.GetComponent<Button>();
             _startBtn = FindDeep(panel, "StartBtn")?.GetComponent<Button>();
 
-            BindClick(panel, "CloseBtn", OnCloseClicked);
+            BindClick(panel, "HomeBtn", OnHomeClicked);
             BindClick(panel, "CreateBtn", OnCreateClicked);
             BindClick(panel, "JoinBtn", OnJoinClicked);
             BindClick(panel, "RefreshBtn", OnRefreshClicked);
@@ -355,7 +365,27 @@ namespace HotUpdate.UI.UIPanel
             }
 
             RoomPlayerData data = _memberEntries[index];
-            view.SetData(data, data.RoleId == AppContext.Session.RoleId);
+            bool isSelf = data.RoleId == AppContext.Session.RoleId;
+
+            // 只有房主能踢人，且不能踢自己 / 房主自己（服务端还会再校验一次）
+            bool canKick = _room != null && _room.IsMaster && !isSelf && !data.IsMaster;
+            int roleId = data.RoleId;
+            view.SetData(data, isSelf, canKick, canKick ? () => KickPlayer(roleId) : null);
+        }
+
+        // 踢人：服务端校验通过后会广播新的 RoomInfoNtf，成员列表随之刷新
+        private void KickPlayer(int targetRoleId)
+        {
+            _room?.RequestKickPlayer(targetRoleId, (ok, tip) =>
+            {
+                if (!ok)
+                {
+                    AppContext.Ui.ShowTip(tip);
+                    return;
+                }
+
+                AppContext.Ui.ShowTip("已将该玩家移出房间");
+            });
         }
 
         // 准备按钮文案跟随自己的准备态；开始按钮只对房主开放，且需所有非房主已准备
@@ -416,9 +446,47 @@ namespace HotUpdate.UI.UIPanel
             });
         }
 
+        // 返回主界面：先退出房间（避免留下幽灵房间），再回到开始面板所在的场景
+        private void OnHomeClicked()
+        {
+            if (_room is { IsInRoom: true }) _room.LeaveRoom();
+
+            AppContext.Ui.ClosePanel(this);
+            AppContext.Scene.LoadScene("EnterScene");
+        }
+
         #endregion
 
         #region 房间聊天
+
+        // 气泡预制体只加载一次并缓存住。
+        private GameObject _bubbleSelfPrefab, _bubblePeerPrefab;
+        private bool _bubbleLoadStarted;
+
+        private void EnsureBubblePrefabs()
+        {
+            if (_bubbleSelfPrefab != null && _bubblePeerPrefab != null) return;
+            if (_bubbleLoadStarted) return;
+            _bubbleLoadStarted = true;
+
+            if (_bubbleSelfPrefab == null)
+            {
+                AppContext.Res.LoadAssetAsync<GameObject>(BubbleSelf, prefab =>
+                {
+                    _bubbleSelfPrefab = prefab;
+                    RefreshMessages();
+                });
+            }
+
+            if (_bubblePeerPrefab == null)
+            {
+                AppContext.Res.LoadAssetAsync<GameObject>(BubblePeer, prefab =>
+                {
+                    _bubblePeerPrefab = prefab;
+                    RefreshMessages();
+                });
+            }
+        }
 
         private void RefreshMessages()
         {
@@ -431,19 +499,24 @@ namespace HotUpdate.UI.UIPanel
             List<RoomChatData> messages = _room.ChatMessages;
             if (messages.Count == 0) return;
 
+            // 模板还没加载完：加载完的回调会自己再刷一次
+            if (_bubbleSelfPrefab == null || _bubblePeerPrefab == null)
+            {
+                EnsureBubblePrefabs();
+                return;
+            }
+
+            // 模板已在内存里，同步实例化才能保证顺序严格等于消息顺序（最新的在最后）
             foreach (RoomChatData msg in messages)
             {
-                RoomChatData captured = msg;
-                AppContext.Res.LoadAndInstantiateAsync(
-                    captured.IsSelf ? BubbleSelf : BubblePeer, _msgContent,
-                    item =>
-                    {
-                        if (item == null) return;
-                        item.GetComponent<ChatItem>()
-                            ?.SetContent(captured.SenderNickname, captured.SendTime, captured.Content);
-                        ScrollToBottomSoon();
-                    });
+                GameObject prefab = msg.IsSelf ? _bubbleSelfPrefab : _bubblePeerPrefab;
+                if (prefab == null) continue;
+
+                GameObject item = Instantiate(prefab, _msgContent);
+                item.GetComponent<ChatItem>()?.SetContent(msg.SenderNickname, msg.SendTime, msg.Content);
             }
+
+            ScrollToBottomSoon();
         }
 
         private void OnSendClicked()

@@ -139,6 +139,54 @@ public class RoomMgr : Singleton<RoomMgr>
     }
 
     /// <summary>
+    /// 房主踢人：校验房主身份 / 同房间 / 不能踢自己，
+    /// 被踢者先收到 RoomKickedNtf（客户端据此退回房间列表页），再从房间里移除并广播 RoomInfoNtf。
+    /// </summary>
+    public CmdCode KickPlayer(int masterRoleId, int targetRoleId, out string tip)
+    {
+        tip = "";
+
+        Room room = GetRoomByRoleId(masterRoleId);
+        if (room == null)
+        {
+            tip = "你当前不在任何房间";
+            return CmdCode.ReqParamError;
+        }
+        if (room.MasterRoleId != masterRoleId)
+        {
+            tip = "只有房主才能踢人";
+            return CmdCode.ServerError;
+        }
+        if (targetRoleId == masterRoleId)
+        {
+            tip = "不能踢自己";
+            return CmdCode.ReqParamError;
+        }
+
+        RoomPlayerData target = room.Players.Find(p => p.RoleId == targetRoleId);
+        if (target == null)
+        {
+            tip = "该玩家不在你的房间里";
+            return CmdCode.ReqParamError;
+        }
+
+        // 先通知被踢者（他需要退回房间列表页），再把他从房间里摘掉
+        RoomKickedNtf ntf = new RoomKickedNtf { Tip = $"你已被房主「{GetMasterNickname(room)}」移出房间" };
+        BasePackage pkg = new BasePackage { ProtoCode = NetDefine.CMD_RoomKickedNtfCode, Data = ntf.ToByteString() };
+        SessionMgr.Instance.GetSession(target.SessionId)?.SendData(pkg);
+
+        LeaveRoom(targetRoleId); // 内部会向房间里剩下的人广播 RoomInfoNtf
+        LogMsg.Info($"[RoomMgr]房主踢人: master={masterRoleId} target={targetRoleId} roomId={room.RoomId}");
+        return CmdCode.Succeed;
+    }
+
+    private static string GetMasterNickname(Room room)
+    {
+        RoomPlayerData master = room.Players.Find(p => p.RoleId == room.MasterRoleId);
+        return master != null ? master.Nickname : "未知";
+    }
+
+    /// <summary>
     /// 切换准备状态，广播给房间所有人
     /// </summary>
     public void SetPlayerReady(int roleId, bool isReady)

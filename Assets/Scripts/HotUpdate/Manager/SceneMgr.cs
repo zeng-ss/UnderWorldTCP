@@ -1,6 +1,10 @@
 ﻿using System.Collections;
+using HotUpdate.Controller;
 using HotUpdate.Core;
+using HotUpdate.Player;
+using HotUpdate.UI.UIItem;
 using HotUpdate.UI.UIPanel;
+using UnityEditor.Build.Content;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
@@ -49,6 +53,7 @@ namespace HotUpdate.Manager
             float startProgress = displayProgress;
             float smoothElapsed = 0f;
             float smoothDuration = 1f;
+            if (sceneName == "GameScene") Preload();
 
             while (smoothElapsed < smoothDuration)
             {
@@ -69,10 +74,23 @@ namespace HotUpdate.Manager
             OnSceneLoaded(SceneManager.GetActiveScene().name);
         }
 
+        private void Preload()
+        {
+            AppContext.UILoader.LoadAsync(PanelPathResolver.Resolve<PlayerProPanel>(), null);
+            AppContext.Res.LoadAssetAsync<GameObject>("Character", null);
+            AppContext.Res.LoadAssetAsync<GameObject>("NPC", null);
+            AppContext.Res.LoadAssetAsync<GameObject>("GameController", null);
+            AppContext.Res.LoadAssetAsync<GameObject>("HUDSlotItem", null);
+        }
+
         private void OnSceneLoaded(string sceneName)
         {
             switch (sceneName)
             {
+                case "EnterScene":
+                    // 主界面：房间面板「返回主界面」跳回来时重新打开开始面板
+                    AppContext.Ui.OpenPanel<StartPanel>();
+                    break;
                 case "LobbyScene":
                     // 大厅 = 房间面板（由 UIManager 统一打开，无需场景里摆预制体）
                     AppContext.Ui.ClosePanel<PlayerProPanel>(); // 离开战斗场景时收掉 HUD

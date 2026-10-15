@@ -134,7 +134,7 @@ namespace HotUpdate.Service
                 // 去重：实时推送可能先到
                 if (list.Exists(m => m.Id == data.Id)) return;
 
-                list.Add(data);
+                InsertOrdered(list, data);
                 AppContext.Ui.GetPanel<FriendPanel>()?.OnMessageReceived(data);
             });
         }
@@ -147,9 +147,19 @@ namespace HotUpdate.Service
             FriendMsgData data = ToData(friendMsgPushNtf.Message);
             int peerId = data.SenderRoleId == AppContext.Session.RoleId ? data.ReceiverRoleId : data.SenderRoleId;
             List<FriendMsgData> list = GetOrCreateCache(peerId);
-            if (!list.Exists(m => m.Id == data.Id)) list.Add(data);
+            if (!list.Exists(m => m.Id == data.Id)) InsertOrdered(list, data);
 
             AppContext.Ui.GetPanel<FriendPanel>()?.OnMessageReceived(data);
+        }
+
+        // 缓存始终保持按 Id 升序（Id 自增 = 时间升序），面板从左到右渲染即可，
+        // 「最新的消息在最下面」。推送和回包可能乱序到达，所以这里按 Id 找位置插入而不是直接 Add。
+        private static void InsertOrdered(List<FriendMsgData> list, FriendMsgData data)
+        {
+            int index = list.Count;
+            while (index > 0 && list[index - 1].Id > data.Id) index--;
+
+            list.Insert(index, data);
         }
 
         /// <summary>获取与某好友的聊天缓存（按时间升序，可能为空列表）</summary>

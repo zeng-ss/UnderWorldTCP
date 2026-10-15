@@ -64,6 +64,7 @@ namespace HotUpdate.Network
         private Action<JoinRoomRet> _joinRoomCallback;
         private Action<RoomListRet> _roomListCallback;
         private Action<LeaveRoomRet> _leaveRoomCallback;
+        private Action<KickPlayerRet> _kickPlayerCallback;
         private Action<FriendListRet> _friendListCallback;
         private Action<AddFriendRet> _addFriendCallback;
         private Action<HandleFriendRet> _handleFriendCallback;
@@ -108,6 +109,8 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_RoomInfoCode, OnRoomInfoNtf);
             AppContext.Events.AddNetHandler(NetDefine.CMD_RoomStartGameCode, OnRoomStartGameNtf);
             AppContext.Events.AddNetHandler(NetDefine.CMD_RoomChatNtfCode, OnRoomChatNtf);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_KickPlayerCode, OnKickPlayerResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_RoomKickedNtfCode, OnRoomKickedNtf);
             AppContext.Events.AddNetHandler(NetDefine.CMD_ErrCode, OnErrorResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_PositionSyncCode, OnPositionSync);
             AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerEnterSceneCode, OnPlayerEnterSceneEvent);
@@ -500,6 +503,14 @@ namespace HotUpdate.Network
             NetClientMgr.Instance.Send(NetDefine.CMD_PlayerReadyCode, req.ToByteString());
         }
 
+        /// <summary>房主踢人（服务端校验房主身份，被踢者会收到 RoomKickedNtf）</summary>
+        public void RequestKickPlayer(int targetRoleId, Action<KickPlayerRet> callback)
+        {
+            _kickPlayerCallback = callback;
+            KickPlayerReq req = new KickPlayerReq { RoleId = AppContext.Session.RoleId, TargetRoleId = targetRoleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_KickPlayerCode, req.ToByteString());
+        }
+
         #endregion
 
         #region 响应处理
@@ -793,6 +804,23 @@ namespace HotUpdate.Network
             _roomChatCallback?.Invoke(ntf);
         }
 
+        // 踢人回包（只回给房主）
+        private void OnKickPlayerResult(ByteString data)
+        {
+            KickPlayerRet ret = KickPlayerRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 踢人结果 CmdCode={ret.CmdCode} tip={ret.Tip}");
+            _kickPlayerCallback?.Invoke(ret);
+            _kickPlayerCallback = null;
+        }
+
+        // 被房主踢出：直接交给房间面板退回房间列表页
+        private void OnRoomKickedNtf(ByteString data)
+        {
+            RoomKickedNtf ntf = RoomKickedNtf.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 被移出房间 tip={ntf.Tip}");
+            AppContext.Ui.GetPanel<RoomPanel>()?.OnKicked(ntf.Tip);
+        }
+
         private void OnErrorResult(ByteString data)
         {
             ErrMsg err = ErrMsg.Parser.ParseFrom(data);
@@ -887,6 +915,8 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomInfoCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomStartGameCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomChatNtfCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_KickPlayerCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomKickedNtfCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_ErrCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_PositionSyncCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerEnterSceneCode);

@@ -37,6 +37,12 @@ namespace HotUpdate.UI.UIPanel
         private int _chatRoleId = -1;
         private Coroutine _scrollRoutine;
 
+        // 气泡模板（只加载一次，缓存住）
+        // 不能每条消息都走一次异步实例化：左右两个气泡的加载完成时机不同，回调顺序不等于消息顺序，
+        // 第一次打开就会出现「对方消息在下面、我发在上面」的错位（第二次打开命中缓存才正常）。
+        private GameObject _bubbleSelfPrefab, _bubblePeerPrefab;
+        private bool _bubbleLoadStarted;
+
         // 打开时独占操作、锁住玩法输入
         public override bool BlocksGameplayInput => true;
 
@@ -259,7 +265,33 @@ namespace HotUpdate.UI.UIPanel
             _chatTitle.text = friend != null ? friend.Nickname : ("好友 " + _chatRoleId);
         }
 
-        // 整窗重建：清掉旧气泡，再按缓存逐条实例化 ChatRootLeft / ChatRootRight
+        // 气泡预制体只加载一次，两个都到齐后自动重刷一次消息区
+        private void EnsureBubblePrefabs()
+        {
+            if (_bubbleSelfPrefab != null && _bubblePeerPrefab != null) return;
+            if (_bubbleLoadStarted) return;
+            _bubbleLoadStarted = true;
+
+            if (_bubbleSelfPrefab == null)
+            {
+                AppContext.Res.LoadAssetAsync<GameObject>(BubbleSelf, prefab =>
+                {
+                    _bubbleSelfPrefab = prefab;
+                    RefreshMessages();
+                });
+            }
+
+            if (_bubblePeerPrefab == null)
+            {
+                AppContext.Res.LoadAssetAsync<GameObject>(BubblePeer, prefab =>
+                {
+                    _bubblePeerPrefab = prefab;
+                    RefreshMessages();
+                });
+            }
+        }
+
+        // 整窗重建：清掉旧气泡，再按缓存（时间升序）逐条实例化 ChatRootLeft / ChatRootRight
         private void RefreshMessages()
         {
             if (_msgContent == null) return;
@@ -271,23 +303,27 @@ namespace HotUpdate.UI.UIPanel
             List<FriendMsgData> messages = _friendService?.GetChatCache(_chatRoleId);
             if (messages == null || messages.Count == 0) return;
 
+            // 模板还没加载完：加载完的回调会自己再刷一次
+            if (_bubbleSelfPrefab == null || _bubblePeerPrefab == null)
+            {
+                EnsureBubblePrefabs();
+                return;
+            }
+
             FriendData friend = _entries.Find(f => f.RoleId == _chatRoleId);
             string peerName = friend != null ? friend.Nickname : ("好友 " + _chatRoleId);
 
+            // 模板已在内存里，同步实例化才能保证顺序严格等于缓存顺序（旧的：自己发的靠下，最新的在最后）
             foreach (FriendMsgData msg in messages)
             {
-                FriendMsgData captured = msg;
-                string who = captured.IsSelf ? "我" : peerName;
+                GameObject prefab = msg.IsSelf ? _bubbleSelfPrefab : _bubblePeerPrefab;
+                if (prefab == null) continue;
 
-                AppContext.Res.LoadAndInstantiateAsync(
-                    captured.IsSelf ? BubbleSelf : BubblePeer, _msgContent,
-                    item =>
-                    {
-                        if (item == null) return;
-                        item.GetComponent<ChatItem>()?.SetContent(who, captured.SendTime, captured.Content);
-                        ScrollToBottomSoon();
-                    });
+                GameObject item = Instantiate(prefab, _msgContent);
+                item.GetComponent<ChatItem>()?.SetContent(msg.IsSelf ? "我" : peerName, msg.SendTime, msg.Content);
             }
+
+            ScrollToBottomSoon();
         }
 
         // ContentSizeFitter 要下一帧才算好高度，等一帧再贴底；异步实例化再补一次

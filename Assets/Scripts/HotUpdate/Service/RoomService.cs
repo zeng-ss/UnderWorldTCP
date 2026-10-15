@@ -111,6 +111,29 @@ namespace HotUpdate.Service
             });
         }
 
+        /// <summary>房主踢人（服务端校验房主身份；被踢者会收到 RoomKickedNtf 自行退回列表）</summary>
+        public void RequestKickPlayer(int targetRoleId, Action<bool, string> callback)
+        {
+            if (!IsMaster)
+            {
+                callback?.Invoke(false, "只有房主才能踢人");
+                return;
+            }
+
+            AppContext.Proto.RequestKickPlayer(targetRoleId, ret =>
+            {
+                bool ok = ret != null && ret.CmdCode == CmdCode.Succeed;
+                string tip = ok ? "" : (ret?.Tip ?? "踢人失败");
+                callback?.Invoke(ok, tip);
+            });
+        }
+
+        /// <summary>自己被踢出房间：清掉本地房间数据（房间列表缓存保留）</summary>
+        public void ApplyKicked()
+        {
+            ClearRoomState();
+        }
+
         #endregion
 
         #region 准备 / 开始 / 聊天
