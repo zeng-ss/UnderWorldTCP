@@ -130,6 +130,12 @@ namespace HotUpdate.Core
 
         public static bool IsAlive => _current != null;
 
+        /// <summary>
+        /// 离线调试模式：由 OfflineDebugLauncher 直接跑 GameScene 时置位。
+        /// 置位后所有网络发送直接丢弃（不会去连服务器），战斗结算改由客户端本地算一份。
+        /// </summary>
+        public static bool IsOffline { get; set; }
+
         public void Dispose()
         {
             _task.Clear();

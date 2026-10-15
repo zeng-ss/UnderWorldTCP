@@ -6606,6 +6606,7 @@ GameObject:
   - component: {fileID: 72252021}
   - component: {fileID: 72252025}
   - component: {fileID: 72252026}
+  - component: {fileID: 72252027}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -6654,7 +6655,7 @@ Camera:
     height: 1
   near clip plane: 0.1
   far clip plane: 5000
-  field of view: 40
+  field of view: 60.000004
   orthographic: 0
   orthographic size: 10
   m_Depth: -1
@@ -6680,8 +6681,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 72252020}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 24.809315, y: 1.9101045, z: -30.496456}
+  m_LocalRotation: {x: 0.002868324, y: -0.9962783, z: 0.077960506, w: 0.036655083}
+  m_LocalPosition: {x: 19.01, y: -0.96000004, z: -35.05}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6763,6 +6764,64 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   CustomBlends: {fileID: 0}
+--- !u!114 &72252027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 72252020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37cc8118643121a4f9c9859ab7f87283, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HotUpdate::HotUpdate.Player.PlayerCameraRig
+  lookSensitivity: 1
+  invertLookY: 1
+  enableMouseSmoothing: 1
+  mouseSmoothingSamples: 3
+  mouseSmoothThreshold: 0.6
+  pitchMin: -80
+  pitchMax: 72
+  defaultPitch: 20
+  targetOffset: {x: 0, y: 1.2, z: 0}
+  socketOffset: {x: 0, y: 0, z: 0}
+  targetArmLength: 4.5
+  minArmLength: 2.2
+  maxArmLength: 12
+  zoomSpeed: 2.2
+  pivotFollowSmoothTime: 0.03
+  enableCameraLocationLag: 0
+  cameraLagSpeed: 14
+  cameraLagMaxDistance: 3.5
+  enableCameraRotationLag: 0
+  cameraRotationLagSpeed: 18
+  doCollisionTest: 0
+  probeSize: 0.3
+  collisionPadding: 0.12
+  pinYawOffset: -72
+  pinPitch: 10
+  pinDistance: 3.4
+  pinHeight: 1.25
+  pinFov: 45
+  pinBlendTime: 0.18
+  exYawOffset: 180
+  exPitch: -6
+  exDistance: 4.2
+  exPivotHeight: 1.3
+  exFov: 30
+  exBlendTime: 0.22
+  exLockBaseYaw: 1
+  enableObstacleFade: 1
+  obstacleFadeAlpha: 0.3
+  obstacleFadeSpeed: 9
+  obstacleFadeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  obstacleFadeShader: {fileID: 0}
+  debugDrawObstacleFade: 0
+  shakeScale: 0.1
+  shakeDuration: 0.15
 --- !u!1001 &73215208
 PrefabInstance:
   m_ObjectHideFlags: 0

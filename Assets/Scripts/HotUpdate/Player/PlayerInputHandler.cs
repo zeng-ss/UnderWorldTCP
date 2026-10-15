@@ -150,7 +150,7 @@ namespace HotUpdate.Player
             DOVirtual.DelayedCall(1f, () =>
             {
                 _isPining = false;
-                _cameraBinder.PinCamera.gameObject.SetActive(false);
+                _cameraBinder.Rig.ExitPin();
             });
             _enemy.OnStiff();
         }
@@ -165,7 +165,7 @@ namespace HotUpdate.Player
             _characterController.enabled = false;
             _rootTransform.position = teleportPos;
             _characterController.enabled = true;
-            _cameraBinder.PinCamera.gameObject.SetActive(true);
+            _cameraBinder.Rig.EnterPin(_enemy.transform);
             _rootTransform.LookAt(_enemy.transform);
             _skillCombo.UpdateSkillConfig(ComboSet.Second, true);
             _stateMachine.ChangeTo(PlayerStateType.Attack, true);

@@ -4,7 +4,6 @@ using HotUpdate.Core;
 using HotUpdate.Player;
 using HotUpdate.UI.UIItem;
 using HotUpdate.UI.UIPanel;
-using UnityEditor.Build.Content;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;

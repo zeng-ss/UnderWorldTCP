@@ -33,6 +33,10 @@ namespace HotUpdate.Controller
 
             // 预加载任务面板的预制体资源，避免首次按 Tab 时才加载造成卡顿。
             AppContext.UILoader.LoadAsync(PanelPathResolver.Resolve<TaskPanel>(), null);
+
+            // 进战斗场景默认锁光标 —— 不锁的话鼠标不会带动视角，得先开一次面板再关掉才能转镜头
+            _wantCursorLocked = true;
+            ApplyCursorState();
         }
 
         private void OnDestroy()
@@ -70,7 +74,10 @@ namespace HotUpdate.Controller
 
         private void ApplyCursorState()
         {
-            Cursor.lockState = !_forceUnlock && _wantCursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
+            bool locked = !_forceUnlock && _wantCursorLocked;
+            Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
+            // 未锁定时必须把光标放出来，否则会出现「鼠标能动但看不见、点不到 UI」
+            Cursor.visible = !locked;
         }
 
         #endregion

@@ -68,7 +68,20 @@ namespace HotUpdate.Enemy
                 return;
             }
 
-            Vector3 spawnPos = new Vector3(ret.PosX, ret.PosY, ret.PosZ);
+            InstantiateEnemy(ret.EnemyInstanceId, ret.MaxHp, ret.CurrHp, new Vector3(ret.PosX, ret.PosY, ret.PosZ));
+        }
+
+        /// <summary>
+        /// 离线调试用：本地直接落地一只敌人。没有服务端驱动，它不会移动也不会攻击，
+        /// 但可以被打（伤害由 PlayerCombat 在离线时本地结算），用来试手感 / 试相机。
+        /// </summary>
+        public void SpawnLocal(int instanceId, float maxHp, Vector3 pos)
+        {
+            InstantiateEnemy(instanceId, maxHp, maxHp, pos);
+        }
+
+        private void InstantiateEnemy(int instanceId, float maxHp, float currHp, Vector3 spawnPos)
+        {
             AppContext.Res.LoadAndInstantiateAsync("enemy", null, enemy =>
             {
                 EnemyCtrl ctrl = enemy.GetComponent<EnemyCtrl>();
@@ -79,7 +92,7 @@ namespace HotUpdate.Enemy
                 }
 
                 // 敌人由服务端驱动，客户端只落地出生数据，之后位置/动作都等服务端下发
-                ctrl.InitFromServer(ret.EnemyInstanceId, ret.MaxHp, ret.CurrHp, spawnPos);
+                ctrl.InitFromServer(instanceId, maxHp, currHp, spawnPos);
             });
         }
 

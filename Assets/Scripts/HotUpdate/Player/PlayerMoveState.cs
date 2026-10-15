@@ -84,7 +84,10 @@ namespace HotUpdate.Player
         // 处理旋转 - 所有状态都使用平滑旋转
         private Vector3 HandleRotation(float h, float v) 
         {
-            Transform camTransform = Player.CameraBinder.CameraTransform?.transform;
+            // 相机还没绑好（例如直接跑某个测试场景）时不做方向换算，避免把角色转到奇怪的方向
+            Transform camTransform = Player.CameraBinder.CameraTransform;
+            if (camTransform == null) return Vector3.zero;
+
             Vector3 camForward = camTransform.forward;
             Vector3 camRight = camTransform.right;
             camForward.y = 0;

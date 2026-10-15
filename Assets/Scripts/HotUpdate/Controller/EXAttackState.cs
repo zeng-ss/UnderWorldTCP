@@ -34,7 +34,7 @@ namespace HotUpdate.Controller
             // 进入开始状态
             TransitionAttackState(ExState.Start);
             Player.Core.IsLock = true;
-            Player.CameraBinder.VirtualCameraEx.gameObject.SetActive(true);
+            Player.CameraBinder.Rig.EnterEx();
         }
 
         public override void Update()
@@ -52,7 +52,7 @@ namespace HotUpdate.Controller
                     _isDistanceLocked = true;
                     FaceToEnemy();
                     if (IsAnimationMoreThanTime("AttackEx_Start", 0.8f))
-                        Player.CameraBinder.VirtualCameraEx.gameObject.SetActive(false);
+                        Player.CameraBinder.Rig.ExitEx();
                     if (IsAnimationFinished("AttackEx_Start"))
                     {
                         Player.SkillCombo.StartSkillByIndex(0);
@@ -157,7 +157,7 @@ namespace HotUpdate.Controller
 
         public override void Exit()
         {
-            Player.CameraBinder.VirtualCameraEx.gameObject.SetActive(false);
+            Player.CameraBinder.Rig.ExitEx();
             Player.Core.IsLock = false;
         }
     }

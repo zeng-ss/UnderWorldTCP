@@ -4,7 +4,6 @@ using DamageNumbersPro;
 using DG.Tweening;
 using HotUpdate.Controller;
 using HotUpdate.Data;
-using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -13,20 +12,13 @@ using AppContext = HotUpdate.Core.AppContext;
 namespace HotUpdate.Player
 {
     // 玩家表现层：技能特效、命中特效、音效、屏幕反馈（震屏 / 色差 / 暗角）、伤害飘字。
-    // 由控制器在 Awake 里运行时 AddComponent 挂载（不需要改预制体），
-    // Init 注入数据后，控制器直调这里的公开方法 ——
-    // 发布者明确知道唯一接收者，直调即可，不走事件总线广播。
-    // 本类不持有控制器：需要的数据（动画模型、飘字组件、跟随 Transform）全部由 Init 注入。
-    // 唯一的接缝是技能特效上可能挂的 ParticleCtrl 需要回调所有者发起命中判定，
-    // 通过 BindVfxOwner 注入委托完成，本类不认识具体的所有者类型。
-    // 内部实现（协程、DOTween、Cinemachine、后处理）与表现行为重构前完全一致。
     public class PlayerPresentation : MonoBehaviour
     {
         private PlayerModel _model;
         private DamageNumber _damageNumber;
         private Transform _followTarget;
         private AudioSource _audioSource;
-        private CinemachineImpulseSource _impulseSource;
+        private PlayerCameraRig _camera;
 
         private ChromaticAberration _chromaticAberration;
         private Vignette _vignette;
@@ -41,15 +33,13 @@ namespace HotUpdate.Player
             _damageNumber = damageNumber;
             _followTarget = followTarget;
             _audioSource = GetComponent<AudioSource>();
-            _impulseSource = GetComponent<CinemachineImpulseSource>();
             ResolveVolumeEffects();
         }
 
+        public void BindCamera(PlayerCameraRig camera) => _camera = camera;
+
         /// <summary>注入特效 → 所有者的绑定委托</summary>
-        public void BindVfxOwner(Action<ParticleCtrl> initVfxOwner)
-        {
-            _initVfxOwner = initVfxOwner;
-        }
+        public void BindVfxOwner(Action<ParticleCtrl> initVfxOwner) => _initVfxOwner = initVfxOwner;
 
         // 从场景里的 Volume 取出后处理组件
         private void ResolveVolumeEffects()
@@ -65,22 +55,18 @@ namespace HotUpdate.Player
 
         public void PlayAnimation(string animationName, float transitionTime)
         {
-            if (_model == null) return;
-
             _model.Animator.CrossFadeInFixedTime(animationName, transitionTime, 0, 0f);
         }
 
         public void PlaySound(AudioClip clip)
         {
             if (_audioSource == null || clip == null) return;
-
             _audioSource.PlayOneShot(clip);
         }
 
         public void SpawnSkillVfx(VFXData vfxData)
         {
             if (vfxData == null || vfxData.prefab == null) return;
-
             StartCoroutine(DoSpawnVfx(vfxData));
         }
 
@@ -89,8 +75,7 @@ namespace HotUpdate.Player
             if (hitData == null) return;
 
             SpawnHitPrefab(hitData, vfxIndex, worldPos);
-
-            _impulseSource?.GenerateImpulse(hitData.screenImpulseValue);
+            Shake(hitData.screenImpulseValue);
 
             if (_chromaticAberration != null && _vignette != null)
             {
@@ -108,8 +93,15 @@ namespace HotUpdate.Player
             Vector3 worldPos = _followTarget != null ? _followTarget.position : transform.position;
             if (_damageNumber != null) _damageNumber.Spawn(worldPos, damageValue);
 
-            _impulseSource?.GenerateImpulse(screenImpulseValue);
+            Shake(screenImpulseValue);
             PlayVignette(vignetteValue);
+        }
+
+        // 命中 / 受击的震屏。相机由自研的 PlayerCameraRig 驱动，没注入进来时静默跳过。
+        private void Shake(float strength)
+        {
+            if (_camera == null) return;
+            _camera.Shake(strength);
         }
 
         #endregion

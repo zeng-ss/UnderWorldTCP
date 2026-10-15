@@ -134,6 +134,9 @@ namespace HotUpdate.Network
 
         public void Tick()
         {
+            // 离线调试没有服务端，位置同步直接跳过（否则会白建一条网络层对象）
+            if (AppContext.IsOffline) return;
+
             _syncTimer += Time.deltaTime;
             if (!(_syncTimer >= SyncInterval)) return;
             _syncTimer = 0;

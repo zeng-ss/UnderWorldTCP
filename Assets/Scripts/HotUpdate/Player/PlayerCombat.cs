@@ -180,9 +180,46 @@ namespace HotUpdate.Player
             {
                 bool isExAttack = _stateMachine.CurrentState == PlayerStateType.Ex;
                 float baseDamage = isExAttack ? _core.PlayerValueData.ExAttackValue : _core.PlayerValueData.AttackValue;
+
+                // 离线调试没有服务端，本地按同一套公式结算一次，再走服务端回包的那条落地路径
+                if (AppContext.IsOffline)
+                {
+                    enemy.OnServerAttackResult(
+                        BuildOfflineAttackResult(enemy, baseDamage, _core.PlayerValueData.BaoJiValue));
+                    return;
+                }
+
                 AppContext.Proto.RequestPlayerAttack(AppContext.Session.RoleId, enemy.serverInstanceId, baseDamage,
                     _core.PlayerValueData.BaoJiValue, isExAttack, enemy.OnServerAttackResult);
             }
+        }
+
+        // 离线调试用的随机数（服务端那套是 EnemyMgr 自己的 Random，两边不共享）
+        private static readonly System.Random OfflineRand = new System.Random();
+
+        // 离线调试：与 Server/LoginServer/Ctrl/EnemyMgr.ProcessAttack 完全相同的伤害公式 ——
+        // 基础伤害 + 暴击时额外 200~1500，暴击率取角色的暴击属性。
+        private static PlayerAttackRet BuildOfflineAttackResult(EnemyCtrl enemy, float baseDamage, float baojiPercent)
+        {
+            bool isBaoji = OfflineRand.Next(1, 101) <= baojiPercent;
+            float damage = baseDamage;
+            if (isBaoji) damage += OfflineRand.Next(200, 1501);
+
+            float currHp = enemy.networkHealth - damage;
+            bool isDead = currHp <= 0f;
+            if (isDead) currHp = 0f;
+
+            return new PlayerAttackRet
+            {
+                CmdCode = CmdCode.Succeed,
+                EnemyInstanceId = enemy.serverInstanceId,
+                AttackerRoleId = AppContext.Session.RoleId,
+                DamageDealt = damage,
+                EnemyCurrHp = currHp,
+                EnemyMaxHp = enemy.maxHealthValue,
+                IsDead = isDead,
+                IsBaoji = isBaoji,
+            };
         }
 
         public void OnHurt(HitData hitData, ISkillOwner hurtSource)

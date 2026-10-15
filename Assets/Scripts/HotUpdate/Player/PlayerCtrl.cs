@@ -70,6 +70,7 @@ namespace HotUpdate.Player
 
             Combat.InitializeFromServer(AppContext.Session.MainRoleInfo);
             CameraBinder.Bind(transform, playerModel.transform);
+            Presentation.BindCamera(CameraBinder.Rig);
             Locomotion.Init();
             StateMachine.ChangeTo(PlayerStateType.Idle);
             _isInit = true;
