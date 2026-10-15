@@ -49,6 +49,9 @@ namespace HotUpdate.UI.UIPanel
             sequence.Join(transform.DOScaleY(1, PanelShowDuration).SetEase(PanelEase));
             sequence.Join(_taskCanvasGroup.DOFade(1, PanelShowDuration).SetEase(PanelEase));
 
+            // 打开面板 = 可领的奖都看到了，灭掉 HUD 上的任务红点
+            AppContext.Task.MarkCompletedRead();
+
             RefreshTaskUI(AppContext.Task.Tasks);
         }
 

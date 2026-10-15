@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotUpdate.Core;
 using HotUpdate.Data;
+using HotUpdate.RedDot;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
 
@@ -20,11 +21,16 @@ namespace HotUpdate.Service
         private bool _online; // 是否已拿到服务端任务数据；离线调试 / 拉取失败时为 false，不再向服务端上报
         private TaskPanel _taskPanel;
 
+        // 已经「看过」的可领奖任务：打开任务面板时把当时可领的都记上，红点随之灭掉；
+        // 之后新完成的任务不在集合里，红点会重新亮起来
+        private readonly HashSet<int> _readTasks = new();
+
         /// <summary>清空本地任务数据。任务内容全部来自服务端，这里没有可初始化的配置。</summary>
         public void Init()
         {
             _online = false;
             Tasks.Clear();
+            _readTasks.Clear();
         }
 
         #region 服务端数据
@@ -97,7 +103,7 @@ namespace HotUpdate.Service
             if (changed) NotifyTaskChanged();
         }
 
-        private void Transition(TaskDataRuntime task, TaskState to)
+        private static void Transition(TaskDataRuntime task, TaskState to)
         {
             if (task == null) return;
             if ((int)to <= (int)task.State)
@@ -164,19 +170,54 @@ namespace HotUpdate.Service
 
         #endregion
 
-        // 同模块 data→view：直接通知任务面板刷新；面板没开就跳过（下次 OnEnable 会自己重建）
+        // 同模块 data→view：直接通知任务面板刷新；面板没开就跳过
         private void NotifyTaskChanged()
         {
+            RefreshRedDot();
+
             _taskPanel ??= AppContext.Ui.GetPanel<TaskPanel>();
             if (_taskPanel == null) return;
             _taskPanel.RefreshTaskUI(Tasks);
         }
+
+        #region 红点
+
+        /// <summary>
+        /// 把「当前可领奖的任务」标记为已读，红点随之灭掉。任务面板打开时调。
+        /// 只记 id，不关心任务本身，所以后续领奖 / 状态变化都不影响。
+        /// </summary>
+        public void MarkCompletedRead()
+        {
+            foreach (TaskDataRuntime task in Tasks)
+            {
+                if (task.State == TaskState.Completed) _readTasks.Add(task.TaskId);
+            }
+
+            RefreshRedDot();
+        }
+
+        // 红点 = 可领奖但还没看过的任务数
+        private void RefreshRedDot()
+        {
+            if (!AppContext.IsAlive) return;
+
+            int unread = 0;
+            foreach (TaskDataRuntime task in Tasks)
+            {
+                if (task.State == TaskState.Completed && !_readTasks.Contains(task.TaskId)) unread++;
+            }
+
+            AppContext.RedDot.Set(RedDotPath.Task, unread);
+        }
+
+        #endregion
 
         // 释放本地数据（退出 / 热更重载时调用）
         public void Clear()
         {
             _online = false;
             Tasks.Clear();
+            _readTasks.Clear();
         }
     }
 }

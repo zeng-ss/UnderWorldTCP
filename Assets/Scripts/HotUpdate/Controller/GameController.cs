@@ -1,5 +1,6 @@
 using HotUpdate.Core;
 using HotUpdate.Event;
+using HotUpdate.Manager;
 using HotUpdate.UI;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
@@ -30,8 +31,8 @@ namespace HotUpdate.Controller
             // 调试用：强制解锁光标
             // InputManager.Instance.RegisterKeyDown(KeyCode.K, ToggleForceUnlock);
 
-            // 预加载任务面板，避免首次按 Tab 时才加载造成卡顿
-            AppContext.Ui.OpenPanel<TaskPanel>(_ => AppContext.Ui.ClosePanel<TaskPanel>());
+            // 预加载任务面板的预制体资源，避免首次按 Tab 时才加载造成卡顿。
+            AppContext.UILoader.LoadAsync(PanelPathResolver.Resolve<TaskPanel>(), null);
         }
 
         private void OnDestroy()

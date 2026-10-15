@@ -3,6 +3,7 @@ using DG.Tweening;
 using HotUpdate.Core;
 using HotUpdate.Data;
 using HotUpdate.Manager;
+using HotUpdate.RedDot;
 using HotUpdate.UI.UIItem;
 using TMPro;
 using UnityEngine;
@@ -37,6 +38,9 @@ namespace HotUpdate.UI.UIPanel
         {
             InputManager.Instance.RegisterKeyDown(KeyCode.Return, OnEnterPressed);
             InputManager.Instance.RegisterKeyDown(KeyCode.KeypadEnter, OnEnterPressed);
+
+            // 打开面板 = 消息都看到了，清掉红点
+            if (AppContext.IsAlive) AppContext.RedDot.Clear(RedDotPath.Chat);
 
             // 补上打开面板前就已经收到的消息
             foreach (var message in AppContext.Chat.Messages) AddChatItem(message, false);

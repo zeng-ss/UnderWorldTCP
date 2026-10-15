@@ -3,6 +3,7 @@ using HotUpdate.Enemy;
 using HotUpdate.Event;
 using HotUpdate.Manager;
 using HotUpdate.Network;
+using HotUpdate.RedDot;
 using HotUpdate.Service;
 
 namespace HotUpdate.Core
@@ -47,6 +48,7 @@ namespace HotUpdate.Core
         private readonly ProtoHandler _proto;
         private readonly RemotePlayerManager _remotePlayer;
         private readonly EnemyManager _enemy;
+        private readonly RedDotMgr _redDot;
 
         public static EventMgr Events => _current._events;
         public static UIAssetLoader UILoader => _current._uiLoader;
@@ -58,6 +60,9 @@ namespace HotUpdate.Core
         public static RemotePlayerManager RemotePlayer => _current._remotePlayer;
         public static EnemyManager Enemy => _current._enemy;
         public static ProtoHandler Proto => _current._proto;
+
+        /// <summary>红点树：谁产生红点谁 Set/Add，HUD 上只 Watch</summary>
+        public static RedDotMgr RedDot => _current._redDot;
 
         #endregion
 
@@ -75,6 +80,7 @@ namespace HotUpdate.Core
             _proto = new ProtoHandler();
             _remotePlayer = new RemotePlayerManager();
             _enemy = new EnemyManager();
+            _redDot = new RedDotMgr();
 
             _session = new SessionService();
             _config = new ConfigService();
@@ -121,6 +127,7 @@ namespace HotUpdate.Core
             _proto.Clear();
             _remotePlayer.Clear();
             _enemy.Clear();
+            _redDot.ClearAll();
             _pool.Clear();
             _sound.Clear();
             _uiManager.ClearAllPanel();

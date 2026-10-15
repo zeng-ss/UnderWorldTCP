@@ -38,10 +38,12 @@ namespace ProjectEditor
         private const string SpriteTile = TexDir + "square_button_neutral.png";
         private const string SpriteTileSelected = TexDir + "square_button_selected.png";
         private const string SpriteBadge = TexDir + "rect_button.png";
+        private const string SpriteDot = TexDir + "circle_mask.png"; // 纯白实心圆，靠 Image.color 上色
 
         // ---------- 命名 ----------
         private const string BarName = "ShortcutBar";
         private const string InfoBgName = "InfoBg";
+        private const string RedDotName = "RedDot";
         private const string PreviewCanvasName = "HUDPreviewCanvas";
 
         // ---------- 版式 ----------
@@ -54,6 +56,11 @@ namespace ProjectEditor
         private const float BarPaddingY = 12f;
         private const float BarBottomOffset = 28f;
 
+        // 红点：白圈垫底 + 红圆，骑在方块右上角（尺寸含白圈）
+        private const float RedDotRingSize = 24f;
+        private const float RedDotCoreSize = 17f;
+        private static readonly Vector2 RedDotOffset = new Vector2(-6f, -6f);
+
         // 信息底板比头像区（Head）四周各外扩一点
         private const float InfoBgMarginX = 48f;
         private const float InfoBgMarginY = 44f;
@@ -64,6 +71,8 @@ namespace ProjectEditor
         private static readonly Color ColName = new Color(0.93f, 0.94f, 0.97f, 1f);
         private static readonly Color ColBadgeBg = new Color(0.08f, 0.09f, 0.13f, 0.95f);
         private static readonly Color ColKey = new Color(0.98f, 0.85f, 0.45f, 1f);
+        private static readonly Color ColDotRing = new Color(1f, 1f, 1f, 0.92f);
+        private static readonly Color ColDotCore = new Color(0.93f, 0.24f, 0.22f, 1f);
 
         private static TMP_FontAsset _font;
         private static readonly Dictionary<string, Sprite> _spriteCache = new();
@@ -254,10 +263,45 @@ namespace ProjectEditor
             nameRt.sizeDelta = new Vector2(SlotWidth, 22f);
             nameRt.anchoredPosition = Vector2.zero;
 
+            GameObject redDot = CreateRedDot(tileRt);
+
             // 悬停放大挂在这一格上：鼠标压在方块上时事件会冒泡到这一层
             var view = slot.AddComponent<ShortcutButton>();
             view.panel = shortcut.Id;
             view.button = btn;
+            view.redDot = redDot;
+        }
+
+        // 右上角红点：白圈垫底 + 红圆，默认隐藏，运行时由红点树控制显隐
+        private static GameObject CreateRedDot(Transform tile)
+        {
+            var dot = NewUI(RedDotName, tile);
+            var dotRt = (RectTransform)dot.transform;
+            dotRt.anchorMin = dotRt.anchorMax = new Vector2(1f, 1f);
+            dotRt.pivot = new Vector2(0.5f, 0.5f);
+            dotRt.sizeDelta = new Vector2(RedDotRingSize, RedDotRingSize);
+            dotRt.anchoredPosition = RedDotOffset;
+
+            var ring = NewUI("Ring", dotRt);
+            Stretch((RectTransform)ring.transform);
+            var ringImg = ring.AddComponent<Image>();
+            ApplySprite(ringImg, SpriteDot, false);
+            ringImg.color = ColDotRing;
+            ringImg.raycastTarget = false;
+
+            var core = NewUI("Core", dotRt);
+            var coreRt = (RectTransform)core.transform;
+            coreRt.anchorMin = coreRt.anchorMax = new Vector2(0.5f, 0.5f);
+            coreRt.pivot = new Vector2(0.5f, 0.5f);
+            coreRt.sizeDelta = new Vector2(RedDotCoreSize, RedDotCoreSize);
+            coreRt.anchoredPosition = Vector2.zero;
+            var coreImg = core.AddComponent<Image>();
+            ApplySprite(coreImg, SpriteDot, false);
+            coreImg.color = ColDotCore;
+            coreImg.raycastTarget = false;
+
+            dot.SetActive(false);
+            return dot;
         }
 
         // =====================================================================

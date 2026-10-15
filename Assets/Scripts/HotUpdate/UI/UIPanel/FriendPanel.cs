@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using HotUpdate.Data;
 using HotUpdate.Manager;
+using HotUpdate.RedDot;
 using HotUpdate.Service;
 using HotUpdate.UI.UIItem;
 using TMPro;
@@ -55,6 +56,11 @@ namespace HotUpdate.UI.UIPanel
             base.Show();
             if (!AppContext.IsAlive) return;
 
+            // 打开面板 = 申请与私聊都看到了，清掉好友下面的两路红点
+            //（Friend 那一格的红点是这两路的合计，会跟着自动灭）
+            AppContext.RedDot.Clear(RedDotPath.FriendApply);
+            AppContext.RedDot.Clear(RedDotPath.FriendMessage);
+
             LoadFriendItemPrefab();
             RefreshFriendList();
             UpdateChatTitle();
@@ -65,6 +71,9 @@ namespace HotUpdate.UI.UIPanel
         }
 
         #region 由 FriendService 调用
+
+        /// <summary>当前是不是正在和这个好友聊天（红点判断用：正在看着的消息不算未读）</summary>
+        public bool IsChattingWith(int friendRoleId) => friendRoleId > 0 && _chatRoleId == friendRoleId;
 
         /// <summary>收到一条私聊消息时刷新当前聊天窗口</summary>
         public void OnMessageReceived(FriendMsgData msg)

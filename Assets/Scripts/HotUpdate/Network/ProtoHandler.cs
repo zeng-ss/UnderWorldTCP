@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Google.Protobuf;
 using HotUpdate.Data;
+using HotUpdate.RedDot;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
 using AppContext = HotUpdate.Core.AppContext;
@@ -708,8 +709,17 @@ namespace HotUpdate.Network
             FriendApplyNtf ntf = FriendApplyNtf.Parser.ParseFrom(data);
             Debug.Log($"ProtoHandler: 好友申请通知 from={ntf.FromRoleId} nickname={ntf.FromNickname}");
             AppContext.Ui.ShowTip($"收到好友申请：{ntf.FromNickname}");
-            // 面板开着就立刻重拉，把申请顶到列表最前面；没开则下次 Show() 时会拉到
-            AppContext.Ui.GetPanel<FriendPanel>()?.OnFriendApplyReceived();
+
+            // 面板开着 = 玩家正看着，立刻重拉把申请顶到最前面，不用点红点
+            FriendPanel panel = AppContext.Ui.GetPanel<FriendPanel>();
+            if (panel != null && panel.gameObject.activeInHierarchy)
+            {
+                panel.OnFriendApplyReceived();
+                return;
+            }
+
+            // 没开就挂一颗红点，下次打开好友面板时清掉
+            AppContext.RedDot.Add(RedDotPath.FriendApply, 1);
         }
 
         private void OnFriendMsgPushNtf(ByteString data)
@@ -717,6 +727,14 @@ namespace HotUpdate.Network
             FriendMsgPushNtf ntf = FriendMsgPushNtf.Parser.ParseFrom(data);
             Debug.Log($"ProtoHandler: 私聊推送 id={ntf.Message?.Id} from={ntf.Message?.SenderRoleId}");
             OnServerPushMessageReceived?.Invoke(ntf);
+
+            // 未读私聊红点：自己发的（多端同步）不算，正在和这个人聊天也不算
+            FriendMsg msg = ntf.Message;
+            if (msg == null || msg.SenderRoleId == AppContext.Session.RoleId) return;
+
+            FriendPanel panel = AppContext.Ui.GetPanel<FriendPanel>();
+            bool reading = panel != null && panel.gameObject.activeInHierarchy && panel.IsChattingWith(msg.SenderRoleId);
+            if (!reading) AppContext.RedDot.Add(RedDotPath.FriendMessage, 1);
         }
 
         private void OnCreateRoomResult(ByteString data)

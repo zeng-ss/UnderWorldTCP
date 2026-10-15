@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
+using HotUpdate.RedDot;
 using HotUpdate.UI.UIPanel;
 
 namespace HotUpdate.Service
@@ -43,9 +44,18 @@ namespace HotUpdate.Service
         private void Publish(MessageData message)
         {
             Messages.Add(message);
-            // 同模块 data→view：直接通知聊天面板。面板没开则跳过，下次打开会补上历史消息
+
+            // 同模块 data→view：直接通知聊天面板。面板开着就直接刷，
+            // 没开就只记一条未读红点 —— 历史消息会在下次 OnEnable 时补上
             _chatPanel ??= AppContext.Ui.GetPanel<ChatPanel>();
-            _chatPanel.OnMessageReceived(message);
+            if (_chatPanel != null && _chatPanel.gameObject.activeInHierarchy)
+            {
+                _chatPanel.OnMessageReceived(message);
+                return;
+            }
+
+            // 自己发的消息（SenderClientId == 0）不算未读
+            if (message.SenderClientId != 0) AppContext.RedDot.Add(RedDotPath.Chat, 1);
         }
     }
 }
