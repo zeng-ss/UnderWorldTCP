@@ -18,7 +18,7 @@ namespace HotUpdate.Player
         private DamageNumber _damageNumber;
         private Transform _followTarget;
         private AudioSource _audioSource;
-        private PlayerCameraRig _camera;
+        private PlayerCameraCtrl _camera;
 
         private ChromaticAberration _chromaticAberration;
         private Vignette _vignette;
@@ -36,7 +36,7 @@ namespace HotUpdate.Player
             ResolveVolumeEffects();
         }
 
-        public void Bind(PlayerCameraRig camera)
+        public void Bind(PlayerCameraCtrl camera)
         {
             _camera = camera;
         }
@@ -100,7 +100,7 @@ namespace HotUpdate.Player
             PlayVignette(vignetteValue);
         }
 
-        // 命中 / 受击的震屏。相机由自研的 PlayerCameraRig 驱动，没注入进来时静默跳过。
+        // 命中 / 受击的震屏。相机由自研的 PlayerCameraCtrl 驱动，没注入进来时静默跳过。
         private void Shake(float strength)
         {
             if (_camera == null) return;

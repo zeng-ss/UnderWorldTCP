@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace HotUpdate.UI.UIPanel
 {
     /// <summary>
-    /// 大招过场：全屏 RawImage 显示 PlayerUltCutscene 渲染出来的 RenderTexture，
+    /// 大招过场：全屏 RawImage 显示 PlayerCameraCtrl 渲染出来的 RenderTexture，
     /// 上下黑边从屏幕外滑入把画面框住，退场时滑出。
     /// </summary>
     [PanelPath("UltPanel")]
@@ -27,8 +27,7 @@ namespace HotUpdate.UI.UIPanel
 
         public float zoomDuration = 1.8f;
 
-        [Tooltip("黑边滑出屏幕外要多远（大于黑边高度即可）")]
-        public float barHideOffset = 200f;
+        [Tooltip("黑边滑出屏幕外要多远（大于黑边高度即可）")] public float barHideOffset = 200f;
 
         protected override PanelTween.Config? AnimConfig => PanelTween.Config.None;
 

@@ -121,7 +121,7 @@ namespace HotUpdate.Launcher
         }
 
         // 离线场景没有走「开面板 → 关面板」的光标流程，这里直接锁上，
-        // 否则 PlayerCameraRig 判定光标未锁定会不响应鼠标（转不了视角）
+        // 否则 PlayerCameraCtrl 判定光标未锁定会不响应鼠标（转不了视角）
         private static void LockCursor()
         {
             Cursor.lockState = CursorLockMode.Locked;

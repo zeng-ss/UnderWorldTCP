@@ -13,7 +13,7 @@ namespace HotUpdate.Player
         private readonly PlayerCore _core;
         private readonly PlayerStateMachine _stateMachine;
         private readonly PlayerSkillCombo _skillCombo;
-        private readonly PlayerCameraBinder _cameraBinder;
+        private readonly PlayerCameraCtrl _cameraCtrl;
         private readonly CharacterController _characterController;
         private readonly Transform _rootTransform;
 
@@ -29,12 +29,12 @@ namespace HotUpdate.Player
         #endregion
 
         public PlayerInputHandler(PlayerCore core, PlayerStateMachine stateMachine, PlayerSkillCombo skillCombo,
-            PlayerCameraBinder cameraBinder, CharacterController characterController, Transform rootTransform)
+            PlayerCameraCtrl cameraCtrl, CharacterController characterController, Transform rootTransform)
         {
             _core = core;
             _stateMachine = stateMachine;
             _skillCombo = skillCombo;
-            _cameraBinder = cameraBinder;
+            _cameraCtrl = cameraCtrl;
             _characterController = characterController;
             _rootTransform = rootTransform;
         }
@@ -78,17 +78,14 @@ namespace HotUpdate.Player
         private void SwitchSkill(ComboSet set)
         {
             if (!_core.IsLocalPlayer) return;
+            // 大招期间（含收招）不接受切表：ChangeTo 会被 IsLock 拦下，但表已经切走了 ——
+            // 收招结束回到 Idle 后，左键打出的就是大招动画
+            if (_core.IsLock || _stateMachine.CurrentState == PlayerStateType.Ex) return;
             if (_skillCombo.GetSkillConfig(set) == null) return;
             if (_skillCombo.IsCurrent(set)) return;
 
-            if (set == ComboSet.Ex)
-            {
-                _skillCombo.UpdateSkillConfig(ComboSet.Ex);
-                _stateMachine.ChangeTo(PlayerStateType.Ex);
-                return;
-            }
-
             _skillCombo.UpdateSkillConfig(set);
+            if (set == ComboSet.Ex) _stateMachine.ChangeTo(PlayerStateType.Ex);
         }
 
         private void OnMouse0()
@@ -150,7 +147,7 @@ namespace HotUpdate.Player
             DOVirtual.DelayedCall(1f, () =>
             {
                 _isPining = false;
-                _cameraBinder.Rig.ExitPin();
+                _cameraCtrl.ExitPin();
             });
             _enemy.OnStiff();
         }
@@ -165,7 +162,7 @@ namespace HotUpdate.Player
             _characterController.enabled = false;
             _rootTransform.position = teleportPos;
             _characterController.enabled = true;
-            _cameraBinder.Rig.EnterPin(_enemy.transform);
+            _cameraCtrl.EnterPin();
             _rootTransform.LookAt(_enemy.transform);
             _skillCombo.UpdateSkillConfig(ComboSet.Second, true);
             _stateMachine.ChangeTo(PlayerStateType.Attack, true);
@@ -184,6 +181,9 @@ namespace HotUpdate.Player
 
         private void HandleEvade()
         {
+            // 锁定期间（大招 / 死亡等）不响应闪避：ChangeTo 会被 IsLock 忽略，接着强转当前状态会抛异常
+            if (_core.IsLock) return;
+
             // 已在闪避中：再按 Shift 走连闪（重新播 Evade 动画），而不是重复切状态
             if (_stateMachine.CurrentState == PlayerStateType.Evade)
             {
@@ -195,8 +195,7 @@ namespace HotUpdate.Player
             _isShiftDoubleTap = Time.time - _lastShiftPressTime < DoubleTapInterval;
 
             _stateMachine.ChangeTo(PlayerStateType.Evade);
-            PlayerEvadeState state = (PlayerEvadeState)_stateMachine.Machine.CurrentState;
-            state.SetEvade(_isShiftDoubleTap);
+            if (_stateMachine.Machine.CurrentState is PlayerEvadeState state) state.SetEvade(_isShiftDoubleTap);
             _lastShiftPressTime = Time.time;
         }
 

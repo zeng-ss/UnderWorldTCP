@@ -1,26 +1,38 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using HotUpdate.Core;
+using HotUpdate.Manager;
+using HotUpdate.UI.UIPanel;
 using UnityEngine;
+using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.Player
 {
-    public class PlayerCameraRig : MonoBehaviour
+    public class PlayerCameraCtrl : MonoBehaviour
     {
-        // 相机状态
-        private enum CameraMode
+        private enum CameraState
         {
             Normal = 0,
             Pin = 1,
-            Ex = 2,
+            Ult = 2
         }
+
+        #region 相机引用
+
+        [Header("相机")] [SerializeField] private Camera normalCamera;
+
+        [SerializeField] private Camera pinCamera;
+
+        [SerializeField] private Camera ultCamera;
+
+        #endregion
 
         #region 可调参数 —— 正常视角
 
         [Header("① 正常 · 鼠标视角")] [SerializeField]
         private float lookSensitivity = 2.4f;
 
-        [Tooltip("勾上：鼠标向下移动时相机向下移动（本项目默认手感，对应 UE 的 bInvertLookY）")] [SerializeField]
-        private bool invertLookY = true;
+        [SerializeField] private bool invertLookY = true;
 
         [SerializeField] private bool enableMouseSmoothing = true;
 
@@ -30,11 +42,11 @@ namespace HotUpdate.Player
         [Tooltip("单帧鼠标位移超过该值时视为快速甩视角，直接使用原始值不做平滑")] [SerializeField]
         private float mouseSmoothThreshold = 0.6f;
 
-        [SerializeField] private float pitchMin = -32f;
-        [SerializeField] private float pitchMax = 72f;
-        [SerializeField] private float defaultPitch = 14f;
+        [SerializeField] private float pitchMin = 10;
+        [SerializeField] private float pitchMax = 30;
+        [SerializeField] private float defaultPitch = 20;
 
-        [Header("① 正常 · 弹簧臂 SpringArm")] [Tooltip("相机跟随点相对角色模型挂点的偏移（挂在 LookAt 上）")] [SerializeField]
+        [Header("① 正常 · 弹簧臂 SpringArm")] [SerializeField]
         private Vector3 targetOffset = new Vector3(0f, 1.55f, 0f);
 
         [Tooltip("肩位偏移：相机相对跟随点的横向/纵向拉偏，0 = 正后方")] [SerializeField]
@@ -46,70 +58,36 @@ namespace HotUpdate.Player
         [SerializeField] private float zoomSpeed = 2.2f;
         [SerializeField] private float pivotFollowSmoothTime = 0.03f;
 
-        [Header("① 正常 · 相机滞后 CameraLag")] [SerializeField]
-        private bool enableCameraLocationLag = true;
+        [Header("①  · 相机滞后 CameraLag")] [SerializeField]
+        private bool enableCameraLocationLag = false;
 
-        [Tooltip("相机位置逼近理想位置的速度，越小越「拖」")] [SerializeField]
+        [Tooltip("相机位置逼近理想位置的速度")] [SerializeField]
         private float cameraLagSpeed = 14f;
 
-        [Tooltip("滞后距离上限：超过就直跟（防止传送 / 冲刺时相机被远远甩掉），0 = 不限")] [SerializeField]
-        private float cameraLagMaxDistance = 3.5f;
+        [Tooltip("滞后距离上限")] [SerializeField] private float cameraLagMaxDistance = 3.5f;
 
         [SerializeField] private bool enableCameraRotationLag;
         [SerializeField] private float cameraRotationLagSpeed = 18f;
 
-        [Header("① 正常 · 碰撞")] [SerializeField] private bool doCollisionTest = true;
-
-        [Tooltip("探测球半径，越大越不容易穿模，但贴墙时镜头会被推得越近")] [SerializeField]
-        private float probeSize = 0.3f;
-
+        [Header("①  · 碰撞")] [SerializeField] private bool doCollisionTest = true;
+        [Tooltip("探测球半径")] [SerializeField] private float probeSize = 0.3f;
         [SerializeField] private float collisionPadding = 0.1f;
 
         #endregion
 
-        #region 可调参数 —— 拼刀特写
+        #region 可调参数 —— 大招过场
 
-        [Header("② 拼刀特写 Pin")]
-        [Tooltip("镜头绕「玩家→对手」连线的偏移角：0 = 玩家背后过肩看对手，±90 = 正侧拍，180 = 对手背后看玩家。\n" +
-                 "正负号决定绕到玩家的哪一侧（左手 / 右手）。")]
-        [SerializeField]
-        private float pinYawOffset = -72f;
+        [Header("② 大招过场")] [Tooltip("过场的 RenderTexture 宽度")] [SerializeField]
+        private int ultTextureWidth = 1920;
 
-        [Tooltip("正值 = 相机高于锚点（俯视），负值 = 低于锚点（仰拍）")] [SerializeField]
-        private float pinPitch = 10f;
-
-        [Tooltip("相机到「两人中点」的距离（= 弹簧臂臂长）")] [SerializeField]
-        private float pinDistance = 3.4f;
-
-        [Tooltip("锚点相对两人中点的高度")] [SerializeField]
-        private float pinHeight = 1.25f;
-
-        [SerializeField] private float pinFov = 45f;
-        [SerializeField] private float pinBlendTime = 0.18f;
-
-        #endregion
-
-        #region 可调参数 —— 大招特写
-
-        [Header("③ 大招特写 Ex")] [Tooltip("镜头绕角色朝向的偏移角：0 = 角色背后，180 = 角色正面，±120 左右 = 侧前方")] [SerializeField]
-        private float exYawOffset = 145f;
-
-        [Tooltip("负值 = 相机低于锚点（仰拍，显气势）")] [SerializeField]
-        private float exPitch = -6f;
-
-        [SerializeField] private float exDistance = 4.2f;
-        [SerializeField] private float exPivotHeight = 1.3f;
-        [SerializeField] private float exFov = 30f;
-        [SerializeField] private float exBlendTime = 0.22f;
-
-        [Tooltip("勾上：进入大招时锁定角色朝向作为基准（角色转身时镜头不跟着甩）")] [SerializeField]
-        private bool exLockBaseYaw = true;
+        [Tooltip("黑边滑出动画播完才收相机")] [SerializeField]
+        private float ultExitDelay = 0.4f;
 
         #endregion
 
         #region 可调参数 —— 遮挡淡出
 
-        [Header("④ 遮挡淡出（相机与角色之间挡视线的物体变透明）")] [SerializeField]
+        [Header("③ 遮挡淡出（相机与角色之间挡视线的物体变透明）")] [SerializeField]
         private bool enableObstacleFade = true;
 
         [Tooltip("被遮挡时淡到多少透明度：1 = 不处理，0 = 完全透明")] [SerializeField] [Range(0f, 1f)]
@@ -137,10 +115,8 @@ namespace HotUpdate.Player
 
         private static readonly RaycastHit[] HitBuffer = new RaycastHit[8];
 
-        private Camera _camera;
-        private Transform _pivotTarget; // 正常视角的跟随目标（角色模型的 LookAt 子物体）
-        private Transform _ownerRoot; // 角色根节点（排除自身碰撞体；特写机位也相对它计算）
-        private Transform _facingSource; // 角色朝向来源（模型挂点：root 的 forward 不跟着转身变）
+        private Transform _pivotTarget; // 正常视角的跟随目标
+        private Transform _facingSource; // 角色朝向来源
 
         private float _yaw;
         private float _pitch;
@@ -152,15 +128,12 @@ namespace HotUpdate.Player
         private bool _armReady;
 
         private bool _hasTarget;
-
         private float _baseFov = 40f;
+        private int _normalCullingMask;
 
-        // 状态机：当前状态、过渡来源状态、过渡进度（0→1）
-        private CameraMode _mode = CameraMode.Normal;
-        private CameraMode _fromMode = CameraMode.Normal;
-        private float _modeBlend = 1f;
-        private Transform _pinFocus; // 拼刀对手
-        private float _lockedBaseYaw; // 大招进入时锁定的基准朝向
+        private CameraState _state = CameraState.Normal;
+        private Vector3 _cutsceneBasePos; // 摆好的特写机位：每帧从这份基准重算，震屏才不会累积偏移
+        private Quaternion _cutsceneBaseRot;
 
         private float _shakeTimer;
         private float _shakeAmp;
@@ -169,37 +142,22 @@ namespace HotUpdate.Player
 
         private void Awake()
         {
-            _camera = GetComponent<Camera>();
-            if (_camera == null) _camera = Camera.main;
-            if (_camera == null)
+            if (normalCamera == null) normalCamera = Camera.main;
+            if (normalCamera == null)
             {
-                Debug.LogError("[PlayerCameraRig] 场景里找不到相机，无法接管。");
+                Debug.LogError("[PlayerCameraCtrl] 找不到正常视角相机（Inspector 没拖 + 场景里没有 MainCamera）。");
                 enabled = false;
                 return;
             }
 
-            _baseFov = _camera.fieldOfView;
+            _baseFov = normalCamera.fieldOfView;
+            _normalCullingMask = normalCamera.cullingMask;
             _targetArmLength = targetArmLength;
 
-            /*
-            // 按类型名关掉 CinemachineBrain：本脚本不引用 Cinemachine 程序集，去掉这套依赖
-            MonoBehaviour[] behaviours = GetComponents<MonoBehaviour>();
-            foreach (MonoBehaviour behaviour in behaviours)
-            {
-                if (behaviour == null) continue;
-                if (behaviour.GetType().Name == "CinemachineBrain") behaviour.enabled = false;
-            }
-            */
-
-            DisableSceneObject("FreeLook Camera");
-            DisableSceneObject("VirtualCamera_Pin");
-            DisableSceneObject("VirtualCamera_Ex");
-        }
-
-        private static void DisableSceneObject(string objectName)
-        {
-            GameObject go = GameObject.Find(objectName);
-            if (go != null) go.SetActive(false);
+            // 特写相机要渲染在主相机之后才能盖住它（预制体里没设 depth 靠这里兜底）
+            pinCamera.depth = normalCamera.depth + 1;
+            pinCamera.gameObject.SetActive(false);
+            ultCamera.enabled = false;
         }
 
         // 关闭 / 销毁时把还在半透明的障碍物还原，否则会留下一地半透明墙
@@ -220,16 +178,12 @@ namespace HotUpdate.Player
 
         #endregion
 
-        /// <summary>绑定跟随目标。pivot 用角色模型上的 LookAt 子物体，ownerRoot 用角色根节点（排除自身碰撞）</summary>
-        public void SetTarget(Transform pivot, Transform ownerRoot)
+        public void Init(Transform playerModel)
         {
-            if (_camera == null) return;
+            if (normalCamera == null) return; // 场景里没有主相机
 
-            _pivotTarget = pivot != null ? pivot : ownerRoot;
-            _ownerRoot = ownerRoot;
-            if (_pivotTarget == null) return;
-
-            // 朝向来源用模型挂点：转身（移动 / 面向敌人）转的是 playerModel，root 的 forward 不跟着变
+            Transform lookAt = playerModel.Find("LookAt");
+            _pivotTarget = lookAt != null ? lookAt : playerModel;
             _facingSource = _pivotTarget;
 
             // 初始朝向对齐角色正面，避免第一帧镜头猛地甩一下
@@ -243,20 +197,19 @@ namespace HotUpdate.Player
             _pivotVelocity = Vector3.zero;
             _smoothedMouseDelta = Vector2.zero;
             _armReady = true;
-
-            _mode = CameraMode.Normal;
-            _fromMode = CameraMode.Normal;
-            _modeBlend = 1f;
-            _pinFocus = null;
-            _lockedBaseYaw = _yaw;
-
             _hasTarget = true;
-            CameraPose initialPose = ComputePose(_mode);
-            _laggedLocation = ComputeIdealLocation(initialPose);
-            UpdateArm(0f, initialPose);
+
+            CameraPose pose = ComputeNormalPose();
+            _laggedLocation = ComputeIdealLocation(pose);
+            UpdateArm(0f, pose);
+
+            // 预热过场面板，第一次放大招才不会被异步加载拖半拍
+            AppContext.UILoader.LoadAsync(PanelPathResolver.Resolve<UltPanel>(), null);
         }
 
-        #region 外部指令（状态切换）
+        public Transform NormalCamera => normalCamera.transform;
+
+        #region 外部指令
 
         public void Shake(float strength)
         {
@@ -265,169 +218,114 @@ namespace HotUpdate.Player
             _shakeTimer = shakeDuration;
         }
 
-        /// <summary>拼刀特写：镜头切到「玩家与对手之间」的侧面近景</summary>
-        public void EnterPin(Transform focus)
-        {
-            ChangeMode(CameraMode.Pin, focus);
-        }
+        public void EnterPin() => SwitchState(CameraState.Pin);
 
-        /// <summary>退出拼刀特写，回到正常视角</summary>
         public void ExitPin()
         {
-            if (_mode == CameraMode.Pin) ChangeMode(CameraMode.Normal, null);
+            if (_state == CameraState.Pin) SwitchState(CameraState.Normal);
         }
 
-        /// <summary>大招特写：绕到角色侧前方 + 收窄 FOV</summary>
-        public void EnterEx()
+        public void EnterUlt()
         {
-            ChangeMode(CameraMode.Ex, null);
+            SwitchState(CameraState.Ult);
+            PlayCutscene();
         }
 
-        /// <summary>退出大招特写，回到正常视角</summary>
-        public void ExitEx()
+        public void ExitUlt()
         {
-            if (_mode == CameraMode.Ex) ChangeMode(CameraMode.Normal, null);
+            StopCutscene();
+            if (_state == CameraState.Ult) SwitchState(CameraState.Normal);
         }
 
-        // 状态切换：记下过渡起点，之后由 UpdateModeBlend 按各自的 BlendTime 混到新机位
-        private void ChangeMode(CameraMode mode, Transform pinFocus)
+        private void SwitchState(CameraState state)
         {
-            if (_mode == mode)
+            if (_state == state) return;
+            _state = state;
+
+            normalCamera.cullingMask = state == CameraState.Pin ? 0 : _normalCullingMask;
+            pinCamera.gameObject.SetActive(state == CameraState.Pin);
+
+            if (state != CameraState.Normal)
             {
-                if (mode == CameraMode.Pin) _pinFocus = pinFocus;
-                return;
+                Camera cutscene = state == CameraState.Pin ? pinCamera : ultCamera;
+                _cutsceneBasePos = cutscene.transform.localPosition;
+                _cutsceneBaseRot = cutscene.transform.localRotation;
             }
+        }
 
-            // 上一次过渡还没走完又切状态时，过渡起点要接回最初的来源状态
-            _fromMode = _modeBlend >= 1f ? _mode : _fromMode;
-            _mode = mode;
-            _modeBlend = 0f;
+        #endregion
 
-            if (mode == CameraMode.Pin) _pinFocus = pinFocus;
-            if (mode == CameraMode.Ex) _lockedBaseYaw = GetOwnerFlatRotation().eulerAngles.y;
+        #region 大招过场
+
+        private RenderTexture _texture;
+        private bool _cutscenePlaying;
+
+        private void PlayCutscene()
+        {
+            if (_cutscenePlaying || ultCamera is null) return;
+            _cutscenePlaying = true;
+
+            // RT 高度跟屏幕比例走，全屏显示时才不会被拉伸
+            int height = Mathf.Clamp(Mathf.RoundToInt(ultTextureWidth * (float)Screen.height / Screen.width), 480,
+                1600);
+            _texture = new RenderTexture(ultTextureWidth, height, 24);
+
+            ultCamera.gameObject.SetActive(true);
+            ultCamera.aspect = (float)ultTextureWidth / height;
+            ultCamera.targetTexture = _texture;
+            ultCamera.enabled = true;
+
+            AppContext.Ui.OpenPanel<UltPanel>(panel => panel?.Play(_texture));
+        }
+
+        private void StopCutscene()
+        {
+            if (!_cutscenePlaying) return;
+            _cutscenePlaying = false;
+
+            AppContext.Ui.ClosePanel<UltPanel>();
+            DOVirtual.DelayedCall(ultExitDelay, () =>
+            {
+                ultCamera.gameObject.SetActive(false);
+                ultCamera.enabled = false;
+                ultCamera.targetTexture = null;
+                Destroy(_texture);
+                _texture = null;
+            });
         }
 
         #endregion
 
         private void LateUpdate()
         {
-            if (!_hasTarget || _pivotTarget == null) return;
-
+            if (!_hasTarget) return;
             float dt = Time.unscaledDeltaTime;
 
-            UpdateModeBlend(dt);
-            UpdateMouseLook();
-
-            _smoothedPivot = Vector3.SmoothDamp(_smoothedPivot, GetRawPivot(), ref _pivotVelocity,
-                Mathf.Max(0.0001f, pivotFollowSmoothTime), Mathf.Infinity, dt);
-
-            // 机位只解一次，遮挡淡出和弹簧臂用同一份（淡出要按「锚点 → 理想机位」这条真实线段来算）
-            CameraPose pose = ResolvePose();
-            UpdateObstacleFade(pose, dt);
-            UpdateArm(dt, pose);
-        }
-
-        #region 状态机
-
-        private void UpdateModeBlend(float dt)
-        {
-            if (_modeBlend >= 1f) return;
-
-            _modeBlend = Mathf.Min(1f, _modeBlend + dt / Mathf.Max(0.0001f, GetBlendTime(_fromMode)));
-
-            // 过渡彻底结束、且已经不在拼刀状态时，才放开对手引用（过渡中求解起始机位还要用它）
-            if (_modeBlend >= 1f && _mode != CameraMode.Pin) _pinFocus = null;
-        }
-
-        private float GetBlendTime(CameraMode mode)
-        {
-            switch (mode)
+            if (_state == CameraState.Normal)
             {
-                case CameraMode.Pin: return pinBlendTime;
-                case CameraMode.Ex: return exBlendTime;
-                default: return pinBlendTime;
+                UpdateMouseLook();
+
+                _smoothedPivot = Vector3.SmoothDamp(_smoothedPivot, GetRawPivot(), ref _pivotVelocity,
+                    Mathf.Max(0.0001f, pivotFollowSmoothTime), Mathf.Infinity, dt);
+
+                // 机位只解一次，遮挡淡出和弹簧臂用同一份（淡出要按「锚点 → 理想机位」这条真实线段来算）
+                CameraPose pose = ComputeNormalPose();
+                UpdateObstacleFade(pose, dt);
+                UpdateArm(dt, pose);
             }
-        }
-
-        // 混合「过渡来源状态」与「当前状态」的机位；两边都用实时数据求解，过渡中角色移动也不会脱节
-        private CameraPose ResolvePose()
-        {
-            CameraPose target = ComputePose(_mode);
-            if (_modeBlend >= 1f) return target;
-
-            CameraPose from = ComputePose(_fromMode);
-            float t = Mathf.SmoothStep(0f, 1f, _modeBlend);
-
-            return new CameraPose
+            else
             {
-                Pivot = Vector3.Lerp(from.Pivot, target.Pivot, t),
-                Rotation = Quaternion.Slerp(from.Rotation, target.Rotation, t),
-                ARMLength = Mathf.Lerp(from.ARMLength, target.ARMLength, t),
-                FOV = Mathf.Lerp(from.FOV, target.FOV, t),
-            };
-        }
+                Camera cutscene = _state == CameraState.Pin ? pinCamera : ultCamera;
+                if (cutscene == null) return;
 
-        private CameraPose ComputePose(CameraMode mode)
-        {
-            switch (mode)
-            {
-                case CameraMode.Pin: return ComputePinPose();
-                case CameraMode.Ex: return ComputeExPose();
-                default: return ComputeNormalPose();
+                // 摆好的机位：每帧先回到基准姿态再叠震屏，否则抖动会一直累积、镜头再也回不去
+                cutscene.transform.SetLocalPositionAndRotation(_cutsceneBasePos, _cutsceneBaseRot);
+                ApplyShake(cutscene, dt);
+                return;
             }
+
+            ApplyShake(normalCamera, dt);
         }
-
-        private CameraPose ComputeNormalPose()
-        {
-            return new CameraPose
-            {
-                Pivot = _smoothedPivot,
-                Rotation = Quaternion.Euler(_pitch, _yaw, 0f),
-                ARMLength = _targetArmLength,
-                FOV = _baseFov,
-            };
-        }
-
-        // 拼刀：锚点取两人中点，镜头按 pinYawOffset 绕到连线侧面 —— 构图只跟两人相对位置有关
-        private CameraPose ComputePinPose()
-        {
-            Vector3 playerPos = _ownerRoot != null ? _ownerRoot.position : _smoothedPivot;
-            Vector3 focusPos = _pinFocus != null ? _pinFocus.position : playerPos;
-
-            // 基准朝向 = 玩家指向对手（水平），再绕 Y 偏 pinYawOffset 度绕到侧面
-            Vector3 toFocus = focusPos - playerPos;
-            toFocus.y = 0f;
-            Quaternion baseRotation = toFocus.sqrMagnitude > 0.01f
-                ? Quaternion.LookRotation(toFocus.normalized)
-                : GetOwnerFlatRotation();
-
-            return new CameraPose
-            {
-                Pivot = (playerPos + focusPos) * 0.5f + Vector3.up * pinHeight,
-                Rotation = baseRotation * Quaternion.Euler(pinPitch, pinYawOffset, 0f),
-                ARMLength = pinDistance,
-                FOV = pinFov,
-            };
-        }
-
-        // 大招：锚点取角色，镜头绕到角色侧前方；基准朝向进入时锁定，角色转身不会把镜头甩走
-        private CameraPose ComputeExPose()
-        {
-            Vector3 playerPos = _ownerRoot != null ? _ownerRoot.position : _smoothedPivot;
-            Quaternion baseRotation = exLockBaseYaw
-                ? Quaternion.Euler(0f, _lockedBaseYaw, 0f)
-                : GetOwnerFlatRotation();
-
-            return new CameraPose
-            {
-                Pivot = playerPos + Vector3.up * exPivotHeight,
-                Rotation = baseRotation * Quaternion.Euler(exPitch, exYawOffset, 0f),
-                ARMLength = exDistance,
-                FOV = exFov,
-            };
-        }
-
-        #endregion
 
         #region 内部实现
 
@@ -444,20 +342,13 @@ namespace HotUpdate.Player
             if (Mathf.Abs(scroll) > 0.0001f)
                 _targetArmLength = Mathf.Clamp(_targetArmLength - scroll * zoomSpeed, minArmLength, maxArmLength);
 
-            // 特写期间机位由状态机接管，鼠标不参与
-            if (_mode != CameraMode.Normal)
-            {
-                ResetMouseSmoothing();
-                return;
-            }
-
             Vector2 delta = ReadMouseDelta();
             _yaw += delta.x * lookSensitivity;
             // 俯仰：invertLookY 打开时「鼠标向下 = 相机向下」（pitch 减小 → 相机绕到角色下方）
             _pitch = Mathf.Clamp(_pitch + delta.y * lookSensitivity * (invertLookY ? 1f : -1f), pitchMin, pitchMax);
         }
 
-        // 鼠标增量：仿 UE 的鼠标平滑 —— 正常移动走滑动平均，快速甩视角时直接用原始值
+        // 鼠标增量：正常移动走滑动平均，快速甩视角时直接用原始值
         private Vector2 ReadMouseDelta()
         {
             Vector2 raw = new Vector2(Input.GetAxisRaw(MouseXAxis), Input.GetAxisRaw(MouseYAxis));
@@ -487,15 +378,6 @@ namespace HotUpdate.Player
             return basePos + targetOffset;
         }
 
-        private Quaternion GetOwnerFlatRotation()
-        {
-            Transform source = _facingSource != null ? _facingSource : _ownerRoot;
-            Vector3 forward = source != null ? source.forward : Vector3.forward;
-            forward.y = 0f;
-            if (forward.sqrMagnitude < 0.0001f) forward = Vector3.forward;
-            return Quaternion.LookRotation(forward.normalized);
-        }
-
         // 不考虑碰撞与滞后时的理想相机位置
         private Vector3 ComputeIdealLocation(CameraPose pose)
         {
@@ -510,9 +392,7 @@ namespace HotUpdate.Player
             Vector3 socket = pose.Pivot + rotation * socketOffset;
             Vector3 ideal = socket + rotation * Vector3.back * pose.ARMLength;
 
-            // 只有正常视角才做位置滞后：特写是设计好的机位，拖尾反而糊
-            bool useLag = enableCameraLocationLag && _armReady && _mode == CameraMode.Normal;
-            if (useLag)
+            if (enableCameraLocationLag && _armReady)
             {
                 float lagSpeed = cameraLagSpeed;
                 // 与理想位置拉得太开（传送 / 冲刺）时不再滞后，直接跟上
@@ -539,21 +419,19 @@ namespace HotUpdate.Player
             // 相机与跟随点之间被墙 / 地形挡住时把镜头推近，避免穿模
             float allowed = doCollisionTest ? ResolveObstructedDistance(socket, direction, want) : want;
 
-            _camera.transform.position = socket + direction * allowed;
+            normalCamera.transform.position = socket + direction * allowed;
 
-            if (enableCameraRotationLag && _mode == CameraMode.Normal)
+            if (enableCameraRotationLag)
             {
-                _camera.transform.rotation = Quaternion.Slerp(_camera.transform.rotation, rotation,
+                normalCamera.transform.rotation = Quaternion.Slerp(normalCamera.transform.rotation, rotation,
                     Mathf.Clamp01(dt * cameraRotationLagSpeed));
             }
             else
             {
-                _camera.transform.rotation = rotation;
+                normalCamera.transform.rotation = rotation;
             }
 
-            _camera.fieldOfView = pose.FOV;
-
-            ApplyShake();
+            normalCamera.fieldOfView = pose.FOV;
         }
 
         private float ResolveObstructedDistance(Vector3 origin, Vector3 direction, float wantDistance)
@@ -568,7 +446,7 @@ namespace HotUpdate.Player
             {
                 Collider hitCollider = HitBuffer[i].collider;
                 if (hitCollider == null) continue;
-                if (_ownerRoot != null && hitCollider.transform.IsChildOf(_ownerRoot)) continue;
+                if (hitCollider.transform.IsChildOf(transform)) continue;
                 if (HitBuffer[i].distance < nearest) nearest = HitBuffer[i].distance;
             }
 
@@ -576,16 +454,16 @@ namespace HotUpdate.Player
             return Mathf.Max(0.2f, nearest - collisionPadding);
         }
 
-        private void ApplyShake()
+        private void ApplyShake(Camera cam, float dt)
         {
             if (_shakeTimer <= 0f) return;
 
-            _shakeTimer -= Time.unscaledDeltaTime;
+            _shakeTimer -= dt;
             float fade = Mathf.Clamp01(_shakeTimer / Mathf.Max(0.0001f, shakeDuration));
             float amp = _shakeAmp * shakeScale * fade;
 
-            _camera.transform.position += Random.insideUnitSphere * amp;
-            _camera.transform.rotation *= Quaternion.Euler(
+            cam.transform.position += Random.insideUnitSphere * amp;
+            cam.transform.rotation *= Quaternion.Euler(
                 Random.Range(-1f, 1f) * amp * 6f, Random.Range(-1f, 1f) * amp * 6f, 0f);
 
             if (_shakeTimer <= 0f) _shakeAmp = 0f;
@@ -598,9 +476,21 @@ namespace HotUpdate.Player
             return Vector3.Lerp(current, target, Mathf.Clamp01(dt * speed));
         }
 
+        // 正常视角的机位：锚点 + 朝向 + 臂长 + FOV
+        private CameraPose ComputeNormalPose()
+        {
+            return new CameraPose
+            {
+                Pivot = _smoothedPivot,
+                Rotation = Quaternion.Euler(_pitch, _yaw, 0f),
+                ARMLength = _targetArmLength,
+                FOV = _baseFov,
+            };
+        }
+
         #endregion
 
-        // 一个机位：锚点 + 朝向 + 臂长 + FOV。状态机就是在这套参数上做插值。
+        // 一个机位：锚点 + 朝向 + 臂长 + FOV
         private struct CameraPose
         {
             public Vector3 Pivot;
@@ -702,7 +592,7 @@ namespace HotUpdate.Player
                 if (collider == null) continue;
 
                 // 角色自己的碰撞体（CharacterController 也是 Collider）不算遮挡
-                if (_ownerRoot != null && collider.transform.IsChildOf(_ownerRoot)) continue;
+                if (collider.transform.IsChildOf(transform)) continue;
 
                 Renderer renderer = ResolveFadeRenderer(collider);
                 if (renderer == null || !CanFade(renderer)) continue;
@@ -754,7 +644,9 @@ namespace HotUpdate.Player
                 if (source == null) continue; // 含「已被销毁」的情况，这里必须掉头
 
                 // URP 用 _BaseColor / _BaseMap，内置管线用 _Color / _MainTex，两套都认
-                entry.Colors[i] = source.HasProperty(BaseColorId) ? source.GetColor(BaseColorId) : source.GetColor(ColorId);
+                entry.Colors[i] = source.HasProperty(BaseColorId)
+                    ? source.GetColor(BaseColorId)
+                    : source.GetColor(ColorId);
                 if (source.HasProperty(BaseMapId)) entry.Textures[i] = source.GetTexture(BaseMapId);
                 else if (source.HasProperty(MainTexId)) entry.Textures[i] = source.GetTexture(MainTexId);
             }
@@ -848,7 +740,7 @@ namespace HotUpdate.Player
 
             if (shader == null)
             {
-                Debug.LogWarning($"[PlayerCameraRig] 找不到遮挡淡出 Shader「{FadeShaderName}」，已跳过遮挡淡出。" +
+                Debug.LogWarning($"[PlayerCameraCtrl] 找不到遮挡淡出 Shader「{FadeShaderName}」，已跳过遮挡淡出。" +
                                  "检查 Assets/Resources/Shaders/CameraObstacleFade.shader 是否还在。");
                 return null;
             }

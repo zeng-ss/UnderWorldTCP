@@ -15,7 +15,6 @@ namespace HotUpdate.Player
         public PlayerModel playerModel;
         public float rotationSpeed;
         [SerializeField] private DamageNumber damageNumber;
-        [SerializeField] private Camera ultCutsceneCamera;
 
         [Header("技能连招配置（按序号：0 普攻 / 1 第二套连招 / 2 重击 / 3 EX；拼刀与防御反击复用序号 1）")] [SerializeField]
         private List<SkillConfig> skillConfigList = new();
@@ -29,11 +28,8 @@ namespace HotUpdate.Player
         // 战斗：命中 / 受伤 / 死亡 / 服务端属性
         public PlayerCombat Combat { get; private set; }
 
-        // 相机绑定
-        public PlayerCameraBinder CameraBinder { get; private set; }
-
-        // 大招过场（RenderTexture cut-in + 上下黑边）
-        public PlayerUltCutscene UltCutscene { get; private set; }
+        // 相机总控：正常视角 + 拼刀 / 大招特写 + 大招过场
+        public PlayerCameraCtrl CameraCtrl { get; private set; }
 
         // 玩法输入注册与按键动作
         public PlayerInputHandler InputHandler { get; private set; }
@@ -57,15 +53,15 @@ namespace HotUpdate.Player
             Presentation.Init(playerModel, damageNumber, transform);
             Presentation.BindVfxOwner(particle => particle.Init(this));
 
-            CameraBinder = new PlayerCameraBinder();
-            UltCutscene = new PlayerUltCutscene();
+            CameraCtrl = GetComponent<PlayerCameraCtrl>();
+            if (CameraCtrl == null) CameraCtrl = gameObject.AddComponent<PlayerCameraCtrl>();
             StateMachine = new PlayerStateMachine(Core);
             StateMachine.Init(this);
             Locomotion = new PlayerLocomotion(CharacterController, StateMachine);
             SkillCombo = new PlayerSkillCombo(Core, Presentation, skillConfigList);
             Combat = new PlayerCombat(Core, StateMachine, Presentation, SkillCombo, gameObject);
             InputHandler =
-                new PlayerInputHandler(Core, StateMachine, SkillCombo, CameraBinder, CharacterController, transform);
+                new PlayerInputHandler(Core, StateMachine, SkillCombo, CameraCtrl, CharacterController, transform);
             SkillCombo.InitDefault();
         }
 
@@ -74,9 +70,8 @@ namespace HotUpdate.Player
             if (!Core.IsLocalPlayer) return;
 
             Combat.InitializeFromServer(AppContext.Session.MainRoleInfo);
-            CameraBinder.Bind(transform, playerModel.transform);
-            Presentation.Bind(CameraBinder.Rig);
-            UltCutscene.Init(ultCutsceneCamera);
+            CameraCtrl.Init(playerModel.transform);
+            Presentation.Bind(CameraCtrl);
             Locomotion.Init();
             StateMachine.ChangeTo(PlayerStateType.Idle);
             _isInit = true;

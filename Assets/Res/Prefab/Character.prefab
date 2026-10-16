@@ -1,5 +1,133 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &37114458992411186
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7929671825599711960}
+  - component: {fileID: 39954696978966308}
+  - component: {fileID: 6982022480512465722}
+  m_Layer: 0
+  m_Name: PinCamera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!4 &7929671825599711960
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37114458992411186}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.07390466, y: -0.85651296, z: -0.12800665, w: 0.4945079}
+  m_LocalPosition: {x: 0.96, y: 0.96, z: 0.96}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1689817252547694584}
+  m_LocalEulerAnglesHint: {x: -17, y: -120, z: 0}
+--- !u!20 &39954696978966308
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37114458992411186}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.01
+  far clip plane: 500
+  field of view: 60
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!114 &6982022480512465722
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 37114458992411186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.UniversalAdditionalCameraData
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
+  m_Version: 2
 --- !u!1 &57778726537449580
 GameObject:
   m_ObjectHideFlags: 0
@@ -328,6 +456,7 @@ GameObject:
   - component: {fileID: 2511632696639850279}
   - component: {fileID: 2135750481796871886}
   - component: {fileID: 7023303123267185500}
+  - component: {fileID: 7276984949581843184}
   m_Layer: 7
   m_Name: Character
   m_TagString: Player
@@ -488,7 +617,6 @@ MonoBehaviour:
   playerModel: {fileID: 8494775393496584509}
   rotationSpeed: 10
   damageNumber: {fileID: 4452869194759126078, guid: 7ed408b8fbe4e7842b28dd1f42ff440c, type: 3}
-  ultCutsceneCamera: {fileID: 8153526206203692058}
   skillConfigList:
   - {fileID: 11400000, guid: c7222d4512bb75a4f9a1ff3e8825ecab, type: 2}
   - {fileID: 11400000, guid: 3207b6fb4817fec4487577753586c641, type: 2}
@@ -521,6 +649,56 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &7276984949581843184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 389153214445662617}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e0ac7c5503dceb40a9d3a4b10240fa9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HotUpdate::HotUpdate.Player.PlayerCameraCtrl
+  normalCamera: {fileID: 0}
+  pinCamera: {fileID: 39954696978966308}
+  ultCamera: {fileID: 8153526206203692058}
+  lookSensitivity: 2.4
+  invertLookY: 1
+  enableMouseSmoothing: 1
+  mouseSmoothingSamples: 3
+  mouseSmoothThreshold: 0.6
+  pitchMin: 10
+  pitchMax: 30
+  defaultPitch: 20
+  targetOffset: {x: 0, y: 1.55, z: 0}
+  socketOffset: {x: 0, y: 0, z: 0}
+  targetArmLength: 6.5
+  minArmLength: 2.2
+  maxArmLength: 12
+  zoomSpeed: 2.2
+  pivotFollowSmoothTime: 0.03
+  enableCameraLocationLag: 0
+  cameraLagSpeed: 14
+  cameraLagMaxDistance: 3.5
+  enableCameraRotationLag: 0
+  cameraRotationLagSpeed: 18
+  doCollisionTest: 1
+  probeSize: 0.3
+  collisionPadding: 0.1
+  ultTextureWidth: 1920
+  ultExitDelay: 0.4
+  enableObstacleFade: 1
+  obstacleFadeAlpha: 0.3
+  obstacleFadeSpeed: 9
+  obstacleFadeLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  obstacleFadeShader: {fileID: 0}
+  debugDrawObstacleFade: 1
+  shakeScale: 0.1
+  shakeDuration: 0.2
 --- !u!1 &458331334160846788
 GameObject:
   m_ObjectHideFlags: 0
@@ -3784,6 +3962,7 @@ Transform:
   - {fileID: 3593427267134241701}
   - {fileID: 6258078558113447975}
   - {fileID: 8521392196645659390}
+  - {fileID: 7929671825599711960}
   m_Father: {fileID: 9178438586521026040}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &3597934852258814979

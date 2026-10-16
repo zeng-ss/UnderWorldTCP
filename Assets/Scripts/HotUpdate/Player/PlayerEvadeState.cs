@@ -38,19 +38,18 @@ namespace HotUpdate.Player
             float h = Input.GetAxis("Horizontal");
             float v = Input.GetAxis("Vertical");
 
-            // 等待动画播放完成
-            if (IsAnimationMoreThanTime("Evade", 0.5f))
+            // 闪避位移靠根运动驱动，位移在动画后半段：
+            // 原来播到 50% 就切 Idle，等于只播了个起手动作，看不到位移。这里改成等它播完。
+            if (IsAnimationFinished("Evade"))
             {
                 Player.StateMachine.ChangeTo(PlayerStateType.Idle);
                 return;
             }
 
-            if (IsAnimationMoreThanTime("Evade", 0.3f))
+            // 播到 30% 之后有移动输入：直接接奔跑
+            if (IsAnimationMoreThanTime("Evade", 0.3f) && (h != 0 || v != 0))
             {
-                if (h != 0 || v != 0)
-                {
-                    Player.StateMachine.ChangeTo(PlayerStateType.Move);
-                }
+                Player.StateMachine.ChangeTo(PlayerStateType.Move);
             }
         }
 

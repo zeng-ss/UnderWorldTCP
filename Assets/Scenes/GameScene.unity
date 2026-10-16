@@ -6783,12 +6783,34 @@ MonoBehaviour:
   obstacleFadeAlpha: 0.3
   obstacleFadeSpeed: 9
   obstacleFadeLayers:
-    serializedVersion: 2
     m_Bits: 4294967295
   obstacleFadeShader: {fileID: 0}
   debugDrawObstacleFade: 0
   shakeScale: 0.1
   shakeDuration: 0.15
+  _camera: {fileID: 0}
+  _pivotTarget: {fileID: 0}
+  _ownerRoot: {fileID: 0}
+  _facingSource: {fileID: 0}
+  _yaw: 0
+  _pitch: 0
+  _targetArmLength: 0
+  _smoothedPivot: {x: 0, y: 0, z: 0}
+  _pivotVelocity: {x: 0, y: 0, z: 0}
+  _laggedLocation: {x: 0, y: 0, z: 0}
+  _smoothedMouseDelta: {x: 0, y: 0}
+  _armReady: 0
+  _hasTarget: 0
+  _baseFov: 40
+  _mode: 0
+  _fromMode: 0
+  _modeBlend: 1
+  _pinFocus: {fileID: 0}
+  _lockedBaseYaw: 0
+  _shakeTimer: 0
+  _shakeAmp: 0
+  _fadeMaterial: {fileID: 0}
+  _fadeShaderResolved: 0
 --- !u!1001 &73215208
 PrefabInstance:
   m_ObjectHideFlags: 0

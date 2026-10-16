@@ -33,9 +33,7 @@ namespace HotUpdate.Controller
             // 进入开始状态
             TransitionAttackState(ExState.Start);
             Player.Core.IsLock = true;
-            Player.CameraBinder.Rig.EnterEx();
-            // 大招过场：全屏 RenderTexture cut-in + 上下黑边滑入（PlayerUltCutscene 内部有兜底时长）
-            Player.UltCutscene.Play();
+            Player.CameraCtrl.EnterUlt();
         }
 
         public override void Update()
@@ -54,14 +52,12 @@ namespace HotUpdate.Controller
                     FaceToEnemy();
                     if (IsAnimationMoreThanTime("AttackEx_Start", 0.9f))
                     {
-                        Player.CameraBinder.Rig.ExitEx();
-                        Player.UltCutscene.Stop();
+                        Player.CameraCtrl.ExitUlt();
                     }
                     if (IsAnimationFinished("AttackEx_Start"))
                     {
                         Player.SkillCombo.StartSkillByIndex(0);
                         TransitionAttackState(ExState.Attack);
-                        //Player.UltCutscene.Stop();
                     }
 
                     break;
@@ -74,6 +70,9 @@ namespace HotUpdate.Controller
                     break;
                 case ExState.PutBack:
                     _isDistanceLocked = false;
+                    // 收招开始即解锁：否则下面的 ChangeTo 会被 IsLock 忽略，而那个 return 又跳过了动画推进检查，
+                    // 一直按着移动键就会卡在收招动画最后一帧（松开才恢复）
+                    Player.Core.IsLock = false;
                     Player.SkillCombo.UpdateSkillConfig(ComboSet.Normal);
                     if (h != 0 || v != 0)
                     {
@@ -84,7 +83,6 @@ namespace HotUpdate.Controller
                     if (IsAnimationFinished("AttackEx_PutBack")) TransitionAttackState(ExState.End);
                     break;
                 case ExState.End:
-                    Player.Core.IsLock = false;
                     if (h != 0 || v != 0)
                     {
                         Player.StateMachine.ChangeTo(PlayerStateType.Move);
@@ -93,7 +91,6 @@ namespace HotUpdate.Controller
 
                     if (IsAnimationFinished("AttackEx_End"))
                     {
-                        Player.Core.IsLock = false;
                         Player.StateMachine.ChangeTo(PlayerStateType.Idle);
                     }
 
@@ -167,9 +164,10 @@ namespace HotUpdate.Controller
         public override void Exit()
         {
             // 兜底：无论从哪个阶段被打断（换状态 / 死亡），都要收场
-            Player.UltCutscene.Stop();
-            Player.CameraBinder.Rig.ExitEx();
+            Player.CameraCtrl.ExitUlt();
             Player.Core.IsLock = false;
+            // 大招期间按 R 只会切表（状态被 IsLock 拦下），退出时统一把连招表恢复成普攻
+            Player.SkillCombo.UpdateSkillConfig(ComboSet.Normal);
         }
     }
 }

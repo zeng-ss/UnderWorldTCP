@@ -11,7 +11,7 @@ namespace ProjectEditor
     // 菜单：Tools/UI/大招过场/1. 生成 UltPanel 预制体（含注册）
     //
     // 摆的东西（1920x1080 参考分辨率；所有 Graphic 都是 raycastTarget = false，不挡点击）：
-    //   screen    全屏 RawImage —— 运行时被塞进 PlayerUltCutscene 的 RenderTexture
+    //   screen    全屏 RawImage —— 运行时被塞进 PlayerCameraCtrl 的 RenderTexture
     //   topBar    顶部黑边（内侧一条金色亮线）—— 过场时从屏幕外「缓慢滑入」
     //   bottomBar 底部黑边（内侧一条金色亮线）
     //   flash     铺满全屏的白闪层 —— 开场闪一下就淡掉
@@ -47,7 +47,7 @@ namespace ProjectEditor
 
             Debug.Log($"[UltPanelBuilder] 已生成 {PrefabPath}（全屏 RawImage + 上下黑边 + 白闪），" +
                       (registered ? $"并注册到 Addressables（地址 {Address}）。" : "但没能注册到 Addressables，请手动注册。") +
-                      "\n运行时由 PlayerUltCutscene 往 screen 里塞 RenderTexture；黑边动画参数在 UltPanel 组件上。");
+                      "\n运行时由 PlayerCameraCtrl 往 screen 里塞 RenderTexture；黑边动画参数在 UltPanel 组件上。");
 
             EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<GameObject>(PrefabPath));
         }
