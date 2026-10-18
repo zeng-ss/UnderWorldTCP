@@ -91,7 +91,20 @@ public class Center_LoginCtrl : IContainer
             case NetDefine.CMD_FriendHistoryCode:
                 OnFriendHistoryHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_SetAvatarCode:
+                OnSetAvatarHandle(serverBase, basePackage);
+                break;
         }
+    }
+
+    // 设置头像
+    private void OnSetAvatarHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        SetAvatarReq req = SetAvatarReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到设置头像请求: roleId=" + req.RoleId + " avatar=" + req.Avatar);
+        SetAvatarRet ret = _loginModle.SetAvatar(req);
+        LogMsg.Info("[Center]设置头像处理完成:" + ret.CmdCode + " avatar=" + ret.Avatar);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
     }
 
     // 驱动盘升级（服务端权威：校验材料、扣除、升级、落库）

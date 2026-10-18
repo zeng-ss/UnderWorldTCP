@@ -312,6 +312,8 @@ namespace HotUpdate.UI.UIPanel
 
             FriendData friend = _entries.Find(f => f.RoleId == _chatRoleId);
             string peerName = friend != null ? friend.Nickname : ("好友 " + _chatRoleId);
+            int peerAvatar = friend != null ? friend.Avatar : 0;
+            int selfAvatar = AppContext.Session.Avatar;
 
             // 模板已在内存里，同步实例化才能保证顺序严格等于缓存顺序（旧的：自己发的靠下，最新的在最后）
             foreach (FriendMsgData msg in messages)
@@ -320,7 +322,8 @@ namespace HotUpdate.UI.UIPanel
                 if (prefab == null) continue;
 
                 GameObject item = Instantiate(prefab, _msgContent);
-                item.GetComponent<ChatItem>()?.SetContent(msg.IsSelf ? "我" : peerName, msg.SendTime, msg.Content);
+                item.GetComponent<ChatItem>()?.SetContent(msg.IsSelf ? "我" : peerName, msg.SendTime, msg.Content,
+                    msg.IsSelf ? selfAvatar : peerAvatar);
             }
 
             ScrollToBottomSoon();

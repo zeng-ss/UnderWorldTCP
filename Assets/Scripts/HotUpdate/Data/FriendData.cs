@@ -9,6 +9,7 @@ namespace HotUpdate.Data
         public int RoleId;
         public string Nickname;
         public bool IsOnline;
+        public int Avatar; // 头像编号（0=默认头像，对应 AvatarConfig 下标）
 
         // 是否是一条「待处理的好友申请」（别人加我）；true 时列表项展示同意/拒绝按钮而非在线状态
         public bool IsRequest;

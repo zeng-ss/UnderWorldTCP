@@ -12,11 +12,11 @@ public class RoleBagInfo
     public int Id { get; set; }
 
     public int RoleId { get; set; }
-    public string ItemName {get; set;}
-    public string ItemType {get; set;} // DriverDisk / Material
+    public string ItemName { get; set; }
+    public string ItemType { get; set; } // DriverDisk / Material
     public int ItemId { get; set; }
     public int Count { get; set; }
-    
+
     public int BaseValue { get; set; }
     public float AttackPercent { get; set; }
     public float DefensePercent { get; set; }
@@ -27,8 +27,7 @@ public class RoleBagInfo
     public float CurFillValue { get; set; }
 
     // 0=背包中 1=已装备（只对驱动盘有意义；材料行恒为 0）
-    [SugarColumn(DefaultValue = "0")]
-    public int IsEquipped { get; set; }
+    [SugarColumn(DefaultValue = "0")] public int IsEquipped { get; set; }
 
 
     public DateTime CreateDate { get; set; }

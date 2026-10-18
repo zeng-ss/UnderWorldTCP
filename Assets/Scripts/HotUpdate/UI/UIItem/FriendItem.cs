@@ -28,6 +28,7 @@ namespace HotUpdate.UI.UIItem
             if (data == null) return;
             _friendService = service;
             nameText.text = data.Nickname;
+            headImage.sprite = AvatarConfig.Get(data.Avatar);
             bool isRequest = data.IsRequest;
             applyButtons.SetActive(isRequest);
             statusText.gameObject.SetActive(!isRequest);

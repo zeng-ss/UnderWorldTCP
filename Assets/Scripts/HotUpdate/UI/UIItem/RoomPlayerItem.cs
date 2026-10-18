@@ -36,6 +36,7 @@ namespace HotUpdate.UI.UIItem
             if (data == null) return;
 
             nameText.text = isSelf ? data.Nickname + "（我）" : data.Nickname;
+            headImage.sprite = AvatarConfig.Get(data.Avatar);
             if (data.IsMaster)
             {
                 stateText.text = "房主";

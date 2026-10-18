@@ -176,6 +176,7 @@ namespace HotUpdate.Service
                 {
                     RoleId = p.RoleId,
                     Nickname = p.Nickname,
+                    Avatar = p.Avatar,
                     IsMaster = p.IsMaster,
                     IsReady = p.IsReady
                 });
@@ -193,6 +194,7 @@ namespace HotUpdate.Service
             {
                 SenderRoleId = msg.SenderRoleId,
                 SenderNickname = msg.SenderNickname,
+                SenderAvatar = msg.SenderAvatar,
                 Content = msg.Content,
                 SendTime = msg.SendTime,
                 IsSelf = msg.SenderRoleId == AppContext.Session.RoleId
@@ -217,6 +219,7 @@ namespace HotUpdate.Service
                 {
                     RoleId = p.RoleId,
                     Nickname = p.Nickname,
+                    Avatar = p.Avatar,
                     IsMaster = p.IsMaster,
                     IsReady = p.IsReady
                 });

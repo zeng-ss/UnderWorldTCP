@@ -26,7 +26,8 @@ namespace ProjectEditor
     // 约定：
     //   · 视觉全部复用 SharpUI 资源（预制体 RectButton；贴图 background / info_box /
     //     dialog_header_background / rect_button / round_frame）。
-    //   · 节点名必须和 StartPanel.BindHierarchy 里的查找名一致，勿随意改。
+    //   · 节点的引用由生成流程直接写进 StartPanel 的序列化字段，运行时不再按名字找；
+    //     已经存在的预制体可用菜单「5. 补引用绑定（不动层级）」重连。
     //   · 所有文本统一用项目中文 TMP 字体，否则中文会是方块。
     public static class StartPanelBuilder
     {
@@ -182,6 +183,49 @@ namespace ProjectEditor
             EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<GameObject>(PanelPrefabPath));
         }
 
+        // 只补引用、不动层级：改完 StartPanel 的序列化字段后点一下，把已有预制体的引用连上
+        [MenuItem("Tools/UI/开始面板/5. 补引用绑定（不动层级）", false, 34)]
+        public static void BindRefsOnPrefab()
+        {
+            if (!File.Exists(PanelPrefabPath))
+            {
+                Debug.LogWarning($"[StartPanelBuilder] 未找到 {PanelPrefabPath}，先执行菜单 3 生成预制体。");
+                return;
+            }
+
+            GameObject contents = PrefabUtility.LoadPrefabContents(PanelPrefabPath);
+            BindRefs(contents);
+            PrefabUtility.SaveAsPrefabAsset(contents, PanelPrefabPath);
+            PrefabUtility.UnloadPrefabContents(contents);
+
+            AssetDatabase.SaveAssets();
+            Debug.Log("[StartPanelBuilder] 已把 playerName / 头像 / 四个按钮的引用连到 StartPanel 上。");
+        }
+
+        // 面板上全是序列化字段，运行时不再按名字找 —— 由生成流程 / 菜单 5 一次性写进去
+        private static void BindRefs(GameObject root)
+        {
+            // 头像框复用 headFrame.prefab，头像是里面的 headImage；老预制体上没 Button，缺就补一个
+            Transform avatar = FindDeep(root.transform, "Avatar");
+            Image head = FindDeep(avatar, "headImage").GetComponent<Image>();
+            head.raycastTarget = true;
+
+            var avatarBtn = avatar.GetComponent<Button>();
+            if (avatarBtn == null) avatarBtn = avatar.gameObject.AddComponent<Button>();
+            avatarBtn.targetGraphic = avatar.GetComponent<Image>();
+
+            var so = new SerializedObject(root.GetComponent<StartPanel>());
+            so.FindProperty("_playerNameTxt").objectReferenceValue =
+                FindDeep(root.transform, "playerName").GetComponent<TMP_Text>();
+            so.FindProperty("_avatarImage").objectReferenceValue = head;
+            so.FindProperty("_avatarBtn").objectReferenceValue = avatarBtn;
+            so.FindProperty("_hostBtn").objectReferenceValue = FindDeep(root.transform, "HostBtn").GetComponent<Button>();
+            so.FindProperty("_friendBtn").objectReferenceValue = FindDeep(root.transform, "FriendBtn").GetComponent<Button>();
+            so.FindProperty("_depotBtn").objectReferenceValue = FindDeep(root.transform, "DepotBtn").GetComponent<Button>();
+            so.FindProperty("_exitBtn").objectReferenceValue = FindDeep(root.transform, "ExitBtn").GetComponent<Button>();
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         // =====================================================================
         // 构建层级
         // =====================================================================
@@ -226,6 +270,7 @@ namespace ProjectEditor
             BuildRightColumn(panel.transform);
             BuildFooter(root.transform);
 
+            BindRefs(root);
             return root;
         }
 

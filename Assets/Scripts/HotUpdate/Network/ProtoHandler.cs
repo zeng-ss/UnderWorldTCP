@@ -71,6 +71,7 @@ namespace HotUpdate.Network
         private Action<SendFriendMsgRet> _sendFriendMsgCallback;
         private Action<FriendHistoryRet> _friendHistoryCallback;
         private Action<RoomChatNtf> _roomChatCallback;
+        private Action<SetAvatarRet> _setAvatarCallback;
 
         #endregion
 
@@ -127,6 +128,7 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_FriendHistoryCode, OnFriendHistoryResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_FriendApplyNtfCode, OnFriendApplyNtf);
             AppContext.Events.AddNetHandler(NetDefine.CMD_FriendMsgPushCode, OnFriendMsgPushNtf);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_SetAvatarCode, OnSetAvatarResult);
         }
 
         // 由 GameManager.Update 每帧驱动
@@ -452,7 +454,8 @@ namespace HotUpdate.Network
             {
                 RoleId = roleId,
                 RoomName = roomName,
-                Nickname = nickname
+                Nickname = nickname,
+                Avatar = AppContext.Session.Avatar
             };
             NetClientMgr.Instance.Send(NetDefine.CMD_CreateRoomCode, req.ToByteString());
         }
@@ -465,7 +468,8 @@ namespace HotUpdate.Network
             {
                 RoleId = roleId,
                 RoomId = roomId,
-                Nickname = nickname
+                Nickname = nickname,
+                Avatar = AppContext.Session.Avatar
             };
             NetClientMgr.Instance.Send(NetDefine.CMD_JoinRoomCode, req.ToByteString());
         }
@@ -512,6 +516,14 @@ namespace HotUpdate.Network
             _kickPlayerCallback = callback;
             KickPlayerReq req = new KickPlayerReq { RoleId = AppContext.Session.RoleId, TargetRoleId = targetRoleId };
             NetClientMgr.Instance.Send(NetDefine.CMD_KickPlayerCode, req.ToByteString());
+        }
+
+        /// <summary>设置头像（服务端校验编号并落库，回包带生效的头像编号）</summary>
+        public void RequestSetAvatar(int avatar, Action<SetAvatarRet> callback)
+        {
+            _setAvatarCallback = callback;
+            SetAvatarReq req = new SetAvatarReq { RoleId = AppContext.Session.RoleId, Avatar = avatar };
+            NetClientMgr.Instance.Send(NetDefine.CMD_SetAvatarCode, req.ToByteString());
         }
 
         #endregion
@@ -572,6 +584,15 @@ namespace HotUpdate.Network
             Debug.Log($"ProtoHandler: 保存角色结果 CmdCode={ret.CmdCode}");
             _saveRoleCallback?.Invoke(ret);
             _saveRoleCallback = null;
+        }
+
+        private void OnSetAvatarResult(ByteString data)
+        {
+            SetAvatarRet ret = SetAvatarRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 设置头像结果 CmdCode={ret.CmdCode} Avatar={ret.Avatar}");
+            if (ret.CmdCode == CmdCode.Succeed) AppContext.Session.Avatar = ret.Avatar;
+            _setAvatarCallback?.Invoke(ret);
+            _setAvatarCallback = null;
         }
 
         private void OnChangeSceneResult(ByteString data)
@@ -936,6 +957,7 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendHistoryCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendApplyNtfCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendMsgPushCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_SetAvatarCode);
         }
     }
 }

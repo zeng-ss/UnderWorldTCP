@@ -46,6 +46,7 @@ namespace HotUpdate.Service
                             RoleId = info.RoleId,
                             Nickname = info.Nickname,
                             IsOnline = info.IsOnline,
+                            Avatar = info.Avatar,
                             IsRequest = false
                         });
                     }
@@ -57,6 +58,7 @@ namespace HotUpdate.Service
                             RoleId = info.RoleId,
                             Nickname = info.Nickname,
                             IsOnline = info.IsOnline,
+                            Avatar = info.Avatar,
                             IsRequest = true
                         });
                     }

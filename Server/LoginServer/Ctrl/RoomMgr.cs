@@ -17,7 +17,7 @@ public class RoomMgr : Singleton<RoomMgr>
     // sessionId → roleId 映射，供断线清理使用
     private Dictionary<int, int> _sessionRole = new Dictionary<int, int>();
 
-    public CreateRoomRet CreateRoom(int roleId, int sessionId, string nickname, string roomName)
+    public CreateRoomRet CreateRoom(int roleId, int sessionId, string nickname, int avatar, string roomName)
     {
         if (_playerRoom.ContainsKey(roleId))
         {
@@ -38,6 +38,7 @@ public class RoomMgr : Singleton<RoomMgr>
             RoleId = roleId,
             SessionId = sessionId,
             Nickname = nickname,
+            Avatar = avatar,
             IsMaster = true
         });
         _rooms[roomId] = room;
@@ -52,7 +53,7 @@ public class RoomMgr : Singleton<RoomMgr>
         return ret;
     }
 
-    public JoinRoomRet JoinRoom(int roleId, int sessionId, string nickname, int roomId)
+    public JoinRoomRet JoinRoom(int roleId, int sessionId, string nickname, int avatar, int roomId)
     {
         if (_playerRoom.ContainsKey(roleId))
         {
@@ -80,6 +81,7 @@ public class RoomMgr : Singleton<RoomMgr>
             RoleId = roleId,
             SessionId = sessionId,
             Nickname = nickname,
+            Avatar = avatar,
             IsMaster = false
         });
         _playerRoom[roleId] = roomId;
@@ -273,6 +275,7 @@ public class RoomMgr : Singleton<RoomMgr>
             {
                 SenderRoleId = roleId,
                 SenderNickname = sender.Nickname,
+                SenderAvatar = sender.Avatar,
                 Content = content,
                 SendTime = DateTime.Now.ToString("HH:mm:ss")
             }
@@ -339,6 +342,7 @@ public class RoomPlayerData
     public int RoleId;
     public int SessionId;
     public string Nickname;
+    public int Avatar;
     public bool IsMaster;
     public bool IsReady;
 
@@ -348,6 +352,7 @@ public class RoomPlayerData
         {
             RoleId = RoleId,
             Nickname = Nickname,
+            Avatar = Avatar,
             IsMaster = IsMaster,
             IsReady = IsReady
         };

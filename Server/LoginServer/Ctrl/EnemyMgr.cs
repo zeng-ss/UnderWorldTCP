@@ -289,7 +289,8 @@ public class EnemyMgr : Singleton<EnemyMgr>
         enemy.PendingHurtTimer = 0f;
 
         // 目标已死亡 / 已离开场景
-        if (!PlayerSceneMgr.Instance.TryGetPlayerPos(enemy.TargetRoleId, out float px, out float py, out float pz)) return;
+        if (!PlayerSceneMgr.Instance.TryGetPlayerPos(enemy.TargetRoleId, out float px, out float py, out float pz))
+            return;
 
         float dx = px - enemy.PosX;
         float dy = py - enemy.PosY;

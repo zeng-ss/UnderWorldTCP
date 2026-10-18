@@ -513,7 +513,8 @@ namespace HotUpdate.UI.UIPanel
                 if (prefab == null) continue;
 
                 GameObject item = Instantiate(prefab, _msgContent);
-                item.GetComponent<ChatItem>()?.SetContent(msg.SenderNickname, msg.SendTime, msg.Content);
+                item.GetComponent<ChatItem>()?.SetContent(msg.SenderNickname, msg.SendTime, msg.Content,
+                    msg.SenderAvatar);
             }
 
             ScrollToBottomSoon();

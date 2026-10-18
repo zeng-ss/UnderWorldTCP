@@ -13,14 +13,17 @@ namespace HotUpdate.UI.UIItem
         public TMP_Text nameText;
         public TMP_Text mesText;
 
-        /// <summary>按「名称 / 时间 / 内容」填充气泡（好友私聊等非 MessageData 场景直接用它）</summary>
-        public void SetContent(string name, string time, string message)
+        /// <summary>按「名称 / 时间 / 内容 / 头像编号」填充气泡</summary>
+        public void SetContent(string name, string time, string message, int avatar = 0)
         {
             if (nameText != null)
                 nameText.text = string.IsNullOrEmpty(time) ? name : $"{name}——{time}";
 
             if (mesText != null)
                 mesText.text = message;
+
+            if (headImage != null)
+                headImage.sprite = AvatarConfig.Get(avatar);
         }
 
         /// <summary>用通用聊天数据结构填充气泡</summary>

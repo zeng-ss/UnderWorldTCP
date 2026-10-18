@@ -30,6 +30,12 @@ namespace HotUpdate.Controller
             AppContext.Ui.OpenPanel<DepotPanel>();
         }
 
+        /// <summary>打开头像选择面板（保存后服务端落库，Session.Avatar 同步更新）</summary>
+        public void OpenAvatarPanel()
+        {
+            AppContext.Ui.OpenPanel<AvatarPanel>();
+        }
+
         public void ExitGame()
         {
             Application.Quit();
@@ -47,6 +53,7 @@ namespace HotUpdate.Controller
             AppContext.Session.MainRoleInfo = info;
             AppContext.Session.RoleId = info.BaseInfo.RoleId;
             AppContext.Session.PlayerName = info.BaseInfo.Nickname;
+            AppContext.Session.Avatar = info.BaseInfo.Avatar;
             Debug.Log($"角色数据加载成功: {info.BaseInfo.Nickname}");
 
             // 背包以服务端 role_bag_item 为准：驱动盘（含等级 / 词条 / 穿戴）与材料数量一次落地

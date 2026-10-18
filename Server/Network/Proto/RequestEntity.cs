@@ -49,35 +49,37 @@ public static partial class RequestEntityReflection {
           "ZVJlcRIPCgdyb2xlX2lkGAEgASgFIiIKD09wZW5EaWFsb2d1ZVJlcRIPCgdy",
           "b2xlX2lkGAEgASgFInYKD1Bvc2l0aW9uU3luY1JlcRIPCgdyb2xlX2lkGAEg",
           "ASgFEg0KBXBvc194GAIgASgCEg0KBXBvc195GAMgASgCEg0KBXBvc196GAQg",
-          "ASgCEhIKCnJvdGF0aW9uX3kYBSABKAISEQoJbmlrZV9uYW1lGAYgASgJIkUK",
+          "ASgCEhIKCnJvdGF0aW9uX3kYBSABKAISEQoJbmlrZV9uYW1lGAYgASgJIlUK",
           "DUNyZWF0ZVJvb21SZXESDwoHcm9sZV9pZBgBIAEoBRIRCglyb29tX25hbWUY",
-          "AiABKAkSEAoIbmlja25hbWUYAyABKAkiQQoLSm9pblJvb21SZXESDwoHcm9s",
-          "ZV9pZBgBIAEoBRIPCgdyb29tX2lkGAIgASgFEhAKCG5pY2tuYW1lGAMgASgJ",
-          "Ih8KDExlYXZlUm9vbVJlcRIPCgdyb2xlX2lkGAEgASgFIjgKDUtpY2tQbGF5",
-          "ZXJSZXESDwoHcm9sZV9pZBgBIAEoBRIWCg50YXJnZXRfcm9sZV9pZBgCIAEo",
-          "BSIjChBSb29tU3RhcnRHYW1lUmVxEg8KB3JvbGVfaWQYASABKAUiMwoOUGxh",
-          "eWVyUmVhZHlSZXESDwoHcm9sZV9pZBgBIAEoBRIQCghpc19yZWFkeRgCIAEo",
-          "CCIeCgtSb29tTGlzdFJlcRIPCgdyb2xlX2lkGAEgASgFIi8KC1Jvb21DaGF0",
-          "UmVxEg8KB3JvbGVfaWQYASABKAUSDwoHY29udGVudBgCIAEoCSJRCgpTeW5j",
-          "QW5pUmVxEg8KB3JvbGVfaWQYASABKAUSFgoOYW5pbWF0aW9uX25hbWUYAiAB",
-          "KAkSGgoSc2tpbGxfY29uZmlnX2luZGV4GAMgASgFIkkKEFRhc2tQcm9ncmVz",
-          "c0RhdGESDwoHdGFza19pZBgBIAEoBRINCgVzdGF0ZRgCIAEoBRIVCg1jdXJy",
-          "ZW50X2NvdW50GAMgASgFIqYBCghUYXNrSW5mbxIPCgd0YXNrX2lkGAEgASgF",
-          "EhEKCXRhc2tfZGVzYxgCIAEoCRIRCgl0YXNrX3R5cGUYAyABKAUSFAoMdGFy",
-          "Z2V0X2NvdW50GAQgASgFEhEKCWRlcG90X2lkcxgFIAMoBRIUCgxtYXRlcmlh",
-          "bHNfaWQYBiADKAUSDQoFc3RhdGUYByABKAUSFQoNY3VycmVudF9jb3VudBgI",
-          "IAEoBSJMCg9UYXNrUHJvZ3Jlc3NOdGYSDwoHcm9sZV9pZBgBIAEoBRIoCg1w",
-          "cm9ncmVzc19saXN0GAIgAygLMhEuVGFza1Byb2dyZXNzRGF0YSIiCg9UYXNr",
-          "UHJvZ3Jlc3NSZXESDwoHcm9sZV9pZBgBIAEoBSJCCg5QbGF5ZXJTdGF0c050",
-          "ZhIPCgdyb2xlX2lkGAEgASgFEg4KBm1heF9ocBgCIAEoAhIPCgdkZWZlbnNl",
-          "GAMgASgCIiAKDUZyaWVuZExpc3RSZXESDwoHcm9sZV9pZBgBIAEoBSI4CgxB",
-          "ZGRGcmllbmRSZXESFAoMZnJvbV9yb2xlX2lkGAEgASgFEhIKCnRvX3JvbGVf",
-          "aWQYAiABKAUiSgoPSGFuZGxlRnJpZW5kUmVxEg8KB3JvbGVfaWQYASABKAUS",
-          "FgoOdGFyZ2V0X3JvbGVfaWQYAiABKAUSDgoGYWNjZXB0GAMgASgIIlUKEFNl",
-          "bmRGcmllbmRNc2dSZXESFgoOc2VuZGVyX3JvbGVfaWQYASABKAUSGAoQcmVj",
-          "ZWl2ZXJfcm9sZV9pZBgCIAEoBRIPCgdjb250ZW50GAMgASgJIjsKEEZyaWVu",
-          "ZEhpc3RvcnlSZXESDwoHcm9sZV9pZBgBIAEoBRIWCg5mcmllbmRfcm9sZV9p",
-          "ZBgCIAEoBWIGcHJvdG8z"));
+          "AiABKAkSEAoIbmlja25hbWUYAyABKAkSDgoGYXZhdGFyGAQgASgFIlEKC0pv",
+          "aW5Sb29tUmVxEg8KB3JvbGVfaWQYASABKAUSDwoHcm9vbV9pZBgCIAEoBRIQ",
+          "CghuaWNrbmFtZRgDIAEoCRIOCgZhdmF0YXIYBCABKAUiHwoMTGVhdmVSb29t",
+          "UmVxEg8KB3JvbGVfaWQYASABKAUiOAoNS2lja1BsYXllclJlcRIPCgdyb2xl",
+          "X2lkGAEgASgFEhYKDnRhcmdldF9yb2xlX2lkGAIgASgFIiMKEFJvb21TdGFy",
+          "dEdhbWVSZXESDwoHcm9sZV9pZBgBIAEoBSIzCg5QbGF5ZXJSZWFkeVJlcRIP",
+          "Cgdyb2xlX2lkGAEgASgFEhAKCGlzX3JlYWR5GAIgASgIIh4KC1Jvb21MaXN0",
+          "UmVxEg8KB3JvbGVfaWQYASABKAUiLwoLUm9vbUNoYXRSZXESDwoHcm9sZV9p",
+          "ZBgBIAEoBRIPCgdjb250ZW50GAIgASgJIlEKClN5bmNBbmlSZXESDwoHcm9s",
+          "ZV9pZBgBIAEoBRIWCg5hbmltYXRpb25fbmFtZRgCIAEoCRIaChJza2lsbF9j",
+          "b25maWdfaW5kZXgYAyABKAUiSQoQVGFza1Byb2dyZXNzRGF0YRIPCgd0YXNr",
+          "X2lkGAEgASgFEg0KBXN0YXRlGAIgASgFEhUKDWN1cnJlbnRfY291bnQYAyAB",
+          "KAUipgEKCFRhc2tJbmZvEg8KB3Rhc2tfaWQYASABKAUSEQoJdGFza19kZXNj",
+          "GAIgASgJEhEKCXRhc2tfdHlwZRgDIAEoBRIUCgx0YXJnZXRfY291bnQYBCAB",
+          "KAUSEQoJZGVwb3RfaWRzGAUgAygFEhQKDG1hdGVyaWFsc19pZBgGIAMoBRIN",
+          "CgVzdGF0ZRgHIAEoBRIVCg1jdXJyZW50X2NvdW50GAggASgFIkwKD1Rhc2tQ",
+          "cm9ncmVzc050ZhIPCgdyb2xlX2lkGAEgASgFEigKDXByb2dyZXNzX2xpc3QY",
+          "AiADKAsyES5UYXNrUHJvZ3Jlc3NEYXRhIiIKD1Rhc2tQcm9ncmVzc1JlcRIP",
+          "Cgdyb2xlX2lkGAEgASgFIkIKDlBsYXllclN0YXRzTnRmEg8KB3JvbGVfaWQY",
+          "ASABKAUSDgoGbWF4X2hwGAIgASgCEg8KB2RlZmVuc2UYAyABKAIiIAoNRnJp",
+          "ZW5kTGlzdFJlcRIPCgdyb2xlX2lkGAEgASgFIjgKDEFkZEZyaWVuZFJlcRIU",
+          "Cgxmcm9tX3JvbGVfaWQYASABKAUSEgoKdG9fcm9sZV9pZBgCIAEoBSJKCg9I",
+          "YW5kbGVGcmllbmRSZXESDwoHcm9sZV9pZBgBIAEoBRIWCg50YXJnZXRfcm9s",
+          "ZV9pZBgCIAEoBRIOCgZhY2NlcHQYAyABKAgiVQoQU2VuZEZyaWVuZE1zZ1Jl",
+          "cRIWCg5zZW5kZXJfcm9sZV9pZBgBIAEoBRIYChByZWNlaXZlcl9yb2xlX2lk",
+          "GAIgASgFEg8KB2NvbnRlbnQYAyABKAkiOwoQRnJpZW5kSGlzdG9yeVJlcRIP",
+          "Cgdyb2xlX2lkGAEgASgFEhYKDmZyaWVuZF9yb2xlX2lkGAIgASgFIi8KDFNl",
+          "dEF2YXRhclJlcRIPCgdyb2xlX2lkGAEgASgFEg4KBmF2YXRhchgCIAEoBWIG",
+          "cHJvdG8z"));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { },
         new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -98,8 +100,8 @@ public static partial class RequestEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::StartGameReq), global::StartGameReq.Parser, new[]{ "RoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::OpenDialogueReq), global::OpenDialogueReq.Parser, new[]{ "RoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PositionSyncReq), global::PositionSyncReq.Parser, new[]{ "RoleId", "PosX", "PosY", "PosZ", "RotationY", "NikeName" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::CreateRoomReq), global::CreateRoomReq.Parser, new[]{ "RoleId", "RoomName", "Nickname" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::JoinRoomReq), global::JoinRoomReq.Parser, new[]{ "RoleId", "RoomId", "Nickname" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::CreateRoomReq), global::CreateRoomReq.Parser, new[]{ "RoleId", "RoomName", "Nickname", "Avatar" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::JoinRoomReq), global::JoinRoomReq.Parser, new[]{ "RoleId", "RoomId", "Nickname", "Avatar" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::LeaveRoomReq), global::LeaveRoomReq.Parser, new[]{ "RoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::KickPlayerReq), global::KickPlayerReq.Parser, new[]{ "RoleId", "TargetRoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::RoomStartGameReq), global::RoomStartGameReq.Parser, new[]{ "RoleId" }, null, null, null, null),
@@ -116,7 +118,8 @@ public static partial class RequestEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::AddFriendReq), global::AddFriendReq.Parser, new[]{ "FromRoleId", "ToRoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::HandleFriendReq), global::HandleFriendReq.Parser, new[]{ "RoleId", "TargetRoleId", "Accept" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::SendFriendMsgReq), global::SendFriendMsgReq.Parser, new[]{ "SenderRoleId", "ReceiverRoleId", "Content" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::FriendHistoryReq), global::FriendHistoryReq.Parser, new[]{ "RoleId", "FriendRoleId" }, null, null, null, null)
+          new pbr::GeneratedClrTypeInfo(typeof(global::FriendHistoryReq), global::FriendHistoryReq.Parser, new[]{ "RoleId", "FriendRoleId" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::SetAvatarReq), global::SetAvatarReq.Parser, new[]{ "RoleId", "Avatar" }, null, null, null, null)
         }));
   }
   #endregion
@@ -4891,6 +4894,7 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
     roleId_ = other.roleId_;
     roomName_ = other.roomName_;
     nickname_ = other.nickname_;
+    avatar_ = other.avatar_;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -4936,6 +4940,21 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
     }
   }
 
+  /// <summary>Field number for the "avatar" field.</summary>
+  public const int AvatarFieldNumber = 4;
+  private int avatar_;
+  /// <summary>
+  /// 头像编号（房间列表 / 房内成员展示用）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int Avatar {
+    get { return avatar_; }
+    set {
+      avatar_ = value;
+    }
+  }
+
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public override bool Equals(object other) {
@@ -4954,6 +4973,7 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
     if (RoleId != other.RoleId) return false;
     if (RoomName != other.RoomName) return false;
     if (Nickname != other.Nickname) return false;
+    if (Avatar != other.Avatar) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -4964,6 +4984,7 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
     if (RoleId != 0) hash ^= RoleId.GetHashCode();
     if (RoomName.Length != 0) hash ^= RoomName.GetHashCode();
     if (Nickname.Length != 0) hash ^= Nickname.GetHashCode();
+    if (Avatar != 0) hash ^= Avatar.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -4994,6 +5015,10 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
       output.WriteRawTag(26);
       output.WriteString(Nickname);
     }
+    if (Avatar != 0) {
+      output.WriteRawTag(32);
+      output.WriteInt32(Avatar);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -5016,6 +5041,10 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
       output.WriteRawTag(26);
       output.WriteString(Nickname);
     }
+    if (Avatar != 0) {
+      output.WriteRawTag(32);
+      output.WriteInt32(Avatar);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -5034,6 +5063,9 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
     }
     if (Nickname.Length != 0) {
       size += 1 + pb::CodedOutputStream.ComputeStringSize(Nickname);
+    }
+    if (Avatar != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(Avatar);
     }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
@@ -5055,6 +5087,9 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
     }
     if (other.Nickname.Length != 0) {
       Nickname = other.Nickname;
+    }
+    if (other.Avatar != 0) {
+      Avatar = other.Avatar;
     }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
@@ -5087,6 +5122,10 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
           Nickname = input.ReadString();
           break;
         }
+        case 32: {
+          Avatar = input.ReadInt32();
+          break;
+        }
       }
     }
   #endif
@@ -5116,6 +5155,10 @@ public sealed partial class CreateRoomReq : pb::IMessage<CreateRoomReq>
         }
         case 26: {
           Nickname = input.ReadString();
+          break;
+        }
+        case 32: {
+          Avatar = input.ReadInt32();
           break;
         }
       }
@@ -5166,6 +5209,7 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
     roleId_ = other.roleId_;
     roomId_ = other.roomId_;
     nickname_ = other.nickname_;
+    avatar_ = other.avatar_;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -5211,6 +5255,18 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
     }
   }
 
+  /// <summary>Field number for the "avatar" field.</summary>
+  public const int AvatarFieldNumber = 4;
+  private int avatar_;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int Avatar {
+    get { return avatar_; }
+    set {
+      avatar_ = value;
+    }
+  }
+
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public override bool Equals(object other) {
@@ -5229,6 +5285,7 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
     if (RoleId != other.RoleId) return false;
     if (RoomId != other.RoomId) return false;
     if (Nickname != other.Nickname) return false;
+    if (Avatar != other.Avatar) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -5239,6 +5296,7 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
     if (RoleId != 0) hash ^= RoleId.GetHashCode();
     if (RoomId != 0) hash ^= RoomId.GetHashCode();
     if (Nickname.Length != 0) hash ^= Nickname.GetHashCode();
+    if (Avatar != 0) hash ^= Avatar.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -5269,6 +5327,10 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
       output.WriteRawTag(26);
       output.WriteString(Nickname);
     }
+    if (Avatar != 0) {
+      output.WriteRawTag(32);
+      output.WriteInt32(Avatar);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -5291,6 +5353,10 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
       output.WriteRawTag(26);
       output.WriteString(Nickname);
     }
+    if (Avatar != 0) {
+      output.WriteRawTag(32);
+      output.WriteInt32(Avatar);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -5309,6 +5375,9 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
     }
     if (Nickname.Length != 0) {
       size += 1 + pb::CodedOutputStream.ComputeStringSize(Nickname);
+    }
+    if (Avatar != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(Avatar);
     }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
@@ -5330,6 +5399,9 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
     }
     if (other.Nickname.Length != 0) {
       Nickname = other.Nickname;
+    }
+    if (other.Avatar != 0) {
+      Avatar = other.Avatar;
     }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
@@ -5362,6 +5434,10 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
           Nickname = input.ReadString();
           break;
         }
+        case 32: {
+          Avatar = input.ReadInt32();
+          break;
+        }
       }
     }
   #endif
@@ -5391,6 +5467,10 @@ public sealed partial class JoinRoomReq : pb::IMessage<JoinRoomReq>
         }
         case 26: {
           Nickname = input.ReadString();
+          break;
+        }
+        case 32: {
+          Avatar = input.ReadInt32();
           break;
         }
       }
@@ -9687,6 +9767,247 @@ public sealed partial class FriendHistoryReq : pb::IMessage<FriendHistoryReq>
         }
         case 16: {
           FriendRoleId = input.ReadInt32();
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+/// <summary>
+/// 设置头像请求
+/// </summary>
+[global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+public sealed partial class SetAvatarReq : pb::IMessage<SetAvatarReq>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<SetAvatarReq> _parser = new pb::MessageParser<SetAvatarReq>(() => new SetAvatarReq());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pb::MessageParser<SetAvatarReq> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::RequestEntityReflection.Descriptor.MessageTypes[36]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public SetAvatarReq() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public SetAvatarReq(SetAvatarReq other) : this() {
+    roleId_ = other.roleId_;
+    avatar_ = other.avatar_;
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public SetAvatarReq Clone() {
+    return new SetAvatarReq(this);
+  }
+
+  /// <summary>Field number for the "role_id" field.</summary>
+  public const int RoleIdFieldNumber = 1;
+  private int roleId_;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int RoleId {
+    get { return roleId_; }
+    set {
+      roleId_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "avatar" field.</summary>
+  public const int AvatarFieldNumber = 2;
+  private int avatar_;
+  /// <summary>
+  /// 头像编号（客户端 AvatarConfig 的下标，0=默认）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int Avatar {
+    get { return avatar_; }
+    set {
+      avatar_ = value;
+    }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override bool Equals(object other) {
+    return Equals(other as SetAvatarReq);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equals(SetAvatarReq other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (RoleId != other.RoleId) return false;
+    if (Avatar != other.Avatar) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (RoleId != 0) hash ^= RoleId.GetHashCode();
+    if (Avatar != 0) hash ^= Avatar.GetHashCode();
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (RoleId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(RoleId);
+    }
+    if (Avatar != 0) {
+      output.WriteRawTag(16);
+      output.WriteInt32(Avatar);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (RoleId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(RoleId);
+    }
+    if (Avatar != 0) {
+      output.WriteRawTag(16);
+      output.WriteInt32(Avatar);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CalculateSize() {
+    int size = 0;
+    if (RoleId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(RoleId);
+    }
+    if (Avatar != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(Avatar);
+    }
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(SetAvatarReq other) {
+    if (other == null) {
+      return;
+    }
+    if (other.RoleId != 0) {
+      RoleId = other.RoleId;
+    }
+    if (other.Avatar != 0) {
+      Avatar = other.Avatar;
+    }
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          RoleId = input.ReadInt32();
+          break;
+        }
+        case 16: {
+          Avatar = input.ReadInt32();
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          RoleId = input.ReadInt32();
+          break;
+        }
+        case 16: {
+          Avatar = input.ReadInt32();
           break;
         }
       }

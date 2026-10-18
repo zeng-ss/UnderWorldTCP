@@ -21,6 +21,7 @@ namespace HotUpdate.Data
     {
         public int RoleId;
         public string Nickname;
+        public int Avatar;
         public bool IsMaster;
         public bool IsReady;
     }
@@ -30,6 +31,7 @@ namespace HotUpdate.Data
     {
         public int SenderRoleId;
         public string SenderNickname;
+        public int SenderAvatar;
         public string Content;
         public string SendTime;
 

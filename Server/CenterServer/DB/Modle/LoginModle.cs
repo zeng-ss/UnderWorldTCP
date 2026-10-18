@@ -358,6 +358,7 @@ public class LoginModle
             {
                 RoleId = role.Id,
                 Nickname = role.NickName,
+                Avatar = AvatarCatalog.Normalize(role.Avatar),
             };
             //主角信息  
             MainRoleInfo mainRoleInfo = new MainRoleInfo
@@ -385,6 +386,37 @@ public class LoginModle
         }
         else ret.CmdCode = CmdCode.RoleNotExist; //角色不存在
 
+        return ret;
+    }
+
+    /// <summary>
+    /// 设置头像：只校验编号范围，落库后把生效的编号回给客户端。
+    /// </summary>
+    public SetAvatarRet SetAvatar(SetAvatarReq req)
+    {
+        SetAvatarRet ret = new SetAvatarRet();
+        if (req.RoleId <= 0 || !AvatarCatalog.IsValid(req.Avatar))
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        RoleTable role = _db.Queryable<RoleTable>().Where(v => v.Id == req.RoleId).First();
+        if (role == null)
+        {
+            ret.CmdCode = CmdCode.RoleNotExist;
+            return ret;
+        }
+
+        role.Avatar = req.Avatar;
+        role.UpdateDate = DateTime.Now;
+        if (_db.Updateable(role).ExecuteCommand() <= 0)
+        {
+            ret.CmdCode = CmdCode.ServerError;
+            return ret;
+        }
+
+        ret.Avatar = role.Avatar;
         return ret;
     }
 
@@ -445,7 +477,7 @@ public class LoginModle
 
         return ret;
     }
-    
+
     /// <summary>
     /// 处理并返回获得奖励相关的数据。
     /// 任务奖励（reward_type=1）：奖励内容与数量以服务端 Luban taskData 为权威，
@@ -812,7 +844,7 @@ public class LoginModle
 
         RoleBagInfo disk = _db.Queryable<RoleBagInfo>()
             .Where(v => v.RoleId == req.RoleId && v.ItemId == req.DepotId
-                        && v.ItemType == ItemCatalog.DriverDiskType).First();
+                                               && v.ItemType == ItemCatalog.DriverDiskType).First();
         if (disk == null)
         {
             ret.CmdCode = CmdCode.ReqParamError;
@@ -885,7 +917,7 @@ public class LoginModle
 
         RoleBagInfo disk = _db.Queryable<RoleBagInfo>()
             .Where(v => v.RoleId == req.RoleId && v.ItemId == req.DepotId
-                        && v.ItemType == ItemCatalog.DriverDiskType).First();
+                                               && v.ItemType == ItemCatalog.DriverDiskType).First();
         if (disk == null)
         {
             ret.CmdCode = CmdCode.ReqParamError;
@@ -897,7 +929,7 @@ public class LoginModle
         {
             int equippedCount = _db.Queryable<RoleBagInfo>()
                 .Where(v => v.RoleId == req.RoleId && v.ItemType == ItemCatalog.DriverDiskType
-                            && v.IsEquipped == 1).Count();
+                                                   && v.IsEquipped == 1).Count();
             if (equippedCount >= MaxEquipSlots)
             {
                 ret.CmdCode = CmdCode.ReqParamError;
@@ -976,6 +1008,7 @@ public class LoginModle
             {
                 RoleId = friendId,
                 Nickname = friend != null ? friend.NickName : ("Player" + friendId),
+                Avatar = friend != null ? AvatarCatalog.Normalize(friend.Avatar) : AvatarCatalog.Default,
                 IsOnline = false // 由 LoginServer 转发时按在线状态覆盖
             });
         }
@@ -994,6 +1027,7 @@ public class LoginModle
             {
                 RoleId = rel.FromRoleId,
                 Nickname = applicant != null ? applicant.NickName : ("Player" + rel.FromRoleId),
+                Avatar = applicant != null ? AvatarCatalog.Normalize(applicant.Avatar) : AvatarCatalog.Default,
                 IsOnline = false // 申请项不展示在线状态，仅保持字段一致
             });
         }
@@ -1157,7 +1191,8 @@ public class LoginModle
         int a = req.RoleId;
         int b = req.FriendRoleId;
         List<FriendMessage> list = _db.Queryable<FriendMessage>()
-            .Where(v => (v.SenderRoleId == a && v.ReceiverRoleId == b) || (v.SenderRoleId == b && v.ReceiverRoleId == a))
+            .Where(v => (v.SenderRoleId == a && v.ReceiverRoleId == b) ||
+                        (v.SenderRoleId == b && v.ReceiverRoleId == a))
             .OrderBy(v => v.Id, OrderByType.Desc).Take(MaxFriendMsgPerPair).ToList();
 
         // 倒序取出后反转为时间升序，方便客户端直接按顺序渲染

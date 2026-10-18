@@ -78,6 +78,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_FriendHistoryCode:
                 OnFriendHistoryResultHandle(session, basePackage);
                 break;
+            case NetDefine.CMD_SetAvatarCode:
+                OnSetAvatarResultHandle(session, basePackage);
+                break;
             default:
                 LogMsg.Info("[LoginCtrl]中心服务器发过来的结果的请求码没有注册");
                 break;
@@ -204,6 +207,14 @@ public class LoginCtrl : IContainer
         }
 
         LogMsg.Info("[Login]聊天记录结果: 条数=" + ret.Messages.Count);
+        session.SendData(basePackage);
+    }
+
+    // 设置头像返回：透传（失败也透传，客户端据此拿 CmdCode 提示，避免回调悬挂）
+    private void OnSetAvatarResultHandle(Session session, BasePackage basePackage)
+    {
+        SetAvatarRet ret = SetAvatarRet.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Login]设置头像结果:" + ret.CmdCode + " avatar=" + ret.Avatar);
         session.SendData(basePackage);
     }
 
@@ -512,6 +523,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_FriendHistoryCode:
                 OnFriendHistoryHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_SetAvatarCode:
+                OnSetAvatarHandle(serverBase, basePackage);
+                break;
             case NetDefine.CMD_PlayerStatsCode:
                 OnPlayerStatsHandle(serverBase, basePackage);
                 break;
@@ -762,7 +776,8 @@ public class LoginCtrl : IContainer
         CreateRoomReq req = CreateRoomReq.Parser.ParseFrom(basePackage.Data);
         if (serverBase is Session session)
         {
-            CreateRoomRet ret = RoomMgr.Instance.CreateRoom(req.RoleId, session.SessionId, req.Nickname, req.RoomName);
+            CreateRoomRet ret = RoomMgr.Instance.CreateRoom(req.RoleId, session.SessionId, req.Nickname,
+                req.Avatar, req.RoomName);
             session.SendData(basePackage, NetDefine.CMD_CreateRoomCode, ret.ToByteString());
             LogMsg.Info($"[Login]创建房间结果: roomId={ret.RoomId}");
         }
@@ -774,7 +789,8 @@ public class LoginCtrl : IContainer
         JoinRoomReq req = JoinRoomReq.Parser.ParseFrom(basePackage.Data);
         if (serverBase is Session session)
         {
-            JoinRoomRet ret = RoomMgr.Instance.JoinRoom(req.RoleId, session.SessionId, req.Nickname, req.RoomId);
+            JoinRoomRet ret = RoomMgr.Instance.JoinRoom(req.RoleId, session.SessionId, req.Nickname,
+                req.Avatar, req.RoomId);
             session.SendData(basePackage, NetDefine.CMD_JoinRoomCode, ret.ToByteString());
             LogMsg.Info($"[Login]加入房间结果: roleId={req.RoleId} roomId={req.RoomId} cmd={ret.CmdCode}");
         }
@@ -868,6 +884,14 @@ public class LoginCtrl : IContainer
         SaveRoleReq req = SaveRoleReq.Parser.ParseFrom(basePackage.Data);
         serverBase._Client.SendData(basePackage);
         LogMsg.Info("[Login]收到保存角色请求:" + req);
+    }
+
+    // 设置头像请求（落库在中心服，这里只转发）
+    private void OnSetAvatarHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        SetAvatarReq req = SetAvatarReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到设置头像请求: roleId=" + req.RoleId + " avatar=" + req.Avatar);
     }
 
     #region 登陆注册

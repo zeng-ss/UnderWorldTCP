@@ -21,6 +21,10 @@ public class RoleTable
     //昵称
     public string NickName { get; set; }
 
+    //头像编号（0=默认头像，对应客户端 AvatarConfig 的下标）
+    [SugarColumn(DefaultValue = "0")]
+    public int Avatar { get; set; }
+
 
     //角色当前所在的地图 
     [SugarColumn(Length = 50)] public string SceneName { get; set; }

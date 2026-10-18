@@ -128,6 +128,7 @@ message StartGameRet{
 message RoleBaseInfo{
   int32 role_id = 1;
   string nickname = 2;
+  int32 avatar = 3;//头像编号（0=默认头像，对应客户端 AvatarConfig 的下标）
 }
 //主角信息
 message MainRoleInfo{
@@ -193,6 +194,7 @@ message RoomPlayerInfo{
   string nickname = 2;
   bool is_master = 3;    // 是否房主
   bool is_ready = 4;     // 是否已准备
+  int32 avatar = 5;      // 头像编号
 }
 
 // 创建房间返回
@@ -261,6 +263,7 @@ message RoomChatMsg{
   string sender_nickname = 2;
   string content = 3;
   string send_time = 4;
+  int32 sender_avatar = 5;   // 发送者头像编号
 }
 
 // 房间聊天广播（服务端 → 房间内所有人，含发送者自己）
@@ -331,6 +334,7 @@ message FriendInfo{
   int32 role_id = 1;      // 好友的角色 id
   string nickname = 2;    // 好友昵称
   bool is_online = 3;     // 是否在线（由 LoginServer 在线状态填充）
+  int32 avatar = 4;       // 好友头像编号
 }
 
 // 拉取好友列表回包
@@ -391,3 +395,11 @@ message FriendMsgPushNtf{
 }
 
 
+
+// ========== 头像 ==========
+
+// 设置头像回包（服务端校验并落库后回传最终头像编号）
+message SetAvatarRet{
+  CmdCode cmd_code = 1;
+  int32 avatar = 2;      // 生效的头像编号
+}
