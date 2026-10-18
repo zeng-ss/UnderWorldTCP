@@ -75,6 +75,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: be454a1dfde0ac14d82c0595acf4199a
+    m_Address: AvatarPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: c76996c9463c2214494c11da154c1b39
     m_Address: RoomPanel
     m_ReadOnly: 0
