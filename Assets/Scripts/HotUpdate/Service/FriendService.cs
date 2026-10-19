@@ -172,7 +172,17 @@ namespace HotUpdate.Service
             List<FriendMsgData> list = GetOrCreateCache(peerId);
             if (!list.Exists(m => m.Id == data.Id)) InsertOrdered(list, data);
 
-            AppContext.Ui.GetPanel<FriendPanel>()?.OnMessageReceived(data);
+            FriendPanel panel = AppContext.Ui.GetPanel<FriendPanel>();
+            bool reading = panel != null && panel.gameObject.activeInHierarchy && panel.IsChattingWith(peerId);
+
+            // 未读只记到「发消息的这个好友」头上：列表项各自按自己的 Unread 亮红点
+            if (!data.IsSelf && !reading)
+            {
+                FriendData friend = Friends.Find(f => f.RoleId == peerId);
+                if (friend != null) friend.Unread++;
+            }
+
+            panel?.OnMessageReceived(data);
         }
 
         // 缓存始终保持按 Id 升序（Id 自增 = 时间升序），面板从左到右渲染即可，

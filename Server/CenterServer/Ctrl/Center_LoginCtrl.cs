@@ -97,7 +97,19 @@ public class Center_LoginCtrl : IContainer
             case NetDefine.CMD_FriendMsgReadCode:
                 OnFriendMsgReadHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_BackToLoginCode:
+                OnBackToLoginHandle(serverBase, basePackage);
+                break;
         }
+    }
+
+    // 退出登录：把角色场景重置回主界面
+    private void OnBackToLoginHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        BackToLoginReq req = BackToLoginReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Center]收到退出登录请求: roleId=" + req.RoleId);
+        BackToLoginRet ret = _loginModle.BackToLogin(req);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
     }
 
     // 标记私聊已读（聊天窗口开着时收到新消息，客户端补一条回执）

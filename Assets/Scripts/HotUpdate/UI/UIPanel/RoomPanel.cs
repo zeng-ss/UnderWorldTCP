@@ -17,10 +17,6 @@ namespace HotUpdate.UI.UIPanel
     [PanelPath("RoomPanel")]
     public class RoomPanel : BasePanel
     {
-        // 列表项固定高度，需与编辑器脚本 RoomPanelBuilder 里的常量一致
-        private const float RoomItemHeight = 76f;
-        private const float MemberItemHeight = 64f;
-
         private const string RoomItemAddress = "RoomListItem";
         private const string MemberItemAddress = "RoomPlayerItem";
 
@@ -164,7 +160,6 @@ namespace HotUpdate.UI.UIPanel
             _roomList = host.GetComponent<LoopList>();
             if (_roomList == null) _roomList = host.gameObject.AddComponent<LoopList>();
             _roomList.Init(scroll, scroll.content);
-            _roomList.SetItemHeight(RoomItemHeight);
             _roomList.SetItemFactory(CreateRoomItem, FillRoomItem);
         }
 
@@ -182,7 +177,6 @@ namespace HotUpdate.UI.UIPanel
             _memberList = host.GetComponent<LoopList>();
             if (_memberList == null) _memberList = host.gameObject.AddComponent<LoopList>();
             _memberList.Init(scroll, scroll.content);
-            _memberList.SetItemHeight(MemberItemHeight);
             _memberList.SetItemFactory(CreateMemberItem, FillMemberItem);
         }
 

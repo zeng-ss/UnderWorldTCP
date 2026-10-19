@@ -4,9 +4,6 @@ using UnityEngine;
 
 namespace HotUpdate.Controller
 {
-    /// <summary>
-    /// 开始界面 Controller：加载角色数据、切换场景、退出游戏。
-    /// </summary>
     public class StartPanelController
     {
         private const string LobbySceneName = "LobbyScene";
@@ -18,27 +15,32 @@ namespace HotUpdate.Controller
             AppContext.Proto.RequestStartGame(roleId, OnStartGameResult);
         }
 
-        /// <summary>打开好友 / 私聊面板（EnterScene 里没有 GameController，由开始面板直接开）</summary>
-        public void OpenFriendPanel()
-        {
-            AppContext.Ui.OpenPanel<FriendPanel>();
-        }
+        public void OpenFriendPanel() => AppContext.Ui.OpenPanel<FriendPanel>();
+        public void OpenDepotPanel() => AppContext.Ui.OpenPanel<DepotPanel>();
+        public void OpenAvatarPanel() => AppContext.Ui.OpenPanel<AvatarPanel>();
+        private void ShowTip(string message) => AppContext.Ui.ShowTip(message);
 
-        /// <summary>打开背包面板</summary>
-        public void OpenDepotPanel()
+        /// <summary>
+        /// 退出登录：服务端把角色从在线列表移除并把场景重置回主界面，
+        /// </summary>
+        public void BackToLogin()
         {
-            AppContext.Ui.OpenPanel<DepotPanel>();
-        }
+            int roleId = AppContext.Session.RoleId;
+            Debug.Log($"退出登录 roleId = {roleId}");
 
-        /// <summary>打开头像选择面板（保存后服务端落库，Session.Avatar 同步更新）</summary>
-        public void OpenAvatarPanel()
-        {
-            AppContext.Ui.OpenPanel<AvatarPanel>();
-        }
+            AppContext.Proto.RequestBackToLogin(roleId, ret =>
+            {
+                if (ret.CmdCode != CmdCode.Succeed)
+                {
+                    ShowTip("退出登录失败");
+                    return;
+                }
 
-        public void ExitGame()
-        {
-            Application.Quit();
+                AppContext.Session.Clear();
+                AppContext.Friend.Clear();
+                AppContext.Ui.ClosePanel<StartPanel>();
+                AppContext.Ui.OpenPanel<LoginPanel>();
+            });
         }
 
         private void OnStartGameResult(StartGameRet ret)
@@ -71,11 +73,6 @@ namespace HotUpdate.Controller
                 AppContext.Ui.ClosePanel<StartPanel>();
                 AppContext.Scene.LoadScene(LobbySceneName);
             });
-        }
-
-        private void ShowTip(string message)
-        {
-            AppContext.Ui.ShowTip(message);
         }
     }
 }

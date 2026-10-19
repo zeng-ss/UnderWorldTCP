@@ -84,6 +84,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_FriendMsgReadCode:
                 OnFriendMsgReadResultHandle(session, basePackage);
                 break;
+            case NetDefine.CMD_BackToLoginCode:
+                OnBackToLoginResultHandle(session, basePackage);
+                break;
             default:
                 LogMsg.Info("[LoginCtrl]中心服务器发过来的结果的请求码没有注册");
                 break;
@@ -226,6 +229,14 @@ public class LoginCtrl : IContainer
     {
         MarkFriendMsgReadRet ret = MarkFriendMsgReadRet.Parser.ParseFrom(basePackage.Data);
         LogMsg.Info("[Login]标记私聊已读结果:" + ret.CmdCode);
+        session.SendData(basePackage);
+    }
+
+    // 退出登录结果：客户端收到后清 Session 回登录界面
+    private void OnBackToLoginResultHandle(Session session, BasePackage basePackage)
+    {
+        BackToLoginRet ret = BackToLoginRet.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Login]退出登录结果:" + ret.CmdCode);
         session.SendData(basePackage);
     }
 
@@ -539,6 +550,9 @@ public class LoginCtrl : IContainer
                 break;
             case NetDefine.CMD_FriendMsgReadCode:
                 OnFriendMsgReadHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_BackToLoginCode:
+                OnBackToLoginHandle(serverBase, basePackage);
                 break;
             case NetDefine.CMD_PlayerStatsCode:
                 OnPlayerStatsHandle(serverBase, basePackage);
@@ -914,6 +928,15 @@ public class LoginCtrl : IContainer
         MarkFriendMsgReadReq req = MarkFriendMsgReadReq.Parser.ParseFrom(basePackage.Data);
         serverBase._Client.SendData(basePackage);
         LogMsg.Info("[Login]收到标记私聊已读转发: roleId=" + req.RoleId + " friend=" + req.FriendRoleId);
+    }
+
+    // 退出登录：先在本服下线（好友看到的不再是在线），再让中心服把角色场景重置回主界面
+    private void OnBackToLoginHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        BackToLoginReq req = BackToLoginReq.Parser.ParseFrom(basePackage.Data);
+        PlayerSceneMgr.Instance.OnPlayerLeave(req.RoleId);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到退出登录请求: roleId=" + req.RoleId);
     }
 
     #region 登陆注册

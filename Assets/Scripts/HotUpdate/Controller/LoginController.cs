@@ -107,7 +107,7 @@ namespace HotUpdate.Controller
             switch (ret.CmdCode)
             {
                 case CmdCode.Succeed:
-                    AppContext.Session.PlayerName = _pendingAccount;
+                    AppContext.Session.PlayerName = "Player" + _pendingAccount;
                     AppContext.Session.AccountId = ret.AccountId;
                     AppContext.Session.ServerId = _selectedServer.ServerId;
                     AppContext.Proto.RequestLoginGameServer(ret.AccountId, _selectedServer.ServerId,

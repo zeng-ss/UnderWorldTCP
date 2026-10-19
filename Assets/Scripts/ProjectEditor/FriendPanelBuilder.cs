@@ -65,8 +65,8 @@ namespace ProjectEditor
         private const string CanvasName = "FriendPanelTempCanvas";
         private const string TemplateHolder = "FriendPanelTemplates";
 
-        // 好友项固定高度（与 FriendPanel 里 SetItemHeight 保持一致）
-        private const float FriendItemHeight = 64f;
+        // 好友项固定高度（LoopList 虚拟滚动需要固定行高，运行时按预制体实际高度读，见 FriendPanel.LoadFriendItemPrefab）
+        private const float FriendItemHeight = 80f;
 
         private const float ScrollbarWidth = 16f;
 
@@ -428,6 +428,8 @@ namespace ProjectEditor
                         InteractionMode.AutomatedAction);
                     StripMissingScripts(item);
                     item.name = "FriendItem";
+                    // SharpUI 的 ListItem 原高偏小，这里统一成列表行高（LoopList 按这个高度排位）
+                    ((RectTransform)item.transform).sizeDelta = new Vector2(400, FriendItemHeight);
                     RenameChild(item.transform, "TextLeft", "Name");
                     RenameChild(item.transform, "TextRight", "Status");
 

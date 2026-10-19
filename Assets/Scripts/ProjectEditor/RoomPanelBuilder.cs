@@ -67,7 +67,7 @@ namespace ProjectEditor
         private const string CanvasName = "RoomPanelTempCanvas";
         private const string TemplateHolder = "RoomPanelTemplates";
 
-        // 列表项固定高度（与 RoomPanel 里 SetItemHeight 保持一致）
+        // 列表项固定高度（运行时 LoopList 会按自己的 itemHeight 重设 RectTransform，这里只决定模板初始尺寸）
         private const float RoomItemHeight = 76f;
         private const float MemberItemHeight = 64f;
 

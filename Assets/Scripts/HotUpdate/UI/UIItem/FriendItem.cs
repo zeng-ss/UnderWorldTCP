@@ -1,6 +1,5 @@
 using System;
 using HotUpdate.Data;
-using HotUpdate.RedDot;
 using HotUpdate.Service;
 using TMPro;
 using UnityEngine;
@@ -23,13 +22,6 @@ namespace HotUpdate.UI.UIItem
         private static readonly Color ColOffline = new Color(0.62f, 0.64f, 0.7f, 1f);
         private FriendService _friendService;
 
-        private void Awake() => AppContext.RedDot.GetOrCreate(RedDotPath.Friend).AddWatcher(SetFriendRedDot);
-
-        private void OnDestroy() => AppContext.RedDot.GetOrCreate(RedDotPath.Friend).RemoveWatcher(SetFriendRedDot);
-
-        private void SetFriendRedDot(int count) => redDot.SetActive(count > 0);
-
-        /// <summary>按数据填充列表项：好友展示在线状态，申请展示同意 / 拒绝按钮</summary>
         public void SetData(FriendData data, FriendService service, Action refresh)
         {
             if (data == null) return;
@@ -39,6 +31,10 @@ namespace HotUpdate.UI.UIItem
             bool isRequest = data.IsRequest;
             applyButtons.SetActive(isRequest);
             statusText.gameObject.SetActive(!isRequest);
+
+            // 未读红点只看这个好友自己的未读数 —— 面板是复用的，每次填充都要重设
+            redDot.SetActive(!isRequest && data.Unread > 0);
+
             SetSelected(false);
             if (!isRequest)
             {
@@ -55,8 +51,6 @@ namespace HotUpdate.UI.UIItem
             }
         }
 
-        // 同意 / 拒绝一条申请：处理完重新与服务端对齐（申请消失，同意的变成好友）
-        // 失败也要重拉：这条申请可能是「已经被处理过」的陈旧 UI（例如上一次同意后列表没刷新），
         // 重拉一次能让界面自动纠正回真实状态。
         private void OnHandleRequest(int fromRoleId, bool accept, Action refresh)
         {

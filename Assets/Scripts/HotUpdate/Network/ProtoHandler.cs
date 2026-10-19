@@ -72,6 +72,7 @@ namespace HotUpdate.Network
         private Action<FriendHistoryRet> _friendHistoryCallback;
         private Action<RoomChatNtf> _roomChatCallback;
         private Action<SetAvatarRet> _setAvatarCallback;
+        private Action<BackToLoginRet> _backToLoginCallback;
 
         #endregion
 
@@ -130,6 +131,7 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_FriendMsgPushCode, OnFriendMsgPushNtf);
             AppContext.Events.AddNetHandler(NetDefine.CMD_SetAvatarCode, OnSetAvatarResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_FriendMsgReadCode, OnMarkFriendMsgReadResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_BackToLoginCode, OnBackToLoginResult);
         }
 
         // 由 GameManager.Update 每帧驱动
@@ -430,6 +432,16 @@ namespace HotUpdate.Network
                 FriendRoleId = friendRoleId
             };
             NetClientMgr.Instance.Send(NetDefine.CMD_FriendHistoryCode, req.ToByteString());
+        }
+
+        /// <summary>
+        /// 退出登录：服务端把角色从在线列表移除，成功后客户端清 Session 回登录界面
+        /// </summary>
+        public void RequestBackToLogin(int roleId, Action<BackToLoginRet> callback)
+        {
+            _backToLoginCallback = callback;
+            BackToLoginReq req = new BackToLoginReq { RoleId = roleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_BackToLoginCode, req.ToByteString());
         }
 
         /// <summary>
@@ -759,6 +771,14 @@ namespace HotUpdate.Network
             Debug.Log($"ProtoHandler: 标记私聊已读结果 CmdCode={ret.CmdCode}");
         }
 
+        private void OnBackToLoginResult(ByteString data)
+        {
+            BackToLoginRet ret = BackToLoginRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 退出登录结果 CmdCode={ret.CmdCode}");
+            _backToLoginCallback?.Invoke(ret);
+            _backToLoginCallback = null;
+        }
+
         // 服务端推送：直接交给 FriendService 落地（不再经事件中转）
         private void OnFriendApplyNtf(ByteString data)
         {
@@ -789,7 +809,8 @@ namespace HotUpdate.Network
             if (msg == null || msg.SenderRoleId == AppContext.Session.RoleId) return;
 
             FriendPanel panel = AppContext.Ui.GetPanel<FriendPanel>();
-            bool reading = panel != null && panel.gameObject.activeInHierarchy && panel.IsChattingWith(msg.SenderRoleId);
+            bool reading = panel != null && panel.gameObject.activeInHierarchy &&
+                           panel.IsChattingWith(msg.SenderRoleId);
 
             // 正看着这条消息：本地不亮红点，同时告诉服务端已读 —— 否则下次拉列表它还是未读
             if (reading) RequestMarkFriendMsgRead(msg.SenderRoleId);
@@ -983,6 +1004,7 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendMsgPushCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_SetAvatarCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendMsgReadCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_BackToLoginCode);
         }
     }
 }

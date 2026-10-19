@@ -3052,6 +3052,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d717cdb7fc1bf7243b168370836b94a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HotUpdate::HotUpdate.UI.UIItem.LoopList
+  itemHeight: 80
+  itemWidth: 0
+  spacing: 10
 --- !u!1 &4302559060576092811
 GameObject:
   m_ObjectHideFlags: 0
@@ -6570,6 +6573,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d717cdb7fc1bf7243b168370836b94a2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HotUpdate::HotUpdate.UI.UIItem.LoopList
+  itemHeight: 80
+  itemWidth: 0
+  spacing: 15
 --- !u!1 &9170989195437398872
 GameObject:
   m_ObjectHideFlags: 0

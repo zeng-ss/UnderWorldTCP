@@ -217,20 +217,24 @@ namespace ProjectEditor
             // 私聊入口的红点：已经摆过就复用，没有就补一个（右上角小圆点）
             Transform friendBtn = FindDeep(root.transform, "FriendBtn");
             Transform dotNode = FindDeep(friendBtn, "RedDot");
-            Image dot = dotNode != null ? dotNode.GetComponent<Image>() : CreateRedDot(friendBtn);
-            dot.enabled = false;
+            GameObject dot = dotNode != null ? dotNode.gameObject : CreateRedDot(friendBtn).gameObject;
+            dot.SetActive(false);
 
             var so = new SerializedObject(root.GetComponent<StartPanel>());
-            so.FindProperty("_playerNameTxt").objectReferenceValue =
+            so.FindProperty("playerNameTxt").objectReferenceValue =
                 FindDeep(root.transform, "playerName").GetComponent<TMP_Text>();
-            so.FindProperty("_avatarImage").objectReferenceValue = head;
-            so.FindProperty("_avatarBtn").objectReferenceValue = avatarBtn;
-            so.FindProperty("_friendRedDot").objectReferenceValue = dot;
-            so.FindProperty("_hostBtn").objectReferenceValue = FindDeep(root.transform, "HostBtn").GetComponent<Button>();
-            so.FindProperty("_friendBtn").objectReferenceValue = FindDeep(root.transform, "FriendBtn").GetComponent<Button>();
-            so.FindProperty("_depotBtn").objectReferenceValue = FindDeep(root.transform, "DepotBtn").GetComponent<Button>();
-            so.FindProperty("_exitBtn").objectReferenceValue = FindDeep(root.transform, "ExitBtn").GetComponent<Button>();
+            so.FindProperty("avatarImage").objectReferenceValue = head;
+            so.FindProperty("avatarBtn").objectReferenceValue = avatarBtn;
+            so.FindProperty("friendRedDot").objectReferenceValue = dot;
+            so.FindProperty("hostBtn").objectReferenceValue = FindDeep(root.transform, "HostBtn").GetComponent<Button>();
+            so.FindProperty("friendBtn").objectReferenceValue = FindDeep(root.transform, "FriendBtn").GetComponent<Button>();
+            so.FindProperty("depotBtn").objectReferenceValue = FindDeep(root.transform, "DepotBtn").GetComponent<Button>();
+            so.FindProperty("exitBtn").objectReferenceValue = FindDeep(root.transform, "ExitBtn").GetComponent<Button>();
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            // 退出按钮现在是「退出登录」（回登录界面），老预制体上的「退出游戏」文案顺手改掉
+            TMP_Text exitLabel = FindDeep(root.transform, "ExitBtn").GetComponentInChildren<TMP_Text>(true);
+            if (exitLabel != null) exitLabel.text = "退出登录";
         }
 
         // 红点：锚在按钮右上角的圆点，显隐由 StartPanel 按红点树控制
@@ -378,7 +382,7 @@ namespace ProjectEditor
 
             y -= ButtonHeight + ButtonGap;
 
-            Button exit = NewButton("ExitBtn", parent, "退出游戏", IconExit);
+            Button exit = NewButton("ExitBtn", parent, "退出登录", IconExit);
             PlaceCenter((RectTransform)exit.transform, new Vector2(RightColumnX, y),
                 new Vector2(ButtonWidth, ButtonHeight));
         }

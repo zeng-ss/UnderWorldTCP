@@ -49,6 +49,7 @@ namespace ProjectEditor
         private static readonly Color ColTitle = new Color(1f, 0.93f, 0.76f, 1f);
         private static readonly Color ColHint = new Color(0.66f, 0.69f, 0.76f, 1f);
         private static readonly Color ColSelected = new Color(1f, 0.85f, 0.35f, 1f);
+        private static readonly Color ColHover = new Color(1f, 0.85f, 0.35f, 0.18f);
 
         private static TMP_FontAsset _font;
         private static readonly Dictionary<string, Sprite> _spriteCache = new();
@@ -120,9 +121,9 @@ namespace ProjectEditor
         private static void BindRefs(GameObject root)
         {
             var so = new SerializedObject(root.GetComponent<AvatarPanel>());
-            so.FindProperty("_saveBtn").objectReferenceValue = _saveBtn;
+            so.FindProperty("saveBtn").objectReferenceValue = _saveBtn;
 
-            SerializedProperty slots = so.FindProperty("_slots");
+            SerializedProperty slots = so.FindProperty("slots");
             slots.arraySize = _slots.Count;
             for (int i = 0; i < _slots.Count; i++)
                 slots.GetArrayElementAtIndex(i).objectReferenceValue = _slots[i];
@@ -163,7 +164,7 @@ namespace ProjectEditor
             }
         }
 
-        // 一个头像格子：Selected（金色外框，默认隐藏）→ Mask（圆形裁切）→ Head（头像图）
+        // 一个头像格子：Hover（悬停底色）→ Selected（金色外框，默认隐藏）→ Mask（圆形裁切）→ Head（头像图）
         private static void BuildSlot(Transform parent, int index, Vector2 position)
         {
             GameObject slot = NewUI($"Slot{index}", parent);
@@ -176,6 +177,12 @@ namespace ProjectEditor
 
             var button = slot.AddComponent<Button>();
             button.targetGraphic = frame;
+
+            Image hover = CreateImage("Hover", slot.transform, ColHover);
+            Stretch(hover.rectTransform);
+            ApplySprite(hover, SpriteFrame, true);
+            hover.raycastTarget = false;
+            hover.enabled = false;
 
             Image selected = CreateImage("Selected", slot.transform, ColSelected);
             Stretch(selected.rectTransform, -4f, -4f, -4f, -4f);
@@ -198,9 +205,10 @@ namespace ProjectEditor
 
             var slotComp = slot.AddComponent<AvatarSlot>();
             var so = new SerializedObject(slotComp);
-            so.FindProperty("_button").objectReferenceValue = button;
-            so.FindProperty("_head").objectReferenceValue = head;
-            so.FindProperty("_selected").objectReferenceValue = selected;
+            so.FindProperty("button").objectReferenceValue = button;
+            so.FindProperty("head").objectReferenceValue = head;
+            so.FindProperty("selected").objectReferenceValue = selected;
+            so.FindProperty("hoverBg").objectReferenceValue = hover;
             so.ApplyModifiedPropertiesWithoutUndo();
             _slots.Add(slotComp);
         }

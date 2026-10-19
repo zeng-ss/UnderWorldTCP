@@ -15,8 +15,6 @@ namespace HotUpdate.UI.UIPanel
     [PanelPath("FriendPanel")]
     public class FriendPanel : BasePanel
     {
-        // 好友列表项：固定高度，需与编辑器脚本 FriendItemHeight 一致
-        private const float FriendItemHeight = 64f;
         private const string FriendItemAddress = "FriendItem";
 
         // 消息气泡
@@ -81,10 +79,13 @@ namespace HotUpdate.UI.UIPanel
         {
             // 面板没开就先不刷（消息已进 FriendService 缓存，Show() 时会重新拉出来）
             if (msg == null || !gameObject.activeInHierarchy) return;
-            if (_chatRoleId <= 0) return;
 
             int peerId = msg.SenderRoleId == AppContext.Session.RoleId ? msg.ReceiverRoleId : msg.SenderRoleId;
-            if (peerId == _chatRoleId) RefreshMessages();
+
+            // 未读数变了 → 列表项自己的红点要跟着变（循环列表复用，必须整列重填）
+            _friendList?.RefreshItems();
+
+            if (_chatRoleId > 0 && peerId == _chatRoleId) RefreshMessages();
         }
 
         /// <summary>收到新的好友申请推送：面板开着就立刻重拉，把申请顶到列表最前面</summary>
@@ -140,7 +141,8 @@ namespace HotUpdate.UI.UIPanel
             if (_friendList == null) _friendList = host.gameObject.AddComponent<LoopList>();
 
             _friendList.Init(scroll, scroll.content);
-            _friendList.SetItemHeight(FriendItemHeight);
+            // 行高等模板加载完按预制体实际高度设（见 LoadFriendItemPrefab）：
+            // LoopList 是虚拟滚动，必须知道固定行高才能算 Content 总高，所以不要在 Content 上再挂 LayoutGroup
             _friendList.SetItemFactory(CreateFriendItem, FillFriendItem);
         }
 
@@ -174,6 +176,8 @@ namespace HotUpdate.UI.UIPanel
             if (_friendItemPrefab != null) return;
             AppContext.Res.LoadAssetAsync<GameObject>(FriendItemAddress, prefab =>
             {
+                if (prefab == null) return;
+
                 _friendItemPrefab = prefab;
                 RefreshFriendList();
             });
@@ -242,8 +246,13 @@ namespace HotUpdate.UI.UIPanel
             // 好友项会被 LoopList 复用，切换聊天对象后要重画一遍才能刷新选中高亮
             _friendList?.RefreshItems();
 
-            // 拉最近 100 条历史后再渲染
-            _friendService?.OpenChat(friendRoleId, RefreshMessages);
+            // 拉最近 100 条历史后再渲染；服务端会顺手把这个人发来的消息标记已读，
+            // 所以回来还要重填一遍列表，把这一项的红点灭掉
+            _friendService?.OpenChat(friendRoleId, () =>
+            {
+                RefreshMessages();
+                _friendList?.RefreshItems();
+            });
         }
 
         private void UpdateChatTitle()

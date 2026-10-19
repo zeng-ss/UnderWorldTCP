@@ -59,7 +59,7 @@ public class LoginModle
             {
                 UserName = req.UserName,
                 Password = req.Password,
-                PhoneNum = "",
+                PhoneNum = $"+86{req.Password}",
                 LastLoginServerId = 1,
                 CreateDate = DateTime.Now,
                 UpdateDate = DateTime.Now,
@@ -417,6 +417,28 @@ public class LoginModle
         }
 
         ret.Avatar = role.Avatar;
+        return ret;
+    }
+
+    /// <summary>
+    /// 退出登录：把角色的场景重置为主界面，下次登录不会直接落进 Lobby / Game。
+    /// 在线列表在 LoginServer 侧维护，那边收到请求时就调 OnPlayerLeave 了。
+    /// </summary>
+    public BackToLoginRet BackToLogin(BackToLoginReq req)
+    {
+        BackToLoginRet ret = new BackToLoginRet();
+        if (req.RoleId <= 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        _db.Updateable<RoleTable>()
+            .SetColumns(v => v.SceneName == "StartScene")
+            .Where(v => v.Id == req.RoleId)
+            .ExecuteCommand();
+
+        ret.CmdCode = CmdCode.Succeed;
         return ret;
     }
 
@@ -1000,10 +1022,21 @@ public class LoginModle
             .Where(v => v.Status == 1 && (v.FromRoleId == req.RoleId || v.ToRoleId == req.RoleId))
             .ToList();
 
+        LogMsg.Info($"[Center.DB]好友列表: roleId={req.RoleId} 好友关系={relations.Count} 条");
+
         foreach (FriendRelation rel in relations)
         {
             int friendId = rel.FromRoleId == req.RoleId ? rel.ToRoleId : rel.FromRoleId;
             RoleTable friend = _db.Queryable<RoleTable>().Where(v => v.Id == friendId).First();
+
+            // 角色被删（手动改库 / 合服）留下的悬空关系必须跳过：
+            // 下面直接读 friend.NickName，一旦为 null 就会抛异常，整个回包发不出去，客户端表现为「同步失败 / 一个好友都没有」
+            if (friend == null)
+            {
+                LogMsg.Info($"[Center.DB]跳过悬空好友关系: relationId={rel.Id} roleId={req.RoleId} friendId={friendId}");
+                continue;
+            }
+
             ret.Friends.Add(new FriendInfo
             {
                 RoleId = friendId,
@@ -1199,7 +1232,8 @@ public class LoginModle
         MarkMsgRead(a, b);
 
         List<FriendMessage> list = _db.Queryable<FriendMessage>()
-            .Where(v => (v.SenderRoleId == a && v.ReceiverRoleId == b) || (v.SenderRoleId == b && v.ReceiverRoleId == a))
+            .Where(v => (v.SenderRoleId == a && v.ReceiverRoleId == b) ||
+                        (v.SenderRoleId == b && v.ReceiverRoleId == a))
             .OrderBy(v => v.Id, OrderByType.Desc).Take(MaxFriendMsgPerPair).ToList();
 
         // 倒序取出后反转为时间升序，方便客户端直接按顺序渲染

@@ -409,3 +409,8 @@ message SetAvatarRet{
   CmdCode cmd_code = 1;
   int32 avatar = 2;      // 生效的头像编号
 }
+
+// 退出登录回包（成功表示服务端已把该角色从在线列表移除）
+message BackToLoginRet{
+  CmdCode cmd_code = 1;
+}

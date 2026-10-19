@@ -7,31 +7,22 @@ namespace HotUpdate.UI.UIItem
 {
     /// <summary>
     /// 通用无限循环列表（Vertical）。
-    /// 基于 ScrollRect：只实例化「可视范围 + 缓冲」内的 item，滚动时复用已创建的 item，
-    /// 数据量再大也只持有固定数量的 GameObject，避免一次性创建全部造成卡顿。
-    ///
-    /// 用法：
-    ///   1. SetItemFactory(createItem, fillItem)  —— createItem 返回一个新的 item 根（含 RectTransform），
-    ///      fillItem(index, itemGo) 根据数据下标填充 item。
-    ///   2. SetItemHeight(itemHeight + spacing)   —— 每个 item 的固定高度（含间距）。
-    ///   3. SetCount(totalCount)                  —— 数据总数，之后本类接管滚动与复用。
-    ///   4. 把本组件挂在一个 ScrollRect 的 content 上（content 需是 VerticalLayoutGroup 或手动排，
-    ///      本类自己计算位置，不依赖 LayoutGroup）。
-    ///
-    /// 约定：item 用 anchoredPosition 手动定位，content 的 pivot 设为 (0, 1)（左上角），
-    /// 这样第 0 项在顶部、向下递增。
+    /// SetItemFactory(createItem, fillItem) —— createItem 返回一个新的 item 根，fillItem(index, itemGo) 根据数据下标填充 item
     /// </summary>
     public class LoopList : MonoBehaviour
     {
+        [Header("列表布局")] [SerializeField] private float itemHeight = 80f;
+
+        [SerializeField] private float itemWidth; // 每一行的宽度；填 0 = 撑满 Content 宽度
+
+        [SerializeField] private float spacing = 8f; // 行与行之间的间距
+
         private ScrollRect _scrollRect;
         private RectTransform _content;
 
         // item 工厂与填充回调
         private Func<GameObject> _createItem;
         private Action<int, GameObject> _fillItem;
-
-        // item 高度（含间距）
-        private float _itemHeight = 40f;
 
         // 数据总数
         private int _count;
@@ -50,6 +41,12 @@ namespace HotUpdate.UI.UIItem
 
         // 是否「新数据在底部」（聊天消息：新消息追加到末尾并滚到底部）
         private bool _scrollToBottomOnRefresh;
+
+        // 一行占用的垂直空间（高度 + 间距）
+        private float Step => itemHeight + spacing;
+
+        // Content 需要的总高度：最后一行后面不用再加间距
+        private float TotalHeight => _count <= 0 ? 0f : _count * itemHeight + (_count - 1) * spacing;
 
         public void Init(ScrollRect scrollRect, RectTransform content)
         {
@@ -71,7 +68,20 @@ namespace HotUpdate.UI.UIItem
             _fillItem = fillItem;
         }
 
-        public void SetItemHeight(float height) => _itemHeight = Mathf.Max(1f, height);
+        // 只改行高
+        public void SetHeight(float height) => itemHeight = Mathf.Max(1f, height);
+
+        // 行高 + 间距一起设
+        public void SetHeight(float height, float space)
+        {
+            itemHeight = Mathf.Max(1f, height);
+            spacing = Mathf.Max(0f, space);
+        }
+
+        // 行宽；传 0 表示撑满 Content 宽度
+        public void SetWidth(float width) => itemWidth = Mathf.Max(0f, width);
+
+        public void SetSpacing(float space) => spacing = Mathf.Max(0f, space);
 
         public void ScrollToBottomOnRefresh(bool enable) => _scrollToBottomOnRefresh = enable;
 
@@ -79,10 +89,7 @@ namespace HotUpdate.UI.UIItem
         public void SetCount(int count, bool scrollToBottom = false)
         {
             _count = Mathf.Max(0, count);
-
-            // 计算 content 总高度
-            float totalHeight = _count * _itemHeight;
-            _content.sizeDelta = new Vector2(_content.sizeDelta.x, totalHeight);
+            _content.sizeDelta = new Vector2(_content.sizeDelta.x, TotalHeight);
 
             // 释放超出总数的 item（数据变少了）
             var toRecycle = new List<int>();
@@ -96,7 +103,6 @@ namespace HotUpdate.UI.UIItem
                 RecycleItem(idx);
             }
 
-            // 刷新可视范围
             if (scrollToBottom)
             {
                 _scrollRect.verticalNormalizedPosition = 0f; // 滚到底部
@@ -141,23 +147,21 @@ namespace HotUpdate.UI.UIItem
             float scrollY = _content.anchoredPosition.y;
             if (_scrollRect.verticalNormalizedPosition > 0.999f)
             {
-                // 顶部
                 scrollY = 0f;
             }
             else if (_scrollRect.verticalNormalizedPosition <= 0.001f)
             {
-                // 底部
-                float totalHeight = _count * _itemHeight;
-                scrollY = Mathf.Max(0f, totalHeight - viewHeight);
+                scrollY = Mathf.Max(0f, TotalHeight - viewHeight);
             }
 
             // 加缓冲，滚动时边缘不会露白
-            float buffer = _itemHeight * 2f;
+            float step = Step;
+            float buffer = step * 2f;
             float topBound = scrollY - buffer;
             float bottomBound = scrollY + viewHeight + buffer;
 
-            int first = Mathf.Clamp(Mathf.FloorToInt(topBound / _itemHeight), 0, _count - 1);
-            int last = Mathf.Clamp(Mathf.CeilToInt(bottomBound / _itemHeight) - 1, 0, _count - 1);
+            int first = Mathf.Clamp(Mathf.FloorToInt(topBound / step), 0, _count - 1);
+            int last = Mathf.Clamp(Mathf.CeilToInt(bottomBound / step) - 1, 0, _count - 1);
 
             // 回收滑出范围的 item
             var toRecycle = new List<int>();
@@ -207,22 +211,36 @@ namespace HotUpdate.UI.UIItem
             _recyclePool.Push(item);
         }
 
+        // 位置和尺寸都由本类写：item 预制体里摆多大都不影响运行时行高
         private void SetItemPosition(GameObject item, int index)
         {
-            var rt = item.transform as RectTransform;
-            if (rt == null) return;
+            if (item.transform is not RectTransform rt) return;
+
+            float top = -index * Step;
+
+            if (itemWidth > 0f)
+            {
+                // 固定宽度：水平居中
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+                rt.pivot = new Vector2(0.5f, 1f);
+                rt.sizeDelta = new Vector2(itemWidth, itemHeight);
+                rt.anchoredPosition = new Vector2(0f, top);
+                return;
+            }
+
+            // 撑满 Content：左右拉满，用 offset 定上下边
             rt.anchorMin = new Vector2(0f, 1f);
             rt.anchorMax = new Vector2(1f, 1f);
             rt.pivot = new Vector2(0.5f, 1f);
-            rt.offsetMin = new Vector2(0f, -(index + 1) * _itemHeight);
-            rt.offsetMax = new Vector2(0f, -index * _itemHeight);
+            rt.offsetMin = new Vector2(0f, top - itemHeight);
+            rt.offsetMax = new Vector2(0f, top);
         }
 
         private void ClearAllItems()
         {
             foreach (var kv in _activeItems)
             {
-                if (kv.Value == null) continue;
+                if (kv.Value is null) continue;
                 kv.Value.SetActive(false);
                 _recyclePool.Push(kv.Value);
             }
@@ -232,8 +250,7 @@ namespace HotUpdate.UI.UIItem
 
         private void OnDestroy()
         {
-            if (_scrollRect != null)
-                _scrollRect.onValueChanged.RemoveListener(OnScrollValueChanged);
+            _scrollRect?.onValueChanged.RemoveListener(OnScrollValueChanged);
         }
     }
 }

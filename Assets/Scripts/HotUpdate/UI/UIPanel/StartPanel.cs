@@ -33,7 +33,7 @@ namespace HotUpdate.UI.UIPanel
             hostBtn.onClick.AddListener(_controller.StartGame);
             friendBtn.onClick.AddListener(_controller.OpenFriendPanel);
             depotBtn.onClick.AddListener(_controller.OpenDepotPanel);
-            exitBtn.onClick.AddListener(_controller.ExitGame);
+            exitBtn.onClick.AddListener(_controller.BackToLogin);
 
             // AddWatcher 会立刻用当前值回调一次，之后数值变化自动跟
             AppContext.RedDot.GetOrCreate(RedDotPath.Friend).AddWatcher(SetFriendRedDot);
@@ -54,7 +54,6 @@ namespace HotUpdate.UI.UIPanel
             AppContext.RedDot.GetOrCreate(RedDotPath.Friend).RemoveWatcher(SetFriendRedDot);
         }
 
-        /// <summary>按 Session.Avatar 重画头像（换完头像由 AvatarPanel 回调）</summary>
         public void RefreshAvatar()
         {
             avatarImage.sprite = AvatarConfig.Get(AppContext.Session.Avatar);

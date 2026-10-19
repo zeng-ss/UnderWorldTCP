@@ -53,6 +53,7 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_FriendHistoryCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SetAvatarCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_FriendMsgReadCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_BackToLoginCode, loginCtrl);
 
             client.RegistCommand(NetDefine.CMD_RegistCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_LoginCode, loginCtrl);
@@ -77,6 +78,7 @@ namespace LoginServer
             client.RegistCommand(NetDefine.CMD_FriendHistoryCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_SetAvatarCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_FriendMsgReadCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_BackToLoginCode, loginCtrl);
 
             // new Timer(_ =>
             // {
