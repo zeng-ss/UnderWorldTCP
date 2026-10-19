@@ -33,11 +33,12 @@ namespace HotUpdate.UI.UIPanel
         public void UpdateProgress(float progress)
         {
             _targetProgress = Mathf.Clamp01(progress);
-            // 终止正在进行的动画
-            // 进度条动画
-            loadingBar.DOFillAmount(_targetProgress,  0.5f)
+
+            // 真进度是每帧推过来的，上一段动画不掐掉会堆一堆 tween 互相抢 fillAmount
+            loadingBar.DOKill();
+            loadingBar.DOFillAmount(_targetProgress, 0.15f)
                 .SetEase(animationEase)
-                .OnUpdate(() => 
+                .OnUpdate(() =>
                 {
                     // 在进度条动画更新时，同步更新文本
                     UpdateProgressText(loadingBar.fillAmount);

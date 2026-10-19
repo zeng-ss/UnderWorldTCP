@@ -414,3 +414,9 @@ message SetAvatarRet{
 message BackToLoginRet{
   CmdCode cmd_code = 1;
 }
+
+// 游戏内退出房间回包（成功表示已离开房间并离开当前场景，客户端可以切回主界面）
+message ExitGameRoomRet{
+  CmdCode cmd_code = 1;
+  string tip = 2;
+}

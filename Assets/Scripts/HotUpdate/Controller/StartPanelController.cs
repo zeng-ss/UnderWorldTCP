@@ -70,7 +70,7 @@ namespace HotUpdate.Controller
             AppContext.Depot.ApplyServerBag(info.DriverDiskMap.Values);
             AppContext.Material.ApplyServerBag(info.MaterialMap.Values);
 
-            AppContext.Proto.RequestChangeScene(info.BaseInfo.RoleId, LobbySceneName, sceneRet =>
+            AppContext.Proto.RequestChangeScene(LobbySceneName, sceneRet =>
             {
                 if (sceneRet.CmdCode != CmdCode.Succeed)
                 {
@@ -78,9 +78,14 @@ namespace HotUpdate.Controller
                     return;
                 }
 
-                AppContext.Ui.ClosePanel<StartPanel>();
-                AppContext.Scene.LoadScene(LobbySceneName);
+                AppContext.Scene.LoadScene(LobbySceneName, 0.5f, OnCoveredHandle);
             });
+        }
+
+        private void OnCoveredHandle()
+        {
+            AppContext.Ui.ClosePanel<StartPanel>();
+            AppContext.Ui.OpenPanel<RoomPanel>();
         }
     }
 }

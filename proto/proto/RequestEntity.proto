@@ -293,3 +293,10 @@ message SetAvatarReq{
 message BackToLoginReq{
   int32 role_id = 1;
 }
+
+// ========== 游戏内退出房间 ==========
+
+// 战斗场景里退出房间（ESC → 退出）：离开房间 + 离开当前场景，回主界面
+message ExitGameRoomReq{
+  int32 role_id = 1;
+}

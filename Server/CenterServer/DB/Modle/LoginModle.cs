@@ -228,7 +228,7 @@ public class LoginModle
                 Id = req.AccountId,
                 AccountId = req.AccountId,
                 NickName = req.Nickname,
-                SceneName = "StartScene",
+                SceneName = "EnterScene",
                 ServerId = req.GameServerId, //角色创建所属的服务器 
                 CreateDate = DateTime.Now,
                 UpdateDate = DateTime.Now,
@@ -351,7 +351,7 @@ public class LoginModle
         var roleBagInfo = _db.Queryable<RoleBagInfo>().Where(v => v.RoleId == req.RoleId).ToList();
         if (role != null)
         {
-            role.SceneName = "StartScene";
+            role.SceneName = "EnterScene";
             _db.Updateable(role).ExecuteCommand();
             //角色基础信息   创建角色的信息   到时候在其他窗口可能会创建一些怪物 怪物不是本地的 可能是服务端要求创建的    
             RoleBaseInfo baseInfo = new RoleBaseInfo
@@ -434,7 +434,7 @@ public class LoginModle
         }
 
         _db.Updateable<RoleTable>()
-            .SetColumns(v => v.SceneName == "StartScene")
+            .SetColumns(v => v.SceneName == "EnterScene")
             .Where(v => v.Id == req.RoleId)
             .ExecuteCommand();
 
@@ -477,11 +477,14 @@ public class LoginModle
         bool valid = false;
         switch (role.SceneName)
         {
-            case "StartScene":
-                if (req.SceneName == "LobbyScene") valid = true;
+            case "EnterScene":
+                if (req.SceneName == "LobbyScene" || req.SceneName == "GameScene") valid = true;
                 break;
             case "LobbyScene":
-                if (req.SceneName == "GameScene") valid = true;
+                if (req.SceneName == "EnterScene" || req.SceneName == "GameScene") valid = true;
+                break;
+            case "GameScene":
+                if (req.SceneName == "EnterScene") valid = true;
                 break;
         }
 
@@ -495,8 +498,7 @@ public class LoginModle
         // 更新角色所在场景
         role.SceneName = req.SceneName;
         role.UpdateDate = DateTime.Now;
-        if (_db.Updateable(role).ExecuteCommand() <= 0) ret.CmdCode = CmdCode.ServerError;
-
+        _db.Updateable(role).ExecuteCommand();
         return ret;
     }
 

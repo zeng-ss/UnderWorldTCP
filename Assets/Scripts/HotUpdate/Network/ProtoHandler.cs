@@ -73,6 +73,8 @@ namespace HotUpdate.Network
         private Action<RoomChatNtf> _roomChatCallback;
         private Action<SetAvatarRet> _setAvatarCallback;
         private Action<BackToLoginRet> _backToLoginCallback;
+        private Action<ExitGameRoomRet> _exitGameRoomCallback;
+        private Action<RoomStartGameNtf> _roomStartGameCallback;
 
         #endregion
 
@@ -132,6 +134,7 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_SetAvatarCode, OnSetAvatarResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_FriendMsgReadCode, OnMarkFriendMsgReadResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_BackToLoginCode, OnBackToLoginResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_ExitGameRoomCode, OnExitGameRoomResult);
         }
 
         // 由 GameManager.Update 每帧驱动
@@ -263,10 +266,10 @@ namespace HotUpdate.Network
             NetClientMgr.Instance.Send(NetDefine.CMD_SaveRoleCode, req.ToByteString());
         }
 
-        public void RequestChangeScene(int roleId, string sceneName, Action<ChangeSceneRet> callback)
+        public void RequestChangeScene(string sceneName, Action<ChangeSceneRet> callback)
         {
             _changeSceneCallback = callback;
-            ChangeSceneReq req = new ChangeSceneReq { RoleId = roleId, SceneName = sceneName };
+            ChangeSceneReq req = new ChangeSceneReq { RoleId = AppContext.Session.RoleId, SceneName = sceneName };
             NetClientMgr.Instance.Send(NetDefine.CMD_ChangeSceneCode, req.ToByteString());
         }
 
@@ -525,8 +528,9 @@ namespace HotUpdate.Network
             NetClientMgr.Instance.Send(NetDefine.CMD_RoomChatCode, req.ToByteString());
         }
 
-        public void RequestRoomStartGame(int roleId)
+        public void RequestRoomStartGame(int roleId, Action<RoomStartGameNtf> callback)
         {
+            _roomStartGameCallback = callback;
             RoomStartGameReq req = new RoomStartGameReq { RoleId = roleId };
             NetClientMgr.Instance.Send(NetDefine.CMD_RoomStartGameCode, req.ToByteString());
         }
@@ -551,6 +555,13 @@ namespace HotUpdate.Network
             _setAvatarCallback = callback;
             SetAvatarReq req = new SetAvatarReq { RoleId = AppContext.Session.RoleId, Avatar = avatar };
             NetClientMgr.Instance.Send(NetDefine.CMD_SetAvatarCode, req.ToByteString());
+        }
+
+        public void RequestExitGameRoom(int roleId, Action<ExitGameRoomRet> callback)
+        {
+            _exitGameRoomCallback = callback;
+            ExitGameRoomReq req = new ExitGameRoomReq { RoleId = roleId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_ExitGameRoomCode, req.ToByteString());
         }
 
         #endregion
@@ -862,8 +873,8 @@ namespace HotUpdate.Network
         {
             RoomStartGameNtf ntf = RoomStartGameNtf.Parser.ParseFrom(data);
             Debug.Log($"ProtoHandler: 房间开始游戏 roomId={ntf.RoomId}");
-            AppContext.Ui.ClosePanel<RoomPanel>();
-            AppContext.Scene.LoadScene("GameScene");
+            _roomStartGameCallback?.Invoke(ntf);
+            _roomStartGameCallback = null;
         }
 
         private void OnRoomChatNtf(ByteString data)
@@ -932,6 +943,14 @@ namespace HotUpdate.Network
             OnPlayerHurtReceived?.Invoke(ntf);
         }
 
+        private void OnExitGameRoomResult(ByteString data)
+        {
+            ExitGameRoomRet ret = ExitGameRoomRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 退出游戏房间结果 CmdCode={ret.CmdCode} tip={ret.Tip}");
+            _exitGameRoomCallback?.Invoke(ret);
+            _exitGameRoomCallback = null;
+        }
+
         #endregion
 
         #region 位置同步 / 场景事件
@@ -981,6 +1000,7 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_JoinRoomCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomListCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_LeaveRoomCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_ExitGameRoomCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomInfoCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomStartGameCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_RoomChatNtfCode);

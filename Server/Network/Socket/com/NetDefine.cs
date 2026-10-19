@@ -59,6 +59,7 @@
     public const ushort CMD_SetAvatarCode = 11470; // 设置头像
     public const ushort CMD_FriendMsgReadCode = 11480; // 标记与某好友的私聊已读（红点用）
     public const ushort CMD_BackToLoginCode = 11490; // 退出登录
+    public const ushort CMD_ExitGameRoomCode = 11500; // 战斗场景里退出房间
 
     /// <summary>服务端逻辑帧率（Hz）。敌人 AI、位置与动作广播都按这个频率推进。</summary>
     public const int ServerTickRate = 30;

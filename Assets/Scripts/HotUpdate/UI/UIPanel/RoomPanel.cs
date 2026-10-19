@@ -445,8 +445,22 @@ namespace HotUpdate.UI.UIPanel
         {
             if (_room is { IsInRoom: true }) _room.LeaveRoom();
 
+            AppContext.Proto.RequestChangeScene("EnterScene", ret =>
+            {
+                if (ret.CmdCode != CmdCode.Succeed)
+                {
+                    Debug.LogError($"跳转场景失败：{ret.CmdCode}");
+                    return;
+                }
+
+                AppContext.Scene.LoadScene("EnterScene", 0.4f, OnCoveredHandle);
+            });
+        }
+
+        private void OnCoveredHandle()
+        {
             AppContext.Ui.ClosePanel(this);
-            AppContext.Scene.LoadScene("EnterScene");
+            AppContext.Ui.OpenPanel<StartPanel>();
         }
 
         #endregion

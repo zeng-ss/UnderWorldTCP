@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using HotUpdate.Data;
+using HotUpdate.UI.UIPanel;
+using UnityEngine;
 using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.Service
@@ -149,7 +151,27 @@ namespace HotUpdate.Service
         public void RequestStartGame()
         {
             if (!IsInRoom) return;
-            AppContext.Proto.RequestRoomStartGame(AppContext.Session.RoleId);
+            AppContext.Proto.RequestRoomStartGame(AppContext.Session.RoleId, OnRoomStartGameHandle);
+        }
+
+        private void OnRoomStartGameHandle(RoomStartGameNtf ret)
+        {
+            AppContext.Proto.RequestChangeScene("GameScene", result =>
+            {
+                if (result.CmdCode != CmdCode.Succeed)
+                {
+                    Debug.LogError($"跳转场景失败：{result.CmdCode}");
+                    return;
+                }
+
+                AppContext.Scene.LoadScene("GameScene", 1f, OnCoveredHandle);
+            });
+        }
+
+        private void OnCoveredHandle()
+        {
+            AppContext.Ui.ClosePanel<RoomPanel>();
+            AppContext.Ui.OpenPanel<PlayerProPanel>();
         }
 
         /// <summary>发送房间聊天（服务端补昵称 / 时间后广播回来，本地不预填）</summary>

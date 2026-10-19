@@ -575,6 +575,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_LeaveRoomCode:
                 OnLeaveRoomHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_ExitGameRoomCode:
+                OnExitGameRoomHandle(serverBase, basePackage);
+                break;
             case NetDefine.CMD_RoomStartGameCode:
                 OnRoomStartGameHandle(serverBase, basePackage);
                 break;
@@ -859,6 +862,24 @@ public class LoginCtrl : IContainer
         };
         session.SendData(basePackage, NetDefine.CMD_LeaveRoomCode, ret.ToByteString());
         LogMsg.Info($"[Login]离开房间: roleId={req.RoleId} ok={ok}");
+    }
+
+    // 战斗场景里退出房间：离开房间（房主交接 / 广播 / 解散）+ 离开场景（好友不再看到在线）
+    private void OnExitGameRoomHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        ExitGameRoomReq req = ExitGameRoomReq.Parser.ParseFrom(basePackage.Data);
+        if (!(serverBase is Session session)) return;
+
+        bool inRoom = RoomMgr.Instance.LeaveRoom(req.RoleId);
+        PlayerSceneMgr.Instance.OnPlayerLeave(req.RoleId);
+
+        ExitGameRoomRet ret = new ExitGameRoomRet
+        {
+            CmdCode = CmdCode.Succeed,
+            Tip = inRoom ? "" : "你当前不在任何房间"
+        };
+        session.SendData(basePackage, NetDefine.CMD_ExitGameRoomCode, ret.ToByteString());
+        LogMsg.Info($"[Login]退出游戏房间: roleId={req.RoleId} inRoom={inRoom}");
     }
 
     // 房主踢人：RoomMgr 校验后通知被踢者退回列表页，并给房主回包

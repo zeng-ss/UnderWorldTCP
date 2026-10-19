@@ -1,7 +1,6 @@
-using DG.Tweening;
 using HotUpdate.Core;
 using HotUpdate.Manager;
-using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace HotUpdate.UI.UIPanel
@@ -9,36 +8,48 @@ namespace HotUpdate.UI.UIPanel
     [PanelPath("ExitPanel")]
     public class ExitPanel : BasePanel
     {
-        // 面板自带打开动画（OnEnable 里从上方 DOLocalMove 滑入），关掉通用打开动画
-        protected override PanelTween.Config? AnimConfig => PanelTween.Config.None;
+        [FormerlySerializedAs("yesBtn")] public Button exitBtn;
 
-        public Button yesBtn;
-        public Button noBtn;
-        private Vector3 _startPos = new(0, 840, 0);
+        [FormerlySerializedAs("cancleBtn")] [FormerlySerializedAs("noBtn")]
+        public Button cancelBtn;
 
         /// <summary>退出确认弹出时应锁住角色操作</summary>
         public override bool BlocksGameplayInput => true;
 
         private void OnEnable()
         {
-            transform.localPosition = _startPos;
-            transform.DOLocalMove(Vector3.zero, 0.5f);
-            yesBtn.onClick.AddListener(() =>
+            exitBtn.onClick.AddListener(Exit_OnClick);
+            cancelBtn.onClick.AddListener(() => { AppContext.Ui.ClosePanel<ExitPanel>(); });
+        }
+
+        private void Exit_OnClick()
+        {
+            AppContext.Proto.RequestExitGameRoom(AppContext.Session.RoleId, ExitGameRoomCallback);
+        }
+
+        private void ExitGameRoomCallback(ExitGameRoomRet ret)
+        {
+            if (ret.CmdCode != CmdCode.Succeed)
             {
-                //GameManager.Instance.SaveArchive();
-                Application.Quit();
-            });
-            noBtn.onClick.AddListener(() =>
-            {
-                transform.DOLocalMove(_startPos, 0.5f)
-                    .OnComplete(() => { AppContext.Ui.ClosePanel<ExitPanel>(); });
-            });
+                if (!string.IsNullOrEmpty(ret.Tip)) AppContext.Ui.ShowTip(ret.Tip);
+                return;
+            }
+
+            // 先收掉确认框再切场景：Canvas 是常驻的，面板不关会跟着回到主界面
+            AppContext.Scene.LoadScene("EnterScene",0.7f, OnCoveredHandle);
+        }
+
+        private void OnCoveredHandle()
+        {
+            AppContext.Ui.ClosePanel(this);
+            AppContext.Ui.ClosePanel<PlayerProPanel>();
+            AppContext.Ui.OpenPanel<StartPanel>();
         }
 
         private void OnDisable()
         {
-            yesBtn.onClick.RemoveAllListeners();
-            noBtn.onClick.RemoveAllListeners();
+            exitBtn.onClick.RemoveAllListeners();
+            cancelBtn.onClick.RemoveAllListeners();
         }
     }
 }
