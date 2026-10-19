@@ -77,9 +77,10 @@ public static partial class RequestEntityReflection {
           "ZV9pZBgCIAEoBRIOCgZhY2NlcHQYAyABKAgiVQoQU2VuZEZyaWVuZE1zZ1Jl",
           "cRIWCg5zZW5kZXJfcm9sZV9pZBgBIAEoBRIYChByZWNlaXZlcl9yb2xlX2lk",
           "GAIgASgFEg8KB2NvbnRlbnQYAyABKAkiOwoQRnJpZW5kSGlzdG9yeVJlcRIP",
-          "Cgdyb2xlX2lkGAEgASgFEhYKDmZyaWVuZF9yb2xlX2lkGAIgASgFIi8KDFNl",
-          "dEF2YXRhclJlcRIPCgdyb2xlX2lkGAEgASgFEg4KBmF2YXRhchgCIAEoBWIG",
-          "cHJvdG8z"));
+          "Cgdyb2xlX2lkGAEgASgFEhYKDmZyaWVuZF9yb2xlX2lkGAIgASgFIj8KFE1h",
+          "cmtGcmllbmRNc2dSZWFkUmVxEg8KB3JvbGVfaWQYASABKAUSFgoOZnJpZW5k",
+          "X3JvbGVfaWQYAiABKAUiLwoMU2V0QXZhdGFyUmVxEg8KB3JvbGVfaWQYASAB",
+          "KAUSDgoGYXZhdGFyGAIgASgFYgZwcm90bzM="));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { },
         new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -119,6 +120,7 @@ public static partial class RequestEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::HandleFriendReq), global::HandleFriendReq.Parser, new[]{ "RoleId", "TargetRoleId", "Accept" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::SendFriendMsgReq), global::SendFriendMsgReq.Parser, new[]{ "SenderRoleId", "ReceiverRoleId", "Content" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::FriendHistoryReq), global::FriendHistoryReq.Parser, new[]{ "RoleId", "FriendRoleId" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::MarkFriendMsgReadReq), global::MarkFriendMsgReadReq.Parser, new[]{ "RoleId", "FriendRoleId" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::SetAvatarReq), global::SetAvatarReq.Parser, new[]{ "RoleId", "Avatar" }, null, null, null, null)
         }));
   }
@@ -9777,6 +9779,250 @@ public sealed partial class FriendHistoryReq : pb::IMessage<FriendHistoryReq>
 }
 
 /// <summary>
+/// 标记与某好友的私聊已读（打开聊天 / 聊天窗口里收到新消息时补发，服务端把对方发来的未读全部置已读）
+/// </summary>
+[global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+public sealed partial class MarkFriendMsgReadReq : pb::IMessage<MarkFriendMsgReadReq>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<MarkFriendMsgReadReq> _parser = new pb::MessageParser<MarkFriendMsgReadReq>(() => new MarkFriendMsgReadReq());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pb::MessageParser<MarkFriendMsgReadReq> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::RequestEntityReflection.Descriptor.MessageTypes[36]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public MarkFriendMsgReadReq() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public MarkFriendMsgReadReq(MarkFriendMsgReadReq other) : this() {
+    roleId_ = other.roleId_;
+    friendRoleId_ = other.friendRoleId_;
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public MarkFriendMsgReadReq Clone() {
+    return new MarkFriendMsgReadReq(this);
+  }
+
+  /// <summary>Field number for the "role_id" field.</summary>
+  public const int RoleIdFieldNumber = 1;
+  private int roleId_;
+  /// <summary>
+  /// 接收者（我）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int RoleId {
+    get { return roleId_; }
+    set {
+      roleId_ = value;
+    }
+  }
+
+  /// <summary>Field number for the "friend_role_id" field.</summary>
+  public const int FriendRoleIdFieldNumber = 2;
+  private int friendRoleId_;
+  /// <summary>
+  /// 对方
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int FriendRoleId {
+    get { return friendRoleId_; }
+    set {
+      friendRoleId_ = value;
+    }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override bool Equals(object other) {
+    return Equals(other as MarkFriendMsgReadReq);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equals(MarkFriendMsgReadReq other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (RoleId != other.RoleId) return false;
+    if (FriendRoleId != other.FriendRoleId) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (RoleId != 0) hash ^= RoleId.GetHashCode();
+    if (FriendRoleId != 0) hash ^= FriendRoleId.GetHashCode();
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (RoleId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(RoleId);
+    }
+    if (FriendRoleId != 0) {
+      output.WriteRawTag(16);
+      output.WriteInt32(FriendRoleId);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (RoleId != 0) {
+      output.WriteRawTag(8);
+      output.WriteInt32(RoleId);
+    }
+    if (FriendRoleId != 0) {
+      output.WriteRawTag(16);
+      output.WriteInt32(FriendRoleId);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CalculateSize() {
+    int size = 0;
+    if (RoleId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(RoleId);
+    }
+    if (FriendRoleId != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(FriendRoleId);
+    }
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(MarkFriendMsgReadReq other) {
+    if (other == null) {
+      return;
+    }
+    if (other.RoleId != 0) {
+      RoleId = other.RoleId;
+    }
+    if (other.FriendRoleId != 0) {
+      FriendRoleId = other.FriendRoleId;
+    }
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          RoleId = input.ReadInt32();
+          break;
+        }
+        case 16: {
+          FriendRoleId = input.ReadInt32();
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          RoleId = input.ReadInt32();
+          break;
+        }
+        case 16: {
+          FriendRoleId = input.ReadInt32();
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+/// <summary>
 /// 设置头像请求
 /// </summary>
 [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
@@ -9794,7 +10040,7 @@ public sealed partial class SetAvatarReq : pb::IMessage<SetAvatarReq>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::RequestEntityReflection.Descriptor.MessageTypes[36]; }
+    get { return global::RequestEntityReflection.Descriptor.MessageTypes[37]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

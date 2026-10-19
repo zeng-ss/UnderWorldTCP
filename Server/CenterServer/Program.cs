@@ -42,6 +42,7 @@ namespace CenterServer
             server.RegistCommand(NetDefine.CMD_SendFriendMsgCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_FriendHistoryCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SetAvatarCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_FriendMsgReadCode, loginCtrl);
 
             /*
             var allRoles = db.Queryable<RoleBagInfo>().ToList();

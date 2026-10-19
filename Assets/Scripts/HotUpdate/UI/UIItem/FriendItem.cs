@@ -1,5 +1,6 @@
 using System;
 using HotUpdate.Data;
+using HotUpdate.RedDot;
 using HotUpdate.Service;
 using TMPro;
 using UnityEngine;
@@ -12,7 +13,7 @@ namespace HotUpdate.UI.UIItem
     {
         [SerializeField] private Image headImage;
         [SerializeField] private TMP_Text nameText, statusText;
-        [SerializeField] private GameObject selectedMark;
+        [SerializeField] private GameObject selectedMark, redDot;
 
         // 申请形态专属：按钮容器与两个按钮（好友形态下整体隐藏）
         [SerializeField] private GameObject applyButtons;
@@ -21,6 +22,12 @@ namespace HotUpdate.UI.UIItem
         private static readonly Color ColOnline = new Color(0.3f, 0.9f, 0.4f, 1f);
         private static readonly Color ColOffline = new Color(0.62f, 0.64f, 0.7f, 1f);
         private FriendService _friendService;
+
+        private void Awake() => AppContext.RedDot.GetOrCreate(RedDotPath.Friend).AddWatcher(SetFriendRedDot);
+
+        private void OnDestroy() => AppContext.RedDot.GetOrCreate(RedDotPath.Friend).RemoveWatcher(SetFriendRedDot);
+
+        private void SetFriendRedDot(int count) => redDot.SetActive(count > 0);
 
         /// <summary>按数据填充列表项：好友展示在线状态，申请展示同意 / 拒绝按钮</summary>
         public void SetData(FriendData data, FriendService service, Action refresh)
@@ -60,7 +67,6 @@ namespace HotUpdate.UI.UIItem
             });
         }
 
-        /// <summary>标记 / 取消「当前正在聊天」的高亮</summary>
         public void SetSelected(bool selected)
         {
             selectedMark.SetActive(selected);

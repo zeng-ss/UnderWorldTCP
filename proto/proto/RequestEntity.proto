@@ -273,6 +273,12 @@ message FriendHistoryReq{
   int32 role_id = 1;
   int32 friend_role_id = 2;
 }
+
+// 标记与某好友的私聊已读（打开聊天 / 聊天窗口里收到新消息时补发，服务端把对方发来的未读全部置已读）
+message MarkFriendMsgReadReq{
+  int32 role_id = 1;        // 接收者（我）
+  int32 friend_role_id = 2; // 对方
+}
 // ========== 头像 ==========
 
 // 设置头像请求

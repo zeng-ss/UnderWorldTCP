@@ -81,6 +81,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_SetAvatarCode:
                 OnSetAvatarResultHandle(session, basePackage);
                 break;
+            case NetDefine.CMD_FriendMsgReadCode:
+                OnFriendMsgReadResultHandle(session, basePackage);
+                break;
             default:
                 LogMsg.Info("[LoginCtrl]中心服务器发过来的结果的请求码没有注册");
                 break;
@@ -215,6 +218,14 @@ public class LoginCtrl : IContainer
     {
         SetAvatarRet ret = SetAvatarRet.Parser.ParseFrom(basePackage.Data);
         LogMsg.Info("[Login]设置头像结果:" + ret.CmdCode + " avatar=" + ret.Avatar);
+        session.SendData(basePackage);
+    }
+
+    // 标记私聊已读结果（无 UI，客户端可以忽略）
+    private void OnFriendMsgReadResultHandle(Session session, BasePackage basePackage)
+    {
+        MarkFriendMsgReadRet ret = MarkFriendMsgReadRet.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info("[Login]标记私聊已读结果:" + ret.CmdCode);
         session.SendData(basePackage);
     }
 
@@ -525,6 +536,9 @@ public class LoginCtrl : IContainer
                 break;
             case NetDefine.CMD_SetAvatarCode:
                 OnSetAvatarHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_FriendMsgReadCode:
+                OnFriendMsgReadHandle(serverBase, basePackage);
                 break;
             case NetDefine.CMD_PlayerStatsCode:
                 OnPlayerStatsHandle(serverBase, basePackage);
@@ -894,6 +908,14 @@ public class LoginCtrl : IContainer
         LogMsg.Info("[Login]收到设置头像请求: roleId=" + req.RoleId + " avatar=" + req.Avatar);
     }
 
+    // 标记私聊已读转发（聊天窗口开着时收到新消息，客户端补一条回执）
+    private void OnFriendMsgReadHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        MarkFriendMsgReadReq req = MarkFriendMsgReadReq.Parser.ParseFrom(basePackage.Data);
+        serverBase._Client.SendData(basePackage);
+        LogMsg.Info("[Login]收到标记私聊已读转发: roleId=" + req.RoleId + " friend=" + req.FriendRoleId);
+    }
+
     #region 登陆注册
 
     // 开始游戏请求
@@ -941,7 +963,8 @@ public class LoginCtrl : IContainer
     private void OnRegistHandle(ServerBase serverBase, BasePackage basePackage)
     {
         RegistReq req = RegistReq.Parser.ParseFrom(basePackage.Data);
-        if (!DataUtils.IsValidUserName(req.UserName))
+        /*
+         if (!DataUtils.IsValidUserName(req.UserName))
         {
             serverBase.SendError(basePackage, CmdCode.UserNameIlegal);
             return;
@@ -952,6 +975,7 @@ public class LoginCtrl : IContainer
             serverBase.SendError(basePackage, CmdCode.PasswordIlegal);
             return;
         }
+        */
 
         serverBase._Client.SendData(basePackage);
         LogMsg.Info("[Login]收到注册请求:" + req);

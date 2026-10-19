@@ -28,12 +28,6 @@ namespace HotUpdate.Controller
                 return;
             }
 
-            if (password.Length is < 4 or > 16)
-            {
-                ShowTip("密码长度需要4~16位");
-                return;
-            }
-
             AppContext.Proto.RequestRegist(account, "", password, OnRegisterResult);
         }
 

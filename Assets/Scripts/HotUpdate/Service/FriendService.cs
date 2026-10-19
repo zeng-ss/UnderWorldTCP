@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotUpdate.Data;
+using HotUpdate.RedDot;
 using HotUpdate.UI.UIPanel;
 using AppContext = HotUpdate.Core.AppContext;
 
@@ -47,6 +48,7 @@ namespace HotUpdate.Service
                             Nickname = info.Nickname,
                             IsOnline = info.IsOnline,
                             Avatar = info.Avatar,
+                            Unread = info.Unread,
                             IsRequest = false
                         });
                     }
@@ -62,33 +64,51 @@ namespace HotUpdate.Service
                             IsRequest = true
                         });
                     }
+
+                    // 列表是唯一可信来源：离线期间的红点全靠这次回包补上
+                    RefreshRedDots();
                 }
 
                 onRefreshed?.Invoke();
             });
         }
 
+        /// <summary>
+        /// 把未读数写进红点树 在线收到消息由推送当场 +1；
+        /// </summary>
+        private void RefreshRedDots()
+        {
+            int unread = 0;
+            foreach (FriendData friend in Friends) unread += friend.Unread;
+            AppContext.RedDot.Set(RedDotPath.FriendApply, Applies.Count);
+            AppContext.RedDot.Set(RedDotPath.FriendMessage, unread);
+        }
+
+        // 服务端在拉历史时已把该好友发来的消息标记已读，本地跟着归 0
+        private void MarkChatRead(int friendRoleId)
+        {
+            FriendData friend = Friends.Find(f => f.RoleId == friendRoleId);
+            if (friend is not { Unread: > 0 }) return;
+            friend.Unread = 0;
+            RefreshRedDots();
+        }
+
         /// <summary>发起好友申请</summary>
         public void RequestAddFriend(int targetRoleId)
         {
             AppContext.Proto.RequestAddFriend(AppContext.Session.RoleId, targetRoleId, ret =>
-            {
-                bool ok = ret is { CmdCode: CmdCode.Succeed };
-                string tip = ok ? "好友申请已发送" : (ret?.Tip ?? "发送失败");
-                AppContext.Ui.ShowTip(tip);
-            });
+                AppContext.Ui.ShowTip(ret is { CmdCode: CmdCode.Succeed } ? "好友申请已发送" : ret?.Tip ?? "发送失败"));
         }
 
         /// <summary>
-        /// 处理好友申请（同意 / 拒绝）。
-        /// 只把结果通过回调交回面板，是否重拉列表由面板决定（申请处理掉后需要重新对齐）。
+        /// 处理好友申请
         /// </summary>
         public void RequestHandleFriend(int fromRoleId, bool accept, Action<bool, string> callback)
         {
             AppContext.Proto.RequestHandleFriend(AppContext.Session.RoleId, fromRoleId, accept, ret =>
             {
                 bool ok = ret is { CmdCode: CmdCode.Succeed };
-                string tip = ok ? (accept ? "已添加好友" : "已拒绝") : (ret?.Tip ?? "操作失败");
+                string tip = ok ? accept ? "已添加好友" : "已拒绝" : ret?.Tip ?? "操作失败";
                 callback?.Invoke(ok, tip);
             });
         }
@@ -108,6 +128,7 @@ namespace HotUpdate.Service
                     List<FriendMsgData> list = GetOrCreateCache(friendRoleId);
                     list.Clear();
                     foreach (var msg in ret.Messages) list.Add(ToData(msg));
+                    MarkChatRead(friendRoleId);
                 }
 
                 onLoaded?.Invoke();

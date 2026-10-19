@@ -129,6 +129,7 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_FriendApplyNtfCode, OnFriendApplyNtf);
             AppContext.Events.AddNetHandler(NetDefine.CMD_FriendMsgPushCode, OnFriendMsgPushNtf);
             AppContext.Events.AddNetHandler(NetDefine.CMD_SetAvatarCode, OnSetAvatarResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_FriendMsgReadCode, OnMarkFriendMsgReadResult);
         }
 
         // 由 GameManager.Update 每帧驱动
@@ -429,6 +430,20 @@ namespace HotUpdate.Network
                 FriendRoleId = friendRoleId
             };
             NetClientMgr.Instance.Send(NetDefine.CMD_FriendHistoryCode, req.ToByteString());
+        }
+
+        /// <summary>
+        /// 标记与某好友的私聊已读。聊天窗口开着时收到新消息补一条，
+        /// 否则服务端一直认为未读，下次拉列表红点又会亮。
+        /// </summary>
+        private void RequestMarkFriendMsgRead(int friendRoleId)
+        {
+            MarkFriendMsgReadReq req = new MarkFriendMsgReadReq
+            {
+                RoleId = AppContext.Session.RoleId,
+                FriendRoleId = friendRoleId
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_FriendMsgReadCode, req.ToByteString());
         }
 
         /// <summary>
@@ -738,6 +753,12 @@ namespace HotUpdate.Network
             _friendHistoryCallback = null;
         }
 
+        private void OnMarkFriendMsgReadResult(ByteString data)
+        {
+            MarkFriendMsgReadRet ret = MarkFriendMsgReadRet.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 标记私聊已读结果 CmdCode={ret.CmdCode}");
+        }
+
         // 服务端推送：直接交给 FriendService 落地（不再经事件中转）
         private void OnFriendApplyNtf(ByteString data)
         {
@@ -769,7 +790,10 @@ namespace HotUpdate.Network
 
             FriendPanel panel = AppContext.Ui.GetPanel<FriendPanel>();
             bool reading = panel != null && panel.gameObject.activeInHierarchy && panel.IsChattingWith(msg.SenderRoleId);
-            if (!reading) AppContext.RedDot.Add(RedDotPath.FriendMessage, 1);
+
+            // 正看着这条消息：本地不亮红点，同时告诉服务端已读 —— 否则下次拉列表它还是未读
+            if (reading) RequestMarkFriendMsgRead(msg.SenderRoleId);
+            else AppContext.RedDot.Add(RedDotPath.FriendMessage, 1);
         }
 
         private void OnCreateRoomResult(ByteString data)
@@ -958,6 +982,7 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendApplyNtfCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendMsgPushCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_SetAvatarCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendMsgReadCode);
         }
     }
 }

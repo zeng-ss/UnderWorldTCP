@@ -94,7 +94,18 @@ public class Center_LoginCtrl : IContainer
             case NetDefine.CMD_SetAvatarCode:
                 OnSetAvatarHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_FriendMsgReadCode:
+                OnFriendMsgReadHandle(serverBase, basePackage);
+                break;
         }
+    }
+
+    // 标记私聊已读（聊天窗口开着时收到新消息，客户端补一条回执）
+    private void OnFriendMsgReadHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        MarkFriendMsgReadReq req = MarkFriendMsgReadReq.Parser.ParseFrom(basePackage.Data);
+        MarkFriendMsgReadRet ret = _loginModle.MarkFriendMsgRead(req);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
     }
 
     // 设置头像

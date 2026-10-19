@@ -27,6 +27,7 @@ namespace HotUpdate.Core
         private readonly TaskService _task;
         private readonly StoryService _story;
         private readonly ChatService _chat;
+        private readonly FriendService _friend;
 
         public static SessionService Session => _current._session;
         public static MaterialService Material => _current._material;
@@ -35,6 +36,7 @@ namespace HotUpdate.Core
         public static TaskService Task => _current._task;
         public static StoryService Story => _current._story;
         public static ChatService Chat => _current._chat;
+        public static FriendService Friend => _current._friend;
 
         #endregion
 
@@ -92,6 +94,7 @@ namespace HotUpdate.Core
             _task = new TaskService();
             _story = new StoryService();
             _chat = new ChatService();
+            _friend = new FriendService();
         }
 
         public static AppContext Create() => _current ??= new AppContext();
@@ -119,6 +122,7 @@ namespace HotUpdate.Core
             _proto.Init();
             _remotePlayer.Init();
             _enemy.Init();
+            _friend.Init();
 
             _config.Load();
             _material.Init(_config.Materials);
@@ -140,6 +144,7 @@ namespace HotUpdate.Core
         {
             _task.Clear();
             _chat.Clear();
+            _friend.Clear();
             _config.Clear();
             _events.Clear();
             _resMgr.ReleaseAll();

@@ -214,16 +214,40 @@ namespace ProjectEditor
             if (avatarBtn == null) avatarBtn = avatar.gameObject.AddComponent<Button>();
             avatarBtn.targetGraphic = avatar.GetComponent<Image>();
 
+            // 私聊入口的红点：已经摆过就复用，没有就补一个（右上角小圆点）
+            Transform friendBtn = FindDeep(root.transform, "FriendBtn");
+            Transform dotNode = FindDeep(friendBtn, "RedDot");
+            Image dot = dotNode != null ? dotNode.GetComponent<Image>() : CreateRedDot(friendBtn);
+            dot.enabled = false;
+
             var so = new SerializedObject(root.GetComponent<StartPanel>());
             so.FindProperty("_playerNameTxt").objectReferenceValue =
                 FindDeep(root.transform, "playerName").GetComponent<TMP_Text>();
             so.FindProperty("_avatarImage").objectReferenceValue = head;
             so.FindProperty("_avatarBtn").objectReferenceValue = avatarBtn;
+            so.FindProperty("_friendRedDot").objectReferenceValue = dot;
             so.FindProperty("_hostBtn").objectReferenceValue = FindDeep(root.transform, "HostBtn").GetComponent<Button>();
             so.FindProperty("_friendBtn").objectReferenceValue = FindDeep(root.transform, "FriendBtn").GetComponent<Button>();
             so.FindProperty("_depotBtn").objectReferenceValue = FindDeep(root.transform, "DepotBtn").GetComponent<Button>();
             so.FindProperty("_exitBtn").objectReferenceValue = FindDeep(root.transform, "ExitBtn").GetComponent<Button>();
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        // 红点：锚在按钮右上角的圆点，显隐由 StartPanel 按红点树控制
+        private static Image CreateRedDot(Transform parent)
+        {
+            GameObject go = NewUI("RedDot", parent);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(26f, 26f);
+            rt.anchoredPosition = new Vector2(-14f, -14f);
+
+            var image = go.AddComponent<Image>();
+            ApplySprite(image, TexDir + "circle_mask.png", false);
+            image.color = new Color(0.92f, 0.24f, 0.24f, 1f);
+            image.raycastTarget = false;
+            return image;
         }
 
         // =====================================================================

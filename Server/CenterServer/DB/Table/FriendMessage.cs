@@ -22,4 +22,8 @@ public class FriendMessage
 
     // 发送时间
     public DateTime SendTime { get; set; }
+
+    // 接收者是否已读（0 未读 / 1 已读）。
+    // 离线期间收到的消息靠它算红点，打开与某人的聊天时把该人发来的未读全部置 1。
+    public int IsRead { get; set; }
 }

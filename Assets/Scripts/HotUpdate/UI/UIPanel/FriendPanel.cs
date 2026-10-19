@@ -52,8 +52,7 @@ namespace HotUpdate.UI.UIPanel
         protected override void Awake()
         {
             base.Awake();
-            _friendService = new FriendService();
-            _friendService.Init();
+            _friendService = AppContext.Friend;
             BindHierarchy();
         }
 
@@ -62,11 +61,7 @@ namespace HotUpdate.UI.UIPanel
             base.Show();
             if (!AppContext.IsAlive) return;
 
-            // 打开面板 = 申请与私聊都看到了，清掉好友下面的两路红点
-            //（Friend 那一格的红点是这两路的合计，会跟着自动灭）
-            AppContext.RedDot.Clear(RedDotPath.FriendApply);
-            AppContext.RedDot.Clear(RedDotPath.FriendMessage);
-
+            // 红点不在这里清：申请处理掉 / 点开某个好友的聊天后，由 FriendService 按服务端数据重算
             LoadFriendItemPrefab();
             RefreshFriendList();
             UpdateChatTitle();
@@ -312,7 +307,7 @@ namespace HotUpdate.UI.UIPanel
 
             FriendData friend = _entries.Find(f => f.RoleId == _chatRoleId);
             string peerName = friend != null ? friend.Nickname : ("好友 " + _chatRoleId);
-            int peerAvatar = friend != null ? friend.Avatar : 0;
+            int peerAvatar = friend?.Avatar ?? 0;
             int selfAvatar = AppContext.Session.Avatar;
 
             // 模板已在内存里，同步实例化才能保证顺序严格等于缓存顺序（旧的：自己发的靠下，最新的在最后）

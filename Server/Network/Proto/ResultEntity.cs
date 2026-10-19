@@ -125,31 +125,32 @@ public static partial class ResultEntityReflection {
           "IAEoDjIILkNtZENvZGUSHAoJdGFza19saXN0GAIgAygLMgkuVGFza0luZm8i",
           "fQoNUGxheWVySHVydE50ZhIPCgdyb2xlX2lkGAEgASgFEhkKEWVuZW15X2lu",
           "c3RhbmNlX2lkGAIgASgFEg4KBmRhbWFnZRgDIAEoAhIPCgdjdXJyX2hwGAQg",
-          "ASgCEg4KBm1heF9ocBgFIAEoAhIPCgdpc19kZWFkGAYgASgIIlIKCkZyaWVu",
+          "ASgCEg4KBm1heF9ocBgFIAEoAhIPCgdpc19kZWFkGAYgASgIImIKCkZyaWVu",
           "ZEluZm8SDwoHcm9sZV9pZBgBIAEoBRIQCghuaWNrbmFtZRgCIAEoCRIRCglp",
-          "c19vbmxpbmUYAyABKAgSDgoGYXZhdGFyGAQgASgFImcKDUZyaWVuZExpc3RS",
-          "ZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEhwKB2ZyaWVuZHMYAiAD",
-          "KAsyCy5GcmllbmRJbmZvEhwKB2FwcGxpZXMYAyADKAsyCy5GcmllbmRJbmZv",
-          "Io0BCgxBZGRGcmllbmRSZXQSGgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2Rl",
-          "EgsKA3RpcBgCIAEoCRIUCgxmcm9tX3JvbGVfaWQYAyABKAUSEgoKdG9fcm9s",
-          "ZV9pZBgEIAEoBRIVCg1mcm9tX25pY2tuYW1lGAUgASgJEhMKC3RvX25pY2tu",
-          "YW1lGAYgASgJIjoKD0hhbmRsZUZyaWVuZFJldBIaCghjbWRfY29kZRgBIAEo",
-          "DjIILkNtZENvZGUSCwoDdGlwGAIgASgJIj0KDkZyaWVuZEFwcGx5TnRmEhQK",
-          "DGZyb21fcm9sZV9pZBgBIAEoBRIVCg1mcm9tX25pY2tuYW1lGAIgASgJIm0K",
-          "CUZyaWVuZE1zZxIKCgJpZBgBIAEoBRIWCg5zZW5kZXJfcm9sZV9pZBgCIAEo",
-          "BRIYChByZWNlaXZlcl9yb2xlX2lkGAMgASgFEg8KB2NvbnRlbnQYBCABKAkS",
-          "EQoJc2VuZF90aW1lGAUgASgJIksKEFNlbmRGcmllbmRNc2dSZXQSGgoIY21k",
-          "X2NvZGUYASABKA4yCC5DbWRDb2RlEhsKB21lc3NhZ2UYAiABKAsyCi5Gcmll",
-          "bmRNc2ciTAoQRnJpZW5kSGlzdG9yeVJldBIaCghjbWRfY29kZRgBIAEoDjII",
-          "LkNtZENvZGUSHAoIbWVzc2FnZXMYAiADKAsyCi5GcmllbmRNc2ciLwoQRnJp",
-          "ZW5kTXNnUHVzaE50ZhIbCgdtZXNzYWdlGAEgASgLMgouRnJpZW5kTXNnIjoK",
-          "DFNldEF2YXRhclJldBIaCghjbWRfY29kZRgBIAEoDjIILkNtZENvZGUSDgoG",
-          "YXZhdGFyGAIgASgFKt8BCgdDbWRDb2RlEgsKB1N1Y2NlZWQQABINCglBY2N0",
-          "RXhpc3QQARIPCgtTZXJ2ZXJFcnJvchACEhAKDEFjY3ROb3RFeGlzdBADEhEK",
-          "DVBhc3N3b3JkRXJyb3IQBBIPCgtBY2N0RGlzYWJsZRAFEhEKDVJlcVBhcmFt",
-          "RXJyb3IQBhIRCg1OaWNrbmFtZUV4aXN0EAcSEgoOVXNlck5hbWVJbGVnYWwQ",
-          "CBISCg5wYXNzd29yZElsZWdhbBAKEhAKDFJvbGVOb3RFeGlzdBALEhEKDUVu",
-          "ZW15Tm90RXhpc3QQDGIGcHJvdG8z"));
+          "c19vbmxpbmUYAyABKAgSDgoGYXZhdGFyGAQgASgFEg4KBnVucmVhZBgFIAEo",
+          "BSJnCg1GcmllbmRMaXN0UmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29k",
+          "ZRIcCgdmcmllbmRzGAIgAygLMgsuRnJpZW5kSW5mbxIcCgdhcHBsaWVzGAMg",
+          "AygLMgsuRnJpZW5kSW5mbyKNAQoMQWRkRnJpZW5kUmV0EhoKCGNtZF9jb2Rl",
+          "GAEgASgOMgguQ21kQ29kZRILCgN0aXAYAiABKAkSFAoMZnJvbV9yb2xlX2lk",
+          "GAMgASgFEhIKCnRvX3JvbGVfaWQYBCABKAUSFQoNZnJvbV9uaWNrbmFtZRgF",
+          "IAEoCRITCgt0b19uaWNrbmFtZRgGIAEoCSI6Cg9IYW5kbGVGcmllbmRSZXQS",
+          "GgoIY21kX2NvZGUYASABKA4yCC5DbWRDb2RlEgsKA3RpcBgCIAEoCSI9Cg5G",
+          "cmllbmRBcHBseU50ZhIUCgxmcm9tX3JvbGVfaWQYASABKAUSFQoNZnJvbV9u",
+          "aWNrbmFtZRgCIAEoCSJtCglGcmllbmRNc2cSCgoCaWQYASABKAUSFgoOc2Vu",
+          "ZGVyX3JvbGVfaWQYAiABKAUSGAoQcmVjZWl2ZXJfcm9sZV9pZBgDIAEoBRIP",
+          "Cgdjb250ZW50GAQgASgJEhEKCXNlbmRfdGltZRgFIAEoCSJLChBTZW5kRnJp",
+          "ZW5kTXNnUmV0EhoKCGNtZF9jb2RlGAEgASgOMgguQ21kQ29kZRIbCgdtZXNz",
+          "YWdlGAIgASgLMgouRnJpZW5kTXNnIkwKEEZyaWVuZEhpc3RvcnlSZXQSGgoI",
+          "Y21kX2NvZGUYASABKA4yCC5DbWRDb2RlEhwKCG1lc3NhZ2VzGAIgAygLMgou",
+          "RnJpZW5kTXNnIi8KEEZyaWVuZE1zZ1B1c2hOdGYSGwoHbWVzc2FnZRgBIAEo",
+          "CzIKLkZyaWVuZE1zZyIyChRNYXJrRnJpZW5kTXNnUmVhZFJldBIaCghjbWRf",
+          "Y29kZRgBIAEoDjIILkNtZENvZGUiOgoMU2V0QXZhdGFyUmV0EhoKCGNtZF9j",
+          "b2RlGAEgASgOMgguQ21kQ29kZRIOCgZhdmF0YXIYAiABKAUq3wEKB0NtZENv",
+          "ZGUSCwoHU3VjY2VlZBAAEg0KCUFjY3RFeGlzdBABEg8KC1NlcnZlckVycm9y",
+          "EAISEAoMQWNjdE5vdEV4aXN0EAMSEQoNUGFzc3dvcmRFcnJvchAEEg8KC0Fj",
+          "Y3REaXNhYmxlEAUSEQoNUmVxUGFyYW1FcnJvchAGEhEKDU5pY2tuYW1lRXhp",
+          "c3QQBxISCg5Vc2VyTmFtZUlsZWdhbBAIEhIKDnBhc3N3b3JkSWxlZ2FsEAoS",
+          "EAoMUm9sZU5vdEV4aXN0EAsSEQoNRW5lbXlOb3RFeGlzdBAMYgZwcm90bzM="));
     descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
         new pbr::FileDescriptor[] { global::RequestEntityReflection.Descriptor, },
         new pbr::GeneratedClrTypeInfo(new[] {typeof(global::CmdCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -195,7 +196,7 @@ public static partial class ResultEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressRet), global::TaskProgressRet.Parser, new[]{ "CmdCode" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::TaskProgressListRet), global::TaskProgressListRet.Parser, new[]{ "CmdCode", "TaskList" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::PlayerHurtNtf), global::PlayerHurtNtf.Parser, new[]{ "RoleId", "EnemyInstanceId", "Damage", "CurrHp", "MaxHp", "IsDead" }, null, null, null, null),
-          new pbr::GeneratedClrTypeInfo(typeof(global::FriendInfo), global::FriendInfo.Parser, new[]{ "RoleId", "Nickname", "IsOnline", "Avatar" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::FriendInfo), global::FriendInfo.Parser, new[]{ "RoleId", "Nickname", "IsOnline", "Avatar", "Unread" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::FriendListRet), global::FriendListRet.Parser, new[]{ "CmdCode", "Friends", "Applies" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::AddFriendRet), global::AddFriendRet.Parser, new[]{ "CmdCode", "Tip", "FromRoleId", "ToRoleId", "FromNickname", "ToNickname" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::HandleFriendRet), global::HandleFriendRet.Parser, new[]{ "CmdCode", "Tip" }, null, null, null, null),
@@ -204,6 +205,7 @@ public static partial class ResultEntityReflection {
           new pbr::GeneratedClrTypeInfo(typeof(global::SendFriendMsgRet), global::SendFriendMsgRet.Parser, new[]{ "CmdCode", "Message" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::FriendHistoryRet), global::FriendHistoryRet.Parser, new[]{ "CmdCode", "Messages" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::FriendMsgPushNtf), global::FriendMsgPushNtf.Parser, new[]{ "Message" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(typeof(global::MarkFriendMsgReadRet), global::MarkFriendMsgReadRet.Parser, new[]{ "CmdCode" }, null, null, null, null),
           new pbr::GeneratedClrTypeInfo(typeof(global::SetAvatarRet), global::SetAvatarRet.Parser, new[]{ "CmdCode", "Avatar" }, null, null, null, null)
         }));
   }
@@ -12996,6 +12998,7 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
     nickname_ = other.nickname_;
     isOnline_ = other.isOnline_;
     avatar_ = other.avatar_;
+    unread_ = other.unread_;
     _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
   }
 
@@ -13065,6 +13068,21 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
     }
   }
 
+  /// <summary>Field number for the "unread" field.</summary>
+  public const int UnreadFieldNumber = 5;
+  private int unread_;
+  /// <summary>
+  /// 该好友发给我、我还没读的私聊条数（红点用）
+  /// </summary>
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int Unread {
+    get { return unread_; }
+    set {
+      unread_ = value;
+    }
+  }
+
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public override bool Equals(object other) {
@@ -13084,6 +13102,7 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
     if (Nickname != other.Nickname) return false;
     if (IsOnline != other.IsOnline) return false;
     if (Avatar != other.Avatar) return false;
+    if (Unread != other.Unread) return false;
     return Equals(_unknownFields, other._unknownFields);
   }
 
@@ -13095,6 +13114,7 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
     if (Nickname.Length != 0) hash ^= Nickname.GetHashCode();
     if (IsOnline != false) hash ^= IsOnline.GetHashCode();
     if (Avatar != 0) hash ^= Avatar.GetHashCode();
+    if (Unread != 0) hash ^= Unread.GetHashCode();
     if (_unknownFields != null) {
       hash ^= _unknownFields.GetHashCode();
     }
@@ -13129,6 +13149,10 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
       output.WriteRawTag(32);
       output.WriteInt32(Avatar);
     }
+    if (Unread != 0) {
+      output.WriteRawTag(40);
+      output.WriteInt32(Unread);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(output);
     }
@@ -13155,6 +13179,10 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
       output.WriteRawTag(32);
       output.WriteInt32(Avatar);
     }
+    if (Unread != 0) {
+      output.WriteRawTag(40);
+      output.WriteInt32(Unread);
+    }
     if (_unknownFields != null) {
       _unknownFields.WriteTo(ref output);
     }
@@ -13176,6 +13204,9 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
     }
     if (Avatar != 0) {
       size += 1 + pb::CodedOutputStream.ComputeInt32Size(Avatar);
+    }
+    if (Unread != 0) {
+      size += 1 + pb::CodedOutputStream.ComputeInt32Size(Unread);
     }
     if (_unknownFields != null) {
       size += _unknownFields.CalculateSize();
@@ -13200,6 +13231,9 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
     }
     if (other.Avatar != 0) {
       Avatar = other.Avatar;
+    }
+    if (other.Unread != 0) {
+      Unread = other.Unread;
     }
     _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
   }
@@ -13236,6 +13270,10 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
           Avatar = input.ReadInt32();
           break;
         }
+        case 40: {
+          Unread = input.ReadInt32();
+          break;
+        }
       }
     }
   #endif
@@ -13269,6 +13307,10 @@ public sealed partial class FriendInfo : pb::IMessage<FriendInfo>
         }
         case 32: {
           Avatar = input.ReadInt32();
+          break;
+        }
+        case 40: {
+          Unread = input.ReadInt32();
           break;
         }
       }
@@ -15466,6 +15508,207 @@ public sealed partial class FriendMsgPushNtf : pb::IMessage<FriendMsgPushNtf>
 }
 
 /// <summary>
+/// 标记私聊已读回包
+/// </summary>
+[global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+public sealed partial class MarkFriendMsgReadRet : pb::IMessage<MarkFriendMsgReadRet>
+#if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    , pb::IBufferMessage
+#endif
+{
+  private static readonly pb::MessageParser<MarkFriendMsgReadRet> _parser = new pb::MessageParser<MarkFriendMsgReadRet>(() => new MarkFriendMsgReadRet());
+  private pb::UnknownFieldSet _unknownFields;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pb::MessageParser<MarkFriendMsgReadRet> Parser { get { return _parser; } }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public static pbr::MessageDescriptor Descriptor {
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[51]; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  pbr::MessageDescriptor pb::IMessage.Descriptor {
+    get { return Descriptor; }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public MarkFriendMsgReadRet() {
+    OnConstruction();
+  }
+
+  partial void OnConstruction();
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public MarkFriendMsgReadRet(MarkFriendMsgReadRet other) : this() {
+    cmdCode_ = other.cmdCode_;
+    _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public MarkFriendMsgReadRet Clone() {
+    return new MarkFriendMsgReadRet(this);
+  }
+
+  /// <summary>Field number for the "cmd_code" field.</summary>
+  public const int CmdCodeFieldNumber = 1;
+  private global::CmdCode cmdCode_ = global::CmdCode.Succeed;
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public global::CmdCode CmdCode {
+    get { return cmdCode_; }
+    set {
+      cmdCode_ = value;
+    }
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override bool Equals(object other) {
+    return Equals(other as MarkFriendMsgReadRet);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public bool Equals(MarkFriendMsgReadRet other) {
+    if (ReferenceEquals(other, null)) {
+      return false;
+    }
+    if (ReferenceEquals(other, this)) {
+      return true;
+    }
+    if (CmdCode != other.CmdCode) return false;
+    return Equals(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override int GetHashCode() {
+    int hash = 1;
+    if (CmdCode != global::CmdCode.Succeed) hash ^= CmdCode.GetHashCode();
+    if (_unknownFields != null) {
+      hash ^= _unknownFields.GetHashCode();
+    }
+    return hash;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public override string ToString() {
+    return pb::JsonFormatter.ToDiagnosticString(this);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void WriteTo(pb::CodedOutputStream output) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    output.WriteRawMessage(this);
+  #else
+    if (CmdCode != global::CmdCode.Succeed) {
+      output.WriteRawTag(8);
+      output.WriteEnum((int) CmdCode);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(output);
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+    if (CmdCode != global::CmdCode.Succeed) {
+      output.WriteRawTag(8);
+      output.WriteEnum((int) CmdCode);
+    }
+    if (_unknownFields != null) {
+      _unknownFields.WriteTo(ref output);
+    }
+  }
+  #endif
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public int CalculateSize() {
+    int size = 0;
+    if (CmdCode != global::CmdCode.Succeed) {
+      size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) CmdCode);
+    }
+    if (_unknownFields != null) {
+      size += _unknownFields.CalculateSize();
+    }
+    return size;
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(MarkFriendMsgReadRet other) {
+    if (other == null) {
+      return;
+    }
+    if (other.CmdCode != global::CmdCode.Succeed) {
+      CmdCode = other.CmdCode;
+    }
+    _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+  }
+
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  public void MergeFrom(pb::CodedInputStream input) {
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    input.ReadRawMessage(this);
+  #else
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+          break;
+        case 8: {
+          CmdCode = (global::CmdCode) input.ReadEnum();
+          break;
+        }
+      }
+    }
+  #endif
+  }
+
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+  [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+  [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+  void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+    uint tag;
+    while ((tag = input.ReadTag()) != 0) {
+    if ((tag & 7) == 4) {
+      // Abort on any end group tag.
+      return;
+    }
+    switch(tag) {
+        default:
+          _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+          break;
+        case 8: {
+          CmdCode = (global::CmdCode) input.ReadEnum();
+          break;
+        }
+      }
+    }
+  }
+  #endif
+
+}
+
+/// <summary>
 /// 设置头像回包（服务端校验并落库后回传最终头像编号）
 /// </summary>
 [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
@@ -15483,7 +15726,7 @@ public sealed partial class SetAvatarRet : pb::IMessage<SetAvatarRet>
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
   [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
   public static pbr::MessageDescriptor Descriptor {
-    get { return global::ResultEntityReflection.Descriptor.MessageTypes[51]; }
+    get { return global::ResultEntityReflection.Descriptor.MessageTypes[52]; }
   }
 
   [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

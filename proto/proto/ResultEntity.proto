@@ -335,6 +335,7 @@ message FriendInfo{
   string nickname = 2;    // 好友昵称
   bool is_online = 3;     // 是否在线（由 LoginServer 在线状态填充）
   int32 avatar = 4;       // 好友头像编号
+  int32 unread = 5;       // 该好友发给我、我还没读的私聊条数（红点用）
 }
 
 // 拉取好友列表回包
@@ -392,6 +393,11 @@ message FriendHistoryRet{
 // 私聊消息实时推送（服务端 → 接收者）。接收者在线时实时推送，离线则等下次拉历史时看到。
 message FriendMsgPushNtf{
   FriendMsg message = 1;
+}
+
+// 标记私聊已读回包
+message MarkFriendMsgReadRet{
+  CmdCode cmd_code = 1;
 }
 
 

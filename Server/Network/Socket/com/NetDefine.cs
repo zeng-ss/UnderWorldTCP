@@ -57,6 +57,7 @@
     public const ushort CMD_FriendApplyNtfCode = 11450; // 好友申请实时通知（服务端→客户端）
     public const ushort CMD_FriendMsgPushCode = 11460; // 私聊消息实时推送（服务端→客户端）
     public const ushort CMD_SetAvatarCode = 11470; // 设置头像
+    public const ushort CMD_FriendMsgReadCode = 11480; // 标记与某好友的私聊已读（红点用）
 
     /// <summary>服务端逻辑帧率（Hz）。敌人 AI、位置与动作广播都按这个频率推进。</summary>
     public const int ServerTickRate = 30;

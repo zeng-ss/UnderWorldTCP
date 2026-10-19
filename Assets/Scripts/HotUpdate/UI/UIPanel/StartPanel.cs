@@ -1,27 +1,26 @@
 using HotUpdate.Controller;
 using HotUpdate.Data;
 using HotUpdate.Manager;
+using HotUpdate.RedDot;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.UI.UIPanel
 {
-    /// <summary>
-    /// 开始界面（主菜单）：头像 / 进入游戏 / 私聊 / 背包 / 退出游戏。
-    /// 引用全部在预制体里连（Tools/UI/开始面板/5 可一键补绑），改节点名要在 Inspector 重连。
-    /// </summary>
     [PanelPath("StartPanel")]
     public class StartPanel : BasePanel
     {
-        [SerializeField] private TMP_Text _playerNameTxt;
-        [SerializeField] private Image _avatarImage;
-        [SerializeField] private Button _avatarBtn;
-        [SerializeField] private Button _hostBtn;
-        [SerializeField] private Button _friendBtn;
-        [SerializeField] private Button _depotBtn;
-        [SerializeField] private Button _exitBtn;
+        [FormerlySerializedAs("_playerNameTxt")] [SerializeField] private TMP_Text playerNameTxt;
+        [FormerlySerializedAs("_avatarImage")] [SerializeField] private Image avatarImage;
+        [FormerlySerializedAs("_avatarBtn")] [SerializeField] private Button avatarBtn;
+        [FormerlySerializedAs("_hostBtn")] [SerializeField] private Button hostBtn;
+        [FormerlySerializedAs("_friendBtn")] [SerializeField] private Button friendBtn;
+        [FormerlySerializedAs("_depotBtn")] [SerializeField] private Button depotBtn;
+        [FormerlySerializedAs("_exitBtn")] [SerializeField] private Button exitBtn;
+        [SerializeField] private GameObject friendRedDot;
 
         private StartPanelController _controller;
 
@@ -30,23 +29,37 @@ namespace HotUpdate.UI.UIPanel
             base.Awake();
             _controller = new StartPanelController();
 
-            _avatarBtn.onClick.AddListener(_controller.OpenAvatarPanel);
-            _hostBtn.onClick.AddListener(_controller.StartGame);
-            _friendBtn.onClick.AddListener(_controller.OpenFriendPanel);
-            _depotBtn.onClick.AddListener(_controller.OpenDepotPanel);
-            _exitBtn.onClick.AddListener(_controller.ExitGame);
+            avatarBtn.onClick.AddListener(_controller.OpenAvatarPanel);
+            hostBtn.onClick.AddListener(_controller.StartGame);
+            friendBtn.onClick.AddListener(_controller.OpenFriendPanel);
+            depotBtn.onClick.AddListener(_controller.OpenDepotPanel);
+            exitBtn.onClick.AddListener(_controller.ExitGame);
+
+            // AddWatcher 会立刻用当前值回调一次，之后数值变化自动跟
+            AppContext.RedDot.GetOrCreate(RedDotPath.Friend).AddWatcher(SetFriendRedDot);
         }
 
         private void OnEnable()
         {
-            _playerNameTxt.text = "欢迎你：" + AppContext.Session.PlayerName;
+            playerNameTxt.text = "欢迎你：" + AppContext.Session.PlayerName;
             RefreshAvatar();
+
+            // 离线期间收到的私聊 / 申请只落库、推送早就丢了，上线拉一次列表才能把红点点亮
+            AppContext.Friend.RequestFriendList();
+        }
+
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            AppContext.RedDot.GetOrCreate(RedDotPath.Friend).RemoveWatcher(SetFriendRedDot);
         }
 
         /// <summary>按 Session.Avatar 重画头像（换完头像由 AvatarPanel 回调）</summary>
         public void RefreshAvatar()
         {
-            _avatarImage.sprite = AvatarConfig.Get(AppContext.Session.Avatar);
+            avatarImage.sprite = AvatarConfig.Get(AppContext.Session.Avatar);
         }
+
+        private void SetFriendRedDot(int count) => friendRedDot.SetActive(count > 0);
     }
 }

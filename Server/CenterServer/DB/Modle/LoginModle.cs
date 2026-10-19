@@ -1007,9 +1007,13 @@ public class LoginModle
             ret.Friends.Add(new FriendInfo
             {
                 RoleId = friendId,
-                Nickname = friend != null ? friend.NickName : ("Player" + friendId),
-                Avatar = friend != null ? AvatarCatalog.Normalize(friend.Avatar) : AvatarCatalog.Default,
-                IsOnline = false // 由 LoginServer 转发时按在线状态覆盖
+                Nickname = friend.NickName,
+                Avatar = AvatarCatalog.Normalize(friend.Avatar),
+                IsOnline = false, // 由 LoginServer 转发时按在线状态覆盖
+                // 未读数：离线期间对方发来的消息只落库不推送，只能靠这里回带给客户端点亮红点
+                Unread = _db.Queryable<FriendMessage>()
+                    .Where(v => v.SenderRoleId == friendId && v.ReceiverRoleId == req.RoleId && v.IsRead == 0)
+                    .Count()
             });
         }
 
@@ -1131,8 +1135,7 @@ public class LoginModle
     }
 
     /// <summary>
-    /// 发送私聊消息：落库（带发送时间），并把该玩家对的消息裁剪到最多 100 条。
-    /// 返回完整消息（含自增 id 与格式化时间）给发送者。
+    /// 发送私聊消息：落库，并把该玩家对的消息裁剪到最多 100 条。返回完整消息给发送者。
     /// </summary>
     public SendFriendMsgRet SendFriendMsg(SendFriendMsgReq req)
     {
@@ -1155,7 +1158,8 @@ public class LoginModle
             SenderRoleId = req.SenderRoleId,
             ReceiverRoleId = req.ReceiverRoleId,
             Content = req.Content,
-            SendTime = now
+            SendTime = now,
+            IsRead = 0 // 新消息对接收者恒为未读，接收者打开聊天时统一置 1
         };
         // 取自增主键必须用 ExecuteReturnIdentity()：
         // ExecuteCommand() 返回的是「受影响行数」（插入成功恒为 1），拿它当 id 会让每条消息的
@@ -1177,7 +1181,7 @@ public class LoginModle
     }
 
     /// <summary>
-    /// 拉取与某好友的最近聊天记录（升序，最多 100 条）。
+    /// 拉取与某好友的最近聊天记录
     /// </summary>
     public FriendHistoryRet GetFriendHistory(FriendHistoryReq req)
     {
@@ -1190,18 +1194,44 @@ public class LoginModle
 
         int a = req.RoleId;
         int b = req.FriendRoleId;
+
+        // 打开聊天 = 已读：把这个好友发给我的未读消息全部标记掉，
+        MarkMsgRead(a, b);
+
         List<FriendMessage> list = _db.Queryable<FriendMessage>()
-            .Where(v => (v.SenderRoleId == a && v.ReceiverRoleId == b) ||
-                        (v.SenderRoleId == b && v.ReceiverRoleId == a))
+            .Where(v => (v.SenderRoleId == a && v.ReceiverRoleId == b) || (v.SenderRoleId == b && v.ReceiverRoleId == a))
             .OrderBy(v => v.Id, OrderByType.Desc).Take(MaxFriendMsgPerPair).ToList();
 
         // 倒序取出后反转为时间升序，方便客户端直接按顺序渲染
         list.Reverse();
-        foreach (FriendMessage m in list)
+        foreach (FriendMessage m in list) ret.Messages.Add(ToFriendMsg(m));
+        ret.CmdCode = CmdCode.Succeed;
+        return ret;
+    }
+
+    /// <summary>
+    /// 把 peer 发给 reader 的未读私聊全部置为已读。
+    /// 拉历史时顺手调一次，聊天窗口里实时收到新消息时由客户端补一条 MarkFriendMsgReadReq。
+    /// </summary>
+    private void MarkMsgRead(int readerRoleId, int peerRoleId)
+    {
+        _db.Updateable<FriendMessage>()
+            .SetColumns(v => v.IsRead == 1)
+            .Where(v => v.SenderRoleId == peerRoleId && v.ReceiverRoleId == readerRoleId && v.IsRead == 0)
+            .ExecuteCommand();
+    }
+
+    /// <summary>客户端显式标记已读（聊天窗口开着时收到新消息）</summary>
+    public MarkFriendMsgReadRet MarkFriendMsgRead(MarkFriendMsgReadReq req)
+    {
+        MarkFriendMsgReadRet ret = new MarkFriendMsgReadRet();
+        if (req.RoleId <= 0 || req.FriendRoleId <= 0)
         {
-            ret.Messages.Add(ToFriendMsg(m));
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
         }
 
+        MarkMsgRead(req.RoleId, req.FriendRoleId);
         ret.CmdCode = CmdCode.Succeed;
         return ret;
     }
