@@ -221,31 +221,34 @@ namespace HotUpdate.Manager
             // 预制体还没加载好：等加载完再播，不跳过遮罩
             AppContext.UILoader.LoadAsync(TransitionAddress, prefab =>
             {
-                if (prefab is null)
+                if (prefab == null)
                 {
                     onCovered?.Invoke();
                     return;
                 }
 
                 EnsureTransition(prefab);
-                _transitionPanel?.Play(minHold, onCovered);
+                _transitionPanel.Play(minHold, onCovered);
             });
         }
 
         // 切换完成，可以揭开遮罩了
-        public void TransitionDone() => _transitionPanel?.Done();
+        public void TransitionDone()
+        {
+            if (_transitionPanel != null) _transitionPanel.Done();
+        }
 
         private void PreloadTransition()
         {
             AppContext.UILoader.LoadAsync(TransitionAddress, prefab =>
             {
-                if (prefab is not null) EnsureTransition(prefab);
+                if (prefab != null) EnsureTransition(prefab);
             });
         }
 
         private void EnsureTransition(GameObject prefab)
         {
-            if (_transitionPanel is not null) return;
+            if (_transitionPanel != null) return;
 
             GameObject obj = Object.Instantiate(prefab, Canvas, false);
             obj.name = TransitionAddress;

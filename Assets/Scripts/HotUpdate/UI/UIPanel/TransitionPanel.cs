@@ -3,6 +3,7 @@ using System.Collections;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace HotUpdate.UI.UIPanel
 {
@@ -12,9 +13,17 @@ namespace HotUpdate.UI.UIPanel
     public class TransitionPanel : MonoBehaviour
     {
         [SerializeField] private CanvasGroup group;
+        [SerializeField] private RawImage scrollLayer;
         [SerializeField] private RectTransform ring;
         [SerializeField] private TMP_Text title;
         [SerializeField] private RectTransform[] dots;
+
+        [Header("流光")] [Tooltip("uvRect 每秒滚动多少（贴图先平铺，再无限偏移）")] [SerializeField]
+        private Vector2 scrollSpeed = new(0.08f, 0.03f);
+
+        [Tooltip("横向平铺几列；行数按贴图与屏幕的宽高比自动算，换贴图不会被拉变形")]
+        [SerializeField]
+        private float scrollColumns = 16f;
 
         [Header("节奏")] [SerializeField] private float fadeIn = 0.35f;
         [SerializeField] private float fadeOut = 0.4f;
@@ -32,12 +41,35 @@ namespace HotUpdate.UI.UIPanel
 
         private void Awake()
         {
-            // 预制体是根节点时 overrideSorting 存不住（Unity 按根 Canvas 处理，保存时会清成 false），
-            // 实例化到父 Canvas 下之后再设一次，999 才真的压过所有面板
+            // Canvas 必须实例化到父 Canvas 下之后再挂：预制体根节点上的 Canvas 会被 Unity 当成
+            // 「根 Overlay Canvas」，把 RectTransform 的 localScale / anchor / sizeDelta 全存成 0，
+            // 结果就是 Hierarchy 里有、Game 里整块 scale 0 看不见。
             var canvas = GetComponent<Canvas>();
+            if (canvas == null) canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.overrideSorting = true;
             canvas.sortingOrder = 999;
+            gameObject.AddComponent<GraphicRaycaster>();
+
+            /*// 兜底：旧预制体里已经存成 0 的变换在这里拉正
+            var rect = (RectTransform)transform;
+            rect.localScale = Vector3.one;
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.offsetMin = Vector2.zero;
+            rect.offsetMax = Vector2.zero;*/
+        }
+
+        private void Update()
+        {
+            if (scrollLayer == null) return;
+
+            // 直接改 RawImage.uvRect：不依赖材质的 UV 变换，换什么 shader 都能滚
+            Rect uv = scrollLayer.uvRect;
+            uv.x = Mathf.Repeat(uv.x + scrollSpeed.x * Time.deltaTime, 1f);
+            uv.y = Mathf.Repeat(uv.y + scrollSpeed.y * Time.deltaTime, 1f);
+            scrollLayer.uvRect = uv;
         }
 
         public void Play(float minHoldDuration, Action onCovered)
@@ -53,7 +85,26 @@ namespace HotUpdate.UI.UIPanel
             _revealed = false;
             gameObject.SetActive(true);
             transform.SetAsLastSibling();
+            ApplyTiling();
             _routine = StartCoroutine(Run(onCovered));
+        }
+
+        /// <summary>
+        /// 按「屏幕宽高比 / 贴图宽高比」算平铺次数：每块贴图的宽高比和原图一致，换任何贴图都不会被拉变形。
+        /// 只定横向列数，行数自动推出来。
+        /// </summary>
+        private void ApplyTiling()
+        {
+            if (scrollLayer == null || scrollLayer.texture == null) return;
+
+            // 换贴图时新贴图默认是 Clamp，平铺到边界会拉出一条线，这里统一改成 Repeat
+            scrollLayer.texture.wrapMode = TextureWrapMode.Repeat;
+
+            float texAspect = (float)scrollLayer.texture.width / scrollLayer.texture.height;
+            float screenAspect = (float)Screen.width / Screen.height;
+            float rows = Mathf.Max(1f, scrollColumns * texAspect / screenAspect);
+
+            scrollLayer.uvRect = new Rect(0f, 0f, scrollColumns, rows);
         }
 
         /// <summary>切换完成，可以淡出了</summary>
@@ -83,24 +134,17 @@ namespace HotUpdate.UI.UIPanel
             _routine = null;
             group.blocksRaycasts = false;
             gameObject.SetActive(false);
+            ResetUI();
         }
 
         // 遮住期间的循环动效：光环转圈 + 文字呼吸 + 三个点依次跳动
         private void PlayIdle()
         {
-            // 上一次是直接 SetActive(false) 掐断的，动画停在半路，先清掉再重播
-            ring.DOKill();
-            title.DOKill();
-            foreach (RectTransform dot in dots) dot.DOKill();
-
-            ring.localRotation = Quaternion.identity;
-            title.alpha = 1f;
-            foreach (RectTransform dot in dots) dot.localScale = Vector3.one;
-
+            ResetUI();
             ring.DORotate(new Vector3(0f, 0f, 360f), 1.8f, RotateMode.FastBeyond360)
                 .SetEase(Ease.Linear).SetLoops(-1).SetUpdate(true);
 
-            title.DOFade(0.35f, 0.3f).SetEase(Ease.InOutSine)
+            title.DOFade(0f, 0.4f).SetEase(Ease.InOutSine)
                 .SetLoops(-1, LoopType.Yoyo).SetUpdate(true);
 
             for (int i = 0; i < dots.Length; i++)
@@ -109,6 +153,16 @@ namespace HotUpdate.UI.UIPanel
                 dot.DOScale(1.6f, 0.32f).SetEase(Ease.InOutSine)
                     .SetLoops(-1, LoopType.Yoyo).SetDelay(i * 0.12f).SetUpdate(true);
             }
+        }
+
+        private void ResetUI()
+        {
+            ring.DOKill();
+            title.DOKill();
+            foreach (RectTransform dot in dots) dot.DOKill();
+            ring.localRotation = Quaternion.identity;
+            title.alpha = 1f;
+            foreach (RectTransform dot in dots) dot.localScale = Vector3.one;
         }
     }
 }

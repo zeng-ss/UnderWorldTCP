@@ -27,17 +27,24 @@ namespace ProjectEditor
         private const string Address = "TransitionPanel";
         private const int UiLayer = 5;
 
-        // 压过所有普通面板（同一 Canvas 下靠 overrideSorting 生效）
-        private const int SortingOrder = 999;
-
         private const string FontPath = "Assets/Resources/AlimamaDongFangDaKai-Regular SDF.asset";
         private const string TexDir = "Assets/Resources/SharpUI/Textures/";
         private const string SpriteRing = TexDir + "round_frame.png";
         private const string SpriteDot = TexDir + "circle_mask.png";
+        private const string SpriteScroll = TexDir + "ability_slash.png";
+
+        // 流光层的加色滚动材质（URP 版，见 Resources/Shaders/UIScrollAdditive.shader）
+        private const string ScrollShader = "UnderWord/UI/ScrollAdditive";
+        private const string MaterialDir = "Assets/Resources/Materials";
+        private const string MaterialPath = MaterialDir + "/TransitionScroll.mat";
 
         private static readonly Color ColBg = new Color(0.035f, 0.045f, 0.07f, 1f);
+        private static readonly Color ColScroll = new Color(1f, 1f, 1f, 0.5f);
         private static readonly Color ColTitle = new Color(1f, 0.93f, 0.76f, 1f);
         private static readonly Color ColDot = new Color(1f, 0.85f, 0.35f, 1f);
+
+        // 流光层平铺次数（RawImage.uvRect 的宽高）
+        private static readonly Vector2 ScrollTiling = new Vector2(3f, 2f);
 
         [MenuItem("Tools/UI/过渡面板/1. 生成 TransitionPanel 预制体（含注册）", false, 75)]
         public static void Build()
@@ -63,18 +70,13 @@ namespace ProjectEditor
 
         private static GameObject BuildHierarchy()
         {
-            var root = new GameObject("TransitionPanel", typeof(RectTransform), typeof(Canvas),
-                typeof(GraphicRaycaster), typeof(TransitionPanel));
+            // 根节点故意不挂 Canvas：预制体根节点上的 Canvas 会被 Unity 当成「根 Overlay Canvas」，
+            // 把 RectTransform 的 localScale / anchor / sizeDelta 全部序列化成 0，
+            // 实例化到父 Canvas 下就整块 scale 0、宽高 0，什么都看不见。
+            // Canvas + GraphicRaycaster 在 TransitionPanel.Awake 里动态加（那时已经挂在父 Canvas 下了）。
+            var root = new GameObject("TransitionPanel", typeof(RectTransform), typeof(TransitionPanel));
             root.layer = UiLayer;
             Stretch(root.GetComponent<RectTransform>());
-
-            // 子 Canvas + overrideSorting：不管其他面板怎么加，这层永远画在最上面。
-            // 注意：预制体根节点没有父 Canvas，overrideSorting 保存时会被 Unity 清掉，
-            // 真正的设置在 TransitionPanel.Awake() 里（实例化到 Canvas 下之后）。
-            var canvas = root.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.overrideSorting = true;
-            canvas.sortingOrder = SortingOrder;
 
             // 所有视觉挂在 Root 下，由它的 CanvasGroup 统一控制透明度 / 点击拦截
             GameObject content = NewUI("Root", root.transform);
@@ -87,6 +89,17 @@ namespace ProjectEditor
             Stretch(bg.rectTransform);
             bg.color = ColBg;
             bg.raycastTarget = true;
+
+            // 流光层：RawImage + uvRect 无限滚动（不依赖 shader 的 UV 变换，换什么材质都能滚）
+            RawImage scroll = NewUI("Scroll", content.transform).AddComponent<RawImage>();
+            Stretch(scroll.rectTransform);
+            EnsureRepeatTexture(SpriteScroll);
+            scroll.texture = AssetDatabase.LoadAssetAtPath<Texture2D>(SpriteScroll);
+            scroll.uvRect = new Rect(0f, 0f, ScrollTiling.x, ScrollTiling.y);
+            scroll.color = ColScroll;
+            scroll.raycastTarget = false;
+            Material scrollMat = EnsureMaterial();
+            if (scrollMat != null) scroll.material = scrollMat;
 
             Image ring = NewUI("Ring", content.transform).AddComponent<Image>();
             Center(ring.rectTransform, new Vector2(180f, 180f));
@@ -113,16 +126,17 @@ namespace ProjectEditor
                 dotRects.Add(dot.rectTransform);
             }
 
-            BindRefs(root.GetComponent<TransitionPanel>(), group, ring.rectTransform, title, dotRects);
+            BindRefs(root.GetComponent<TransitionPanel>(), group, scroll, ring.rectTransform, title, dotRects);
             return root;
         }
 
         // 引用一次性写进序列化字段，运行时不再按名字找
-        private static void BindRefs(TransitionPanel panel, CanvasGroup group, RectTransform ring,
+        private static void BindRefs(TransitionPanel panel, CanvasGroup group, RawImage scroll, RectTransform ring,
             TMP_Text title, List<RectTransform> dots)
         {
             var so = new SerializedObject(panel);
             so.FindProperty("group").objectReferenceValue = group;
+            so.FindProperty("scrollLayer").objectReferenceValue = scroll;
             so.FindProperty("ring").objectReferenceValue = ring;
             so.FindProperty("title").objectReferenceValue = title;
 
@@ -193,6 +207,56 @@ namespace ProjectEditor
 
             image.sprite = sprite;
             if (sliced) image.type = Image.Type.Sliced;
+        }
+
+        // 流光材质：第一次生成时创建资源，之后复用（改了 shader 也能自动同步）
+        private static Material EnsureMaterial()
+        {
+            Shader shader = Shader.Find(ScrollShader);
+            if (shader == null)
+            {
+                Debug.LogError($"[TransitionPanelBuilder] 找不到 Shader {ScrollShader}，" +
+                               "流光层会退回默认 UI 材质（滚动失效）。请确认 UIScrollAdditive.shader 已导入。");
+                return null;
+            }
+
+            if (!AssetDatabase.IsValidFolder(MaterialDir))
+            {
+                if (!AssetDatabase.IsValidFolder("Assets/Resources"))
+                    AssetDatabase.CreateFolder("Assets", "Resources");
+                AssetDatabase.CreateFolder("Assets/Resources", "Materials");
+            }
+
+            var mat = AssetDatabase.LoadAssetAtPath<Material>(MaterialPath);
+            if (mat == null)
+            {
+                mat = new Material(shader);
+                AssetDatabase.CreateAsset(mat, MaterialPath);
+            }
+            else if (mat.shader != shader)
+            {
+                mat.shader = shader;
+                EditorUtility.SetDirty(mat);
+            }
+
+            AssetDatabase.SaveAssets();
+            return mat;
+        }
+
+        // RawImage 的 uvRect 会超出 0~1，纹理 wrap 必须是 Repeat（默认 Clamp 会在边界拉出一条线）
+        private static void EnsureRepeatTexture(string path)
+        {
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null) return;
+
+            var settings = new TextureImporterSettings();
+            importer.ReadTextureSettings(settings);
+            if (settings.wrapMode == TextureWrapMode.Repeat) return;
+
+            settings.wrapMode = TextureWrapMode.Repeat;
+            importer.SetTextureSettings(settings);
+            importer.SaveAndReimport();
+            Debug.Log($"[TransitionPanelBuilder] 已把 {path} 的 Wrap Mode 改为 Repeat（流光平铺需要）。");
         }
 
         // =====================================================================
