@@ -50,15 +50,6 @@ namespace HotUpdate.UI.UIPanel
             canvas.overrideSorting = true;
             canvas.sortingOrder = 999;
             gameObject.AddComponent<GraphicRaycaster>();
-
-            /*// 兜底：旧预制体里已经存成 0 的变换在这里拉正
-            var rect = (RectTransform)transform;
-            rect.localScale = Vector3.one;
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.pivot = new Vector2(0.5f, 0.5f);
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;*/
         }
 
         private void Update()
@@ -107,7 +98,6 @@ namespace HotUpdate.UI.UIPanel
             scrollLayer.uvRect = new Rect(0f, 0f, scrollColumns, rows);
         }
 
-        /// <summary>切换完成，可以淡出了</summary>
         public void Done() => _revealed = true;
 
         private IEnumerator Run(Action onCovered)
