@@ -22,24 +22,32 @@ namespace HotUpdate.Controller
 
         /// <summary>
         /// 退出登录：服务端把角色从在线列表移除并把场景重置回主界面，
+        /// 全程盖一层转场遮罩，登录面板加载完才揭开。
         /// </summary>
         public void BackToLogin()
         {
             int roleId = AppContext.Session.RoleId;
             Debug.Log($"退出登录 roleId = {roleId}");
 
-            AppContext.Proto.RequestBackToLogin(roleId, ret =>
+            AppContext.Ui.Transition(0.6f, () =>
             {
-                if (ret.CmdCode != CmdCode.Succeed)
+                AppContext.Proto.RequestBackToLogin(roleId, ret =>
                 {
-                    ShowTip("退出登录失败");
-                    return;
-                }
+                    if (ret.CmdCode != CmdCode.Succeed)
+                    {
+                        ShowTip("退出登录失败");
+                        AppContext.Ui.TransitionDone();
+                        return;
+                    }
 
-                AppContext.Session.Clear();
-                AppContext.Friend.Clear();
-                AppContext.Ui.ClosePanel<StartPanel>();
-                AppContext.Ui.OpenPanel<LoginPanel>();
+                    AppContext.Session.Clear();
+                    AppContext.Friend.Clear();
+                    AppContext.Ui.OpenPanel<LoginPanel>(_ =>
+                    {
+                        AppContext.Ui.ClosePanel<StartPanel>();
+                        AppContext.Ui.TransitionDone();
+                    });
+                });
             });
         }
 

@@ -6,6 +6,7 @@ using HotUpdate.UI.UIPanel;
 using UnityEngine;
 using UnityEngine.UI;
 using AppContext = HotUpdate.Core.AppContext;
+using Object = UnityEngine.Object;
 
 namespace HotUpdate.Manager
 {
@@ -27,6 +28,10 @@ namespace HotUpdate.Manager
 
         // 面板容器
         private GameObject _currentPanel;
+
+        // 全屏转场遮罩（常驻 Canvas 最上层，不参与面板字典）
+        private const string TransitionAddress = "TransitionPanel";
+        private TransitionPanel _transitionPanel;
 
         private bool _isCanvasInitialized;
 
@@ -200,6 +205,56 @@ namespace HotUpdate.Manager
 
         #endregion
 
+        #region 转场
+
+        /// <summary>
+        /// 全屏转场：淡入遮罩 → 执行 onCovered（开面板 / 切场景）→ 等 TransitionDone() → 淡出。
+        /// </summary>
+        public void Transition(float minHold, Action onCovered)
+        {
+            if (_transitionPanel != null)
+            {
+                _transitionPanel.Play(minHold, onCovered);
+                return;
+            }
+
+            // 预制体还没加载好：等加载完再播，不跳过遮罩
+            AppContext.UILoader.LoadAsync(TransitionAddress, prefab =>
+            {
+                if (prefab is null)
+                {
+                    onCovered?.Invoke();
+                    return;
+                }
+
+                EnsureTransition(prefab);
+                _transitionPanel?.Play(minHold, onCovered);
+            });
+        }
+
+        // 切换完成，可以揭开遮罩了
+        public void TransitionDone() => _transitionPanel?.Done();
+
+        private void PreloadTransition()
+        {
+            AppContext.UILoader.LoadAsync(TransitionAddress, prefab =>
+            {
+                if (prefab is not null) EnsureTransition(prefab);
+            });
+        }
+
+        private void EnsureTransition(GameObject prefab)
+        {
+            if (_transitionPanel is not null) return;
+
+            GameObject obj = Object.Instantiate(prefab, Canvas, false);
+            obj.name = TransitionAddress;
+            _transitionPanel = obj.GetComponent<TransitionPanel>();
+            _transitionPanel.gameObject.SetActive(false);
+        }
+
+        #endregion
+
         #region Canvas 初始化
 
         public void Init()
@@ -210,6 +265,9 @@ namespace HotUpdate.Manager
             InitCanvas();
             InitEventSystem();
             _isCanvasInitialized = true;
+
+            // 提前把转场面板加载好，第一次切界面时才不会卡在加载上
+            PreloadTransition();
         }
 
         /// <summary>
@@ -265,7 +323,8 @@ namespace HotUpdate.Manager
 
         private void InitEventSystem()
         {
-            if (GameObject.FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>() != null) return;
+            var eventObj = Object.FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>();
+            if (eventObj is not null) Object.Destroy(eventObj);
 
             GameObject eventSystemObj = Resources.Load<GameObject>("EventSystem") ?? new GameObject("EventSystem");
             if (eventSystemObj.name != "EventSystem")
@@ -276,10 +335,10 @@ namespace HotUpdate.Manager
             }
             else
             {
-                eventSystemObj = GameObject.Instantiate(eventSystemObj);
+                eventSystemObj = Object.Instantiate(eventSystemObj);
             }
 
-            GameObject.DontDestroyOnLoad(eventSystemObj);
+            Object.DontDestroyOnLoad(eventSystemObj);
         }
 
         #endregion

@@ -140,9 +140,14 @@ namespace HotUpdate.Controller
             if (hasRole) AppContext.Session.RoleId = ret.CreateRoleInfo.RoleId;
             else CreateRole();
 
-            AppContext.Ui.ClosePanel<LoginPanel>();
-            ShowTip("登录成功");
-            AppContext.Ui.OpenPanel<StartPanel>();
+            AppContext.Ui.Transition(0.8f, () =>
+            {
+                AppContext.Ui.OpenPanel<StartPanel>(_ =>
+                {
+                    AppContext.Ui.ClosePanel<LoginPanel>();
+                    AppContext.Ui.TransitionDone();
+                });
+            });
         }
 
         private void CreateRole()
