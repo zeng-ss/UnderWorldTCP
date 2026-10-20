@@ -140,7 +140,7 @@ namespace HotUpdate.Controller
             if (hasRole) AppContext.Session.RoleId = ret.CreateRoleInfo.RoleId;
             else CreateRole();
 
-            AppContext.Ui.Transition(0.8f, () =>
+            AppContext.Ui.Transition(0.8f, TransitionPanel.ScrollBgType.Normal, () =>
             {
                 AppContext.Ui.OpenPanel<StartPanel>(_ =>
                 {

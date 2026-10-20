@@ -29,7 +29,7 @@ namespace HotUpdate.Controller
             int roleId = AppContext.Session.RoleId;
             Debug.Log($"退出登录 roleId = {roleId}");
 
-            AppContext.Ui.Transition(0.6f, () =>
+            AppContext.Ui.Transition(0.6f, TransitionPanel.ScrollBgType.Normal, () =>
             {
                 AppContext.Proto.RequestBackToLogin(roleId, ret =>
                 {
@@ -78,7 +78,7 @@ namespace HotUpdate.Controller
                     return;
                 }
 
-                AppContext.Scene.LoadScene(LobbySceneName, 0.5f, OnCoveredHandle);
+                AppContext.Scene.LoadScene(LobbySceneName, 0.5f, TransitionPanel.ScrollBgType.Normal, OnCoveredHandle);
             });
         }
 

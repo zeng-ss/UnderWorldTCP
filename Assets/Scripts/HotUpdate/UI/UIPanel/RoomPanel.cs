@@ -453,7 +453,7 @@ namespace HotUpdate.UI.UIPanel
                     return;
                 }
 
-                AppContext.Scene.LoadScene("EnterScene", 0.4f, OnCoveredHandle);
+                AppContext.Scene.LoadScene("EnterScene", 0.4f, TransitionPanel.ScrollBgType.Normal, OnCoveredHandle);
             });
         }
 

@@ -36,7 +36,7 @@ namespace HotUpdate.UI.UIPanel
             }
 
             // 先收掉确认框再切场景：Canvas 是常驻的，面板不关会跟着回到主界面
-            AppContext.Scene.LoadScene("EnterScene",0.7f, OnCoveredHandle);
+            AppContext.Scene.LoadScene("EnterScene",0.7f, TransitionPanel.ScrollBgType.Fail, OnCoveredHandle);
         }
 
         private void OnCoveredHandle()

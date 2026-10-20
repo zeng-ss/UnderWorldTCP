@@ -164,7 +164,7 @@ namespace HotUpdate.Service
                     return;
                 }
 
-                AppContext.Scene.LoadScene("GameScene", 1f, OnCoveredHandle);
+                AppContext.Scene.LoadScene("GameScene", 1f, TransitionPanel.ScrollBgType.Battle, OnCoveredHandle);
             });
         }
 

@@ -11,12 +11,13 @@ namespace HotUpdate.Manager
 {
     public class SceneMgr
     {
-        public void LoadScene(string sceneName, float holdDuration, Action onCovered = null)
+        public void LoadScene(string sceneName, float holdDuration, TransitionPanel.ScrollBgType bgType,
+            Action onCovered = null)
         {
             // 用转场遮罩代替进度条：Addressables 的 PercentComplete 在加载阶段就会冲到 90% 左右
             // 然后停住等激活，做成进度条反而会「一来就 90%、卡一会儿再进游戏」。
             // 遮罩没有进度概念，加载多久都只是多转几圈。
-            AppContext.Ui.Transition(holdDuration, () =>
+            AppContext.Ui.Transition(holdDuration, bgType, () =>
             {
                 Debug.Log("Starting LoadScene: " + sceneName);
                 onCovered?.Invoke();

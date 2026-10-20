@@ -210,11 +210,11 @@ namespace HotUpdate.Manager
         /// <summary>
         /// 全屏转场：淡入遮罩 → 执行 onCovered（开面板 / 切场景）→ 等 TransitionDone() → 淡出。
         /// </summary>
-        public void Transition(float minHold, Action onCovered)
+        public void Transition(float minHold, TransitionPanel.ScrollBgType bgType, Action onCovered)
         {
             if (_transitionPanel != null)
             {
-                _transitionPanel.Play(minHold, onCovered);
+                _transitionPanel.Play(minHold, bgType, onCovered);
                 return;
             }
 
@@ -228,7 +228,7 @@ namespace HotUpdate.Manager
                 }
 
                 EnsureTransition(prefab);
-                _transitionPanel.Play(minHold, onCovered);
+                _transitionPanel.Play(minHold, bgType, onCovered);
             });
         }
 

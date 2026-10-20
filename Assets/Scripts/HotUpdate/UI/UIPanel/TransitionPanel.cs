@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using DG.Tweening;
 using TMPro;
 using UnityEngine;
@@ -12,33 +13,37 @@ namespace HotUpdate.UI.UIPanel
     /// </summary>
     public class TransitionPanel : MonoBehaviour
     {
+        #region SerializeField
+
         [SerializeField] private CanvasGroup group;
         [SerializeField] private RawImage scrollLayer;
         [SerializeField] private RectTransform ring;
         [SerializeField] private TMP_Text title;
         [SerializeField] private RectTransform[] dots;
 
-        [Header("流光")] [Tooltip("uvRect 每秒滚动多少（贴图先平铺，再无限偏移）")] [SerializeField]
-        private Vector2 scrollSpeed = new(0.08f, 0.03f);
-
-        [Tooltip("横向平铺几列；行数按贴图与屏幕的宽高比自动算，换贴图不会被拉变形")]
-        [SerializeField]
-        private float scrollColumns = 16f;
-
+        [Header("流光")] [SerializeField] private Vector2 scrollSpeed = new(0.08f, 0.03f);
+        [Tooltip("横向平铺几列")] [SerializeField] private float scrollColumns = 16f;
         [Header("节奏")] [SerializeField] private float fadeIn = 0.35f;
         [SerializeField] private float fadeOut = 0.4f;
+        [SerializeField] private float minHold = 0.5f;
+        [SerializeField] private float timeout = 8f;
 
-        [Tooltip("遮住之后至少停留多久")] [SerializeField]
-        private float minHold = 0.5f;
-
-        [Tooltip("等切换完成的最长时间")] [SerializeField]
-        private float timeout = 8f;
+        #endregion
 
         private Coroutine _routine;
         private bool _revealed;
         private Material _scrollMaterial;
 
         private const string ScrollShader = "UnderWord/UI/ScrollAdditive";
+
+        public enum ScrollBgType
+        {
+            Normal,
+            Battle,
+            Fail
+        }
+
+        private Dictionary<ScrollBgType, Texture> _bgTypeDict;
 
         public bool IsPlaying => _routine != null;
 
@@ -54,19 +59,14 @@ namespace HotUpdate.UI.UIPanel
             canvas.sortingOrder = 999;
             gameObject.AddComponent<GraphicRaycaster>();
 
-            PrepareScrollMaterial();
-        }
-
-        // 复制一份材质：改 UV 偏移时不污染 Resources 里那个共享资源
-        private void PrepareScrollMaterial()
-        {
-            if (scrollLayer == null) return;
-
+            _bgTypeDict = new Dictionary<ScrollBgType, Texture>
+            {
+                { ScrollBgType.Normal, Resources.Load<Texture>("SharpUI/Textures/ability_fireball") },
+                { ScrollBgType.Battle, Resources.Load<Texture>("SharpUI/Textures/ability_sword_double") },
+                { ScrollBgType.Fail, Resources.Load<Texture>("SharpUI/Textures/icon_close") }
+            };
+            // 复制一份材质：改 UV 偏移时不污染 Resources 里那个共享资源
             Material source = scrollLayer.material;
-            if (source == null || source.shader == null || source.shader.name != ScrollShader)
-                source = Resources.Load<Material>("Materials/TransitionScroll");
-            if (source == null) return;
-
             _scrollMaterial = new Material(source);
             scrollLayer.material = _scrollMaterial;
         }
@@ -83,7 +83,7 @@ namespace HotUpdate.UI.UIPanel
             _scrollMaterial.mainTextureOffset = offset;
         }
 
-        public void Play(float minHoldDuration, Action onCovered)
+        public void Play(float minHoldDuration, ScrollBgType bgType, Action onCovered)
         {
             // 正在转场就忽略重复请求（连点按钮不该让遮罩闪两遍）
             if (IsPlaying)
@@ -92,6 +92,7 @@ namespace HotUpdate.UI.UIPanel
                 return;
             }
 
+            scrollLayer.texture = _bgTypeDict[bgType];
             minHold = minHoldDuration;
             _revealed = false;
             gameObject.SetActive(true);

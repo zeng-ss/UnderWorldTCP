@@ -1,4 +1,3 @@
-using System.Collections;
 using HotUpdate.Core;
 using HotUpdate.Manager;
 using HotUpdate.UI.UIPanel;
@@ -11,10 +10,9 @@ namespace HotUpdate.Launcher
     {
         private void Awake()
         {
-            GameObject mgr = new GameObject(nameof(GameManager), typeof(GameManager));
-            //StartCoroutine(EnterGame());
+            new GameObject(nameof(GameManager), typeof(GameManager));
             Debug.Log("游戏开始,主流程开始");
-            AppContext.Ui.Transition(0.5f,
+            AppContext.Ui.Transition(0.5f, TransitionPanel.ScrollBgType.Normal,
                 () =>
                 {
                     Addressables.LoadSceneAsync("EnterScene").Completed += _ =>
@@ -23,12 +21,6 @@ namespace HotUpdate.Launcher
                         AppContext.Ui.TransitionDone();
                     };
                 });
-        }
-
-        private IEnumerator EnterGame()
-        {
-            var handle = Addressables.InstantiateAsync("GameManager");
-            yield return handle;
         }
     }
 }
