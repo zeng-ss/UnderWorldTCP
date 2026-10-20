@@ -36,6 +36,9 @@ namespace HotUpdate.UI.UIPanel
 
         private Coroutine _routine;
         private bool _revealed;
+        private Material _scrollMaterial;
+
+        private const string ScrollShader = "UnderWord/UI/ScrollAdditive";
 
         public bool IsPlaying => _routine != null;
 
@@ -50,17 +53,34 @@ namespace HotUpdate.UI.UIPanel
             canvas.overrideSorting = true;
             canvas.sortingOrder = 999;
             gameObject.AddComponent<GraphicRaycaster>();
+
+            PrepareScrollMaterial();
+        }
+
+        // 复制一份材质：改 UV 偏移时不污染 Resources 里那个共享资源
+        private void PrepareScrollMaterial()
+        {
+            if (scrollLayer == null) return;
+
+            Material source = scrollLayer.material;
+            if (source == null || source.shader == null || source.shader.name != ScrollShader)
+                source = Resources.Load<Material>("Materials/TransitionScroll");
+            if (source == null) return;
+
+            _scrollMaterial = new Material(source);
+            scrollLayer.material = _scrollMaterial;
         }
 
         private void Update()
         {
-            if (scrollLayer == null) return;
+            if (_scrollMaterial == null) return;
 
-            // 直接改 RawImage.uvRect：不依赖材质的 UV 变换，换什么 shader 都能滚
-            Rect uv = scrollLayer.uvRect;
-            uv.x = Mathf.Repeat(uv.x + scrollSpeed.x * Time.deltaTime, 1f);
-            uv.y = Mathf.Repeat(uv.y + scrollSpeed.y * Time.deltaTime, 1f);
-            scrollLayer.uvRect = uv;
+            // 改材质 UV 偏移，而不是 RawImage.uvRect：
+            // uvRect 的 setter 会 SetVerticesDirty，每帧重建整块全屏网格 + 大量 GC，全屏时非常卡
+            Vector2 offset = _scrollMaterial.mainTextureOffset + scrollSpeed * Time.deltaTime;
+            offset.x = Mathf.Repeat(offset.x, 1f);
+            offset.y = Mathf.Repeat(offset.y, 1f);
+            _scrollMaterial.mainTextureOffset = offset;
         }
 
         public void Play(float minHoldDuration, Action onCovered)
@@ -82,20 +102,24 @@ namespace HotUpdate.UI.UIPanel
 
         /// <summary>
         /// 按「屏幕宽高比 / 贴图宽高比」算平铺次数：每块贴图的宽高比和原图一致，换任何贴图都不会被拉变形。
-        /// 只定横向列数，行数自动推出来。
+        /// 只定横向列数，行数自动推出来。平铺次数写在材质上（顶点 UV 固定 0~1）。
         /// </summary>
         private void ApplyTiling()
         {
-            if (scrollLayer == null || scrollLayer.texture == null) return;
+            if (scrollLayer == null || scrollLayer.texture == null || _scrollMaterial == null) return;
 
             // 换贴图时新贴图默认是 Clamp，平铺到边界会拉出一条线，这里统一改成 Repeat
             scrollLayer.texture.wrapMode = TextureWrapMode.Repeat;
+
+            // 顶点 UV 固定 0~1：滚动靠材质 UV 偏移，避免每帧重建整块网格
+            scrollLayer.uvRect = new Rect(0f, 0f, 1f, 1f);
 
             float texAspect = (float)scrollLayer.texture.width / scrollLayer.texture.height;
             float screenAspect = (float)Screen.width / Screen.height;
             float rows = Mathf.Max(1f, scrollColumns * texAspect / screenAspect);
 
-            scrollLayer.uvRect = new Rect(0f, 0f, scrollColumns, rows);
+            // shader 里 TRANSFORM_TEX 用的就是 _MainTex_ST
+            _scrollMaterial.mainTextureScale = new Vector2(scrollColumns, rows);
         }
 
         public void Done() => _revealed = true;

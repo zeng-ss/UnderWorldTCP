@@ -36,11 +36,10 @@ namespace HotUpdate.Manager
 
         private void Preload()
         {
+            // 只预热 HUD 预制体（揭幕前要等它加载完）。
+            // Character / NPC / GameController 交给 OnSceneLoaded 里的 LoadAndInstantiateAsync，
+            // 跟场景加载并行只会抢主线程和带宽，把过渡拖得更卡。
             AppContext.UILoader.LoadAsync(PanelPathResolver.Resolve<PlayerProPanel>(), null);
-            AppContext.Res.LoadAssetAsync<GameObject>("Character", null);
-            AppContext.Res.LoadAssetAsync<GameObject>("NPC", null);
-            AppContext.Res.LoadAssetAsync<GameObject>("GameController", null);
-            AppContext.Res.LoadAssetAsync<GameObject>("HUDSlotItem", null);
         }
 
         private void OnSceneLoaded(string sceneName, Action onReady)

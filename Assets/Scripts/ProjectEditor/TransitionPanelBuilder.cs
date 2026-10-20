@@ -43,9 +43,6 @@ namespace ProjectEditor
         private static readonly Color ColTitle = new Color(1f, 0.93f, 0.76f, 1f);
         private static readonly Color ColDot = new Color(1f, 0.85f, 0.35f, 1f);
 
-        // 流光层平铺次数（RawImage.uvRect 的宽高）
-        private static readonly Vector2 ScrollTiling = new Vector2(3f, 2f);
-
         [MenuItem("Tools/UI/过渡面板/1. 生成 TransitionPanel 预制体（含注册）", false, 75)]
         public static void Build()
         {
@@ -95,7 +92,9 @@ namespace ProjectEditor
             Stretch(scroll.rectTransform);
             EnsureRepeatTexture(SpriteScroll);
             scroll.texture = AssetDatabase.LoadAssetAtPath<Texture2D>(SpriteScroll);
-            scroll.uvRect = new Rect(0f, 0f, ScrollTiling.x, ScrollTiling.y);
+            // uvRect 固定 0~1：平铺次数写在材质的 _MainTex_ST 上，滚动只改材质 UV 偏移，
+            // 这样每帧不会 SetVerticesDirty 重建整块全屏网格（那是过渡期间掉帧的主因）
+            scroll.uvRect = new Rect(0f, 0f, 1f, 1f);
             scroll.color = ColScroll;
             scroll.raycastTarget = false;
             Material scrollMat = EnsureMaterial();
