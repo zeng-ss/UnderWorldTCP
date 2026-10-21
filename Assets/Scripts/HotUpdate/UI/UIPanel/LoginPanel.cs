@@ -23,8 +23,7 @@ namespace HotUpdate.UI.UIPanel
         public Dropdown dropdown;
         public Button loginBtn;
         public Button registerBtn;
-        public Text account;
-        public Text password;
+        public InputField account, password;
 
         /// <summary>本面板的控制器，由面板自己 new 并持有</summary>
         private LoginController _controller;

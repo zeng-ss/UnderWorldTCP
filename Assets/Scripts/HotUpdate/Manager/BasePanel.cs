@@ -1,6 +1,7 @@
 using System.Collections;
 using HotUpdate.Core;
 using HotUpdate.UI;
+using HotUpdate.UI.UIItem;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +9,7 @@ namespace HotUpdate.Manager
 {
     public class BasePanel : MonoBehaviour
     {
-        [HideInInspector] public bool isAnimating;
+        public bool IsAnimating { get; private set; }
         private RectTransform _rootRect;
         private PanelTween PanelAnimator { get; set; }
 
@@ -81,11 +82,11 @@ namespace HotUpdate.Manager
             // 动画期间置 isAnimating，外部切换面板 / 逻辑判断可以据此避开动画帧
             if (PanelAnimator == null)
             {
-                isAnimating = false;
+                IsAnimating = false;
                 return;
             }
 
-            isAnimating = PanelAnimator.PlayShow(() => { isAnimating = false; });
+            IsAnimating = PanelAnimator.PlayShow(() => { IsAnimating = false; });
         }
 
         public virtual void Hide()
@@ -102,10 +103,10 @@ namespace HotUpdate.Manager
 
             // 先播关闭动画，动画结束后才真正 SetActive(false)，状态复原交给 PanelTween.OnDisable
             _isHiding = true;
-            isAnimating = PanelAnimator.PlayHide(() =>
+            IsAnimating = PanelAnimator.PlayHide(() =>
             {
                 _isHiding = false;
-                isAnimating = false;
+                IsAnimating = false;
                 gameObject.SetActive(false);
             });
         }
@@ -117,7 +118,7 @@ namespace HotUpdate.Manager
         {
             _isHiding = false;
             if (PanelAnimator != null) PanelAnimator.Kill();
-            isAnimating = false;
+            IsAnimating = false;
             gameObject.SetActive(false);
         }
     }

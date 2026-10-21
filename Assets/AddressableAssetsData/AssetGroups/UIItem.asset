@@ -45,11 +45,6 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 95300a0d91a8edb4ebe605f61ff3cedc
-    m_Address: headFrame
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 9aea4f0b1ff70af4ba49e147f117bc52
     m_Address: RoomPlayerItem
     m_ReadOnly: 0

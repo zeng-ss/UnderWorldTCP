@@ -31,7 +31,7 @@ namespace ProjectEditor
 
         // ---------- 贴图 ----------
         private const string TexDir = "Assets/Resources/SharpUI/Textures/";
-        private const string SpriteBar = TexDir + "info_box.png";
+        private const string SpriteBar = "";
 
         // ---------- 命名 ----------
         private const string BarName = "shortcutBtnParent"; // 与 PlayerProPanel 的字段同名，见名知意
@@ -214,6 +214,9 @@ namespace ProjectEditor
 
         private static void ApplySprite(Image img, string spritePath, bool sliced)
         {
+            // 纯色拼接：贴图路径为空表示不需要图，颜色由调用方设置
+            if (string.IsNullOrEmpty(spritePath)) return;
+
             var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(spritePath);
             if (sprite == null)
             {

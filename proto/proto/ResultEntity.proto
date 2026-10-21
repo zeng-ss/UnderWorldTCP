@@ -58,6 +58,7 @@ message CreateRoleRet{
   string nickname = 3;//昵称 
   int32 job_id = 4;
   int32 level = 5;
+  int32 avatar = 6;//头像编号（登录游戏服时一并带回，否则客户端只能等 StartGame 才知道）
 }
 
 //保存角色数据返回

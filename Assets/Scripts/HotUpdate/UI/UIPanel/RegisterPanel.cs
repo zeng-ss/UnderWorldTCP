@@ -12,11 +12,8 @@ namespace HotUpdate.UI.UIPanel
     [PanelPath("RegisterPanel")]
     public class RegisterPanel : BasePanel
     {
-        public Text account;
-        public Text password;
-        public Text pwsCheck;
-        public Button registerBtn;
-        public Button loginBtn;
+        public InputField account, password, pwsCheck;
+        public Button registerBtn, loginBtn;
 
         /// <summary>本面板的控制器，由面板自己 new 并持有</summary>
         private RegisterController _controller;

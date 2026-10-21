@@ -1000,7 +1000,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
   m_AnchoredPosition: {x: 0, y: 28}
-  m_SizeDelta: {x: 659.2, y: 158}
+  m_SizeDelta: {x: 659.2, y: 1}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &8557443536175544430
 CanvasRenderer:
@@ -1275,7 +1275,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dbd65d0f94a4444ba1636ef43667007, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  isAnimating: 0
   healthFill: {fileID: 3409685185852029975}
   healthText: {fileID: 3409685184743551471}
   powerFill: {fileID: 3949237999537885934}

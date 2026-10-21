@@ -30,9 +30,9 @@ namespace ProjectEditor
 
         private const string FontPath = "Assets/Resources/AlimamaDongFangDaKai-Regular SDF.asset";
         private const string TexDir = "Assets/Resources/SharpUI/Textures/";
-        private const string SpritePanelBg = TexDir + "info_box.png";
-        private const string SpriteHeader = TexDir + "dialog_header_background.png";
-        private const string SpriteButton = TexDir + "rect_button.png";
+        private const string SpritePanelBg = "";
+        private const string SpriteHeader = "";
+        private const string SpriteButton = "";
         private const string SpriteFrame = TexDir + "round_frame.png";
         private const string SpriteCircleMask = TexDir + "circle_mask.png";
         private const string SpriteClose = TexDir + "icon_close_light.png";
@@ -313,6 +313,13 @@ namespace ProjectEditor
 
         private static void ApplySprite(Image image, string path, bool sliced)
         {
+            // 纯色拼接：没给贴图就当面板底，不保留默认白色
+            if (string.IsNullOrEmpty(path))
+            {
+                image.color = new Color(0.055f, 0.055f, 0.07f, 1f);
+                return;
+            }
+
             Sprite sprite = LoadSprite(path);
             if (sprite == null) return;
 

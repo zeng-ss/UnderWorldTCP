@@ -7,6 +7,7 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using HotUpdate.UI.UIItem;
 using HotUpdate.UI.UIPanel;
 
 namespace ProjectEditor
@@ -18,42 +19,32 @@ namespace ProjectEditor
     //   2. 保存选中对象为 Prefab    —— 把生成的面板存成预制体
     //   3. 一键生成并保存为 Prefab  —— 1 + 2 连做（最常用）
     //   4. 注册到 Addressables     —— 按地址 StartPanel 注册（路径没变的话本来就已经注册过）
+    //   5. 补引用绑定（不动层级）    —— 已有预制体只重连字段
     //
-    // 版式：全屏背景 + 暗化遮罩 + 居中九宫主面板
-    //   左列：头像 + 昵称(playerName) + 副标题
-    //   右列：进入游戏(HostBtn) / 私聊(FriendBtn) / 背包(DepotBtn) / 退出游戏(ExitBtn)
+    // 版式（1920×1080 全屏，深色 + 荧光黄绿强调）：
+    //   左上：头像 + 昵称(playerName) + 在线状态
+    //   左中：竖排菜单 —— 进入游戏(HostBtn) / 私聊(FriendBtn) / 背包(DepotBtn) / 退出登录(ExitBtn)
+    //   右侧：斜排的 UNDER WORLD 水印字
+    //   边角：版本号 / 装饰线
     //
     // 约定：
-    //   · 视觉全部复用 SharpUI 资源（预制体 RectButton；贴图 background / info_box /
-    //     dialog_header_background / rect_button / round_frame）。
-    //   · 节点的引用由生成流程直接写进 StartPanel 的序列化字段，运行时不再按名字找；
-    //     已经存在的预制体可用菜单「5. 补引用绑定（不动层级）」重连。
-    //   · 所有文本统一用项目中文 TMP 字体，否则中文会是方块。
+    //   · 头像是复用 headFrame.prefab（自带 Mask），菜单项自绘（斜切感靠整体 -2.5° 旋转 + 左侧色条）。
+    //   · 节点的引用由生成流程直接写进 StartPanel 的序列化字段，运行时不再按名字找。
+    //   · 所有中文文本统一用项目中文 TMP 字体，英文装饰字用 Oswald（形更硬朗），否则中文会是方块。
     public static class StartPanelBuilder
     {
         // ---------- 字体 ----------
         private const string FontPath = "Assets/Resources/AlimamaDongFangDaKai-Regular SDF.asset";
+        private const string EnFontPath =
+            "Assets/UnityShop/URP/TextMesh Pro/Examples & Extras/Resources/Fonts & Materials/Oswald Bold SDF.asset";
 
-        // ---------- SharpUI 贴图 ----------
+        // ---------- 贴图 ----------
         private const string TexDir = "Assets/Resources/SharpUI/Textures/";
         private const string SpriteBg = TexDir + "background.png";
-        private const string SpritePanelBg = TexDir + "info_box.png";
-        private const string SpriteHeader = TexDir + "dialog_header_background.png";
-        private const string SpriteButton = TexDir + "rect_button.png";
         private const string SpriteRoundFrame = TexDir + "round_frame.png";
-
-        // ---------- SharpUI 预制体 ----------
-        private const string SharpPrefabDir = "Assets/Resources/SharpUI/Prefabs/UI/";
-        private const string SharpButtonPath = SharpPrefabDir + "Button/RectButton.prefab";
 
         // ---------- 项目自带 UIItem 预制体 ----------
         private const string HeadFramePrefabPath = "Assets/Res/UI/UIItem/headFrame.prefab";
-
-        // ---------- 图标 ----------
-        private const string IconHost = TexDir + "sword.png";
-        private const string IconFriend = TexDir + "icon_male.png";
-        private const string IconDepot = TexDir + "icon_bottle.png";
-        private const string IconExit = TexDir + "icon_close_light.png";
 
         // ---------- 输出 ----------
         private const string PanelPrefabPath = "Assets/Res/UI/UIPanel/StartPanel.prefab";
@@ -62,25 +53,28 @@ namespace ProjectEditor
         private const string RootName = "StartPanel";
         private const string CanvasName = "StartPanelTempCanvas";
 
-        // ---------- 版式 ----------
-        private const float PanelWidth = 1120f;
-        private const float PanelHeight = 640f;
-        private const float HeaderHeight = 80f;
-        private const float LeftColumnX = -300f;
-        private const float RightColumnX = 250f;
-        private const float ButtonWidth = 380f;
-        private const float ButtonHeight = 86f;
-        private const float ButtonGap = 22f;
+        // ---------- 版式（相对屏幕中心，参考 1920×1080）----------
+        private const float RuleX = -900f;          // 左侧竖线
+        private const float MenuCenterX = -540f;    // 菜单列中心
+        private const float MenuWidth = 460f;
+        private const float MenuItemHeight = 84f;
+        private const float MenuItemGap = 16f;
+        private const float MenuTopY = 180f;        // 第一项中心
+        private const float MenuTilt = -2.5f;       // 菜单整体倾斜角（斜切感）
 
         // ---------- 配色 ----------
-        private static readonly Color ColBackdrop = new Color(0.05f, 0.06f, 0.09f, 1f);
-        private static readonly Color ColDim = new Color(0f, 0f, 0f, 0.45f);
-        private static readonly Color ColTitle = new Color(1f, 0.93f, 0.76f, 1f);
-        private static readonly Color ColName = new Color(0.96f, 0.97f, 1f, 1f);
-        private static readonly Color ColSub = new Color(0.66f, 0.69f, 0.76f, 1f);
-        private static readonly Color ColLabel = new Color(0.97f, 0.98f, 1f, 1f);
+        private static readonly Color ColBackdrop = new Color(0.035f, 0.035f, 0.045f, 1f);
+        private static readonly Color ColShade = new Color(0.028f, 0.028f, 0.036f, 0.84f);
+        private static readonly Color ColAccent = new Color(0.85f, 1f, 0.24f, 1f);      // 荧光黄绿 #D9FF3D
+        private static readonly Color ColAccentHover = new Color(0.93f, 1f, 0.45f, 1f); // 主按钮悬停再亮一档
+        private static readonly Color ColOnAccent = new Color(0.05f, 0.05f, 0.06f, 1f);
+        private static readonly Color ColItemBg = new Color(0.085f, 0.085f, 0.105f, 0.94f);
+        private static readonly Color ColText = new Color(0.95f, 0.96f, 0.98f, 1f);
+        private static readonly Color ColTextDim = new Color(0.42f, 0.43f, 0.5f, 1f);
+        private static readonly Color ColWatermark = new Color(0.085f, 0.085f, 0.105f, 1f);
 
         private static TMP_FontAsset _font;
+        private static TMP_FontAsset _enFont;
         private static readonly Dictionary<string, Sprite> _spriteCache = new();
         private static readonly HashSet<string> _fullRectFixed = new();
 
@@ -231,10 +225,6 @@ namespace ProjectEditor
             so.FindProperty("depotBtn").objectReferenceValue = FindDeep(root.transform, "DepotBtn").GetComponent<Button>();
             so.FindProperty("exitBtn").objectReferenceValue = FindDeep(root.transform, "ExitBtn").GetComponent<Button>();
             so.ApplyModifiedPropertiesWithoutUndo();
-
-            // 退出按钮现在是「退出登录」（回登录界面），老预制体上的「退出游戏」文案顺手改掉
-            TMP_Text exitLabel = FindDeep(root.transform, "ExitBtn").GetComponentInChildren<TMP_Text>(true);
-            if (exitLabel != null) exitLabel.text = "退出登录";
         }
 
         // 红点：锚在按钮右上角的圆点，显隐由 StartPanel 按红点树控制
@@ -244,12 +234,12 @@ namespace ProjectEditor
             var rt = (RectTransform)go.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(1f, 1f);
             rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(26f, 26f);
-            rt.anchoredPosition = new Vector2(-14f, -14f);
+            rt.sizeDelta = new Vector2(22f, 22f);
+            rt.anchoredPosition = new Vector2(-10f, -10f);
 
             var image = go.AddComponent<Image>();
             ApplySprite(image, TexDir + "circle_mask.png", false);
-            image.color = new Color(0.92f, 0.24f, 0.24f, 1f);
+            image.color = new Color(1f, 0.26f, 0.42f, 1f);
             image.raycastTarget = false;
             return image;
         }
@@ -266,6 +256,8 @@ namespace ProjectEditor
             if (_font == null)
                 Debug.LogWarning($"[StartPanelBuilder] 未找到字体资源：{FontPath}，文本将回退默认字体（中文可能显示为方块）。");
 
+            _enFont = AssetDatabase.LoadAssetAtPath<TMP_FontAsset>(EnFontPath);
+
             // ---- 根节点：铺满 + 深色底 + 逻辑组件 ----
             var root = NewUI(RootName, canvas);
             Undo.RegisterCreatedObjectUndo(root, "Create StartPanel");
@@ -274,58 +266,90 @@ namespace ProjectEditor
             rootImg.color = ColBackdrop;
             root.AddComponent<StartPanel>();
 
-            // ---- 背景图（16:9，直接拉满不跑偏）----
-            var bg = NewUI("Bg", root.transform);
-            Stretch((RectTransform)bg.transform);
-            var bgImg = bg.AddComponent<Image>();
-            ApplySprite(bgImg, SpriteBg, false);
-            bgImg.raycastTarget = false;
+            // ---- 右上角一块倾斜的暗色块：纯色几何，代替原来的背景图 ----
+            var slab = NewUI("Slab", root.transform);
+            var srt = (RectTransform)slab.transform;
+            srt.anchorMin = srt.anchorMax = new Vector2(1f, 1f);
+            srt.pivot = new Vector2(0.5f, 0.5f);
+            srt.sizeDelta = new Vector2(820f, 520f);
+            srt.anchoredPosition = new Vector2(-160f, -150f);
+            srt.localRotation = Quaternion.Euler(0f, 0f, -16f);
+            var slabImg = slab.AddComponent<Image>();
+            slabImg.color = new Color(1f, 1f, 1f, 0.022f);
+            slabImg.raycastTarget = false;
 
-            // ---- 暗化遮罩，压住背景让面板与文字跳出来 ----
-            var dim = NewUI("Dim", root.transform);
-            Stretch((RectTransform)dim.transform);
-            var dimImg = dim.AddComponent<Image>();
-            dimImg.color = ColDim;
-            dimImg.raycastTarget = false;
+            var shade = NewUI("Shade", root.transform);
+            Stretch((RectTransform)shade.transform);
+            var shadeImg = shade.AddComponent<Image>();
+            shadeImg.color = ColShade;
+            shadeImg.raycastTarget = false;
 
-            // ---- 主面板 ----
-            var panel = NewUI("Panel", root.transform);
-            Center((RectTransform)panel.transform, new Vector2(PanelWidth, PanelHeight));
-            ApplySprite(panel.AddComponent<Image>(), SpritePanelBg, true);
-
-            BuildHeader(panel.transform);
-            BuildLeftColumn(panel.transform);
-            BuildRightColumn(panel.transform);
-            BuildFooter(root.transform);
+            BuildSideRule(root.transform);
+            BuildProfile(root.transform);
+            BuildMenu(root.transform);
+            BuildWatermark(root.transform);
+            BuildCorners(root.transform);
 
             BindRefs(root);
             return root;
         }
 
-        private static void BuildHeader(Transform parent)
+        // 左侧竖线 + 端点小方块：整套风格里唯一的"硬"装饰
+        private static void BuildSideRule(Transform parent)
         {
-            var header = NewUI("Header", parent);
-            var hrt = (RectTransform)header.transform;
-            Anchor(hrt, new Vector2(0f, 1f), new Vector2(1f, 1f));
-            hrt.pivot = new Vector2(0.5f, 1f);
-            hrt.sizeDelta = new Vector2(0f, HeaderHeight);
-            hrt.anchoredPosition = Vector2.zero;
-            ApplySprite(header.AddComponent<Image>(), SpriteHeader, false);
+            var line = NewUI("SideRule", parent);
+            var lineRt = (RectTransform)line.transform;
+            lineRt.anchorMin = new Vector2(0f, 0f);
+            lineRt.anchorMax = new Vector2(0f, 1f);
+            lineRt.pivot = new Vector2(0.5f, 0.5f);
+            lineRt.sizeDelta = new Vector2(3f, 0f);
+            lineRt.anchoredPosition = new Vector2(RuleX, 0f);
 
-            TMP_Text title = NewText("Title", header.transform, "开始游戏", 34f, TextAlignmentOptions.Center, ColTitle);
-            Stretch(title.rectTransform);
+            var lineImg = line.AddComponent<Image>();
+            lineImg.color = new Color(ColAccent.r, ColAccent.g, ColAccent.b, 0.55f);
+            lineImg.raycastTarget = false;
+
+            var cap = NewUI("Cap", line.transform);
+            var capRt = (RectTransform)cap.transform;
+            capRt.anchorMin = capRt.anchorMax = new Vector2(0.5f, 1f);
+            capRt.pivot = new Vector2(0.5f, 1f);
+            capRt.sizeDelta = new Vector2(18f, 46f);
+            capRt.anchoredPosition = new Vector2(0f, -60f);
+
+            var capImg = cap.AddComponent<Image>();
+            capImg.color = ColAccent;
+            capImg.raycastTarget = false;
         }
 
-        // 左列：头像 + 昵称 + 副标题
-        private static void BuildLeftColumn(Transform parent)
+        // 左上：头像 + 昵称 + 状态行
+        private static void BuildProfile(Transform parent)
         {
-            BuildAvatar(parent);
+            var group = NewUI("Profile", parent);
+            var groupRt = (RectTransform)group.transform;
+            groupRt.anchorMin = groupRt.anchorMax = new Vector2(0.5f, 0.5f);
+            groupRt.pivot = new Vector2(0.5f, 0.5f);
+            groupRt.sizeDelta = new Vector2(700f, 180f);
+            groupRt.anchoredPosition = new Vector2(-600f, 400f);
 
-            TMP_Text name = NewText("playerName", parent, "欢迎你：冒险者", 40f, TextAlignmentOptions.Center, ColName);
-            PlaceCenter(name.rectTransform, new Vector2(LeftColumnX, -90f), new Vector2(470f, 60f));
+            BuildAvatar(group.transform);
 
-            TMP_Text sub = NewText("SubTitle", parent, "祝你好运，冒险者", 20f, TextAlignmentOptions.Center, ColSub);
-            PlaceCenter(sub.rectTransform, new Vector2(LeftColumnX, -160f), new Vector2(470f, 34f));
+            TMP_Text name = NewText("playerName", group.transform, "冒险者", 42f,
+                TextAlignmentOptions.MidlineLeft, ColText, _font);
+            PlaceCenter(name.rectTransform, new Vector2(150f, 22f), new Vector2(400f, 54f));
+
+            TMP_Text status = NewText("Status", group.transform, "ONLINE", 18f,
+                TextAlignmentOptions.MidlineLeft, ColAccent, _enFont);
+            PlaceCenter(status.rectTransform, new Vector2(150f, -26f), new Vector2(400f, 26f));
+
+            var underline = NewUI("Underline", group.transform);
+            var ulRt = (RectTransform)underline.transform;
+            ulRt.anchorMin = ulRt.anchorMax = new Vector2(0.5f, 0.5f);
+            ulRt.pivot = new Vector2(0f, 0.5f);
+            ulRt.sizeDelta = new Vector2(180f, 2f);
+            ulRt.anchoredPosition = new Vector2(-50f, -56f);
+            var ulImg = underline.AddComponent<Image>();
+            ulImg.color = new Color(1f, 1f, 1f, 0.14f);
+            ulImg.raycastTarget = false;
         }
 
         // 头像：复用 headFrame.prefab（自带 Mask，能把内部头像裁进框里）
@@ -344,54 +368,111 @@ namespace ProjectEditor
             var rt = (RectTransform)head.transform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
             rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = new Vector2(170f, 170f);
-            rt.anchoredPosition = new Vector2(LeftColumnX, 70f);
+            rt.sizeDelta = new Vector2(150f, 150f);
+            rt.anchoredPosition = new Vector2(-200f, 0f);
 
             // headFrame 里的头像是固定尺寸，铺满外框即可
             var inner = FindDeep(head.transform, "headImage") as RectTransform;
-            if (inner != null)
-            {
-                Stretch(inner, 12f, 12f, 12f, 12f);
-            }
+            if (inner != null) Stretch(inner, 12f, 12f, 12f, 12f);
         }
 
-        // 右列：进入游戏 / 私聊 / 背包 / 退出游戏
-        private static void BuildRightColumn(Transform parent)
+        // 左中：竖排菜单，整体轻微倾斜
+        private static void BuildMenu(Transform parent)
         {
-            float top = PanelHeight * 0.5f - HeaderHeight - 30f;
-            float y = top - ButtonHeight * 0.5f;
+            var menu = NewUI("Menu", parent);
+            var menuRt = (RectTransform)menu.transform;
+            menuRt.anchorMin = menuRt.anchorMax = new Vector2(0.5f, 0.5f);
+            menuRt.pivot = new Vector2(0.5f, 0.5f);
+            menuRt.sizeDelta = new Vector2(MenuWidth, 520f);
+            menuRt.anchoredPosition = new Vector2(MenuCenterX, -40f);
+            menuRt.localRotation = Quaternion.Euler(0f, 0f, MenuTilt);
 
-            // 进入游戏：比其它按钮更宽 + 暖色调，视觉上作为主按钮
-            Button host = NewButton("HostBtn", parent, "进入游戏", IconHost);
-            PlaceCenter((RectTransform)host.transform, new Vector2(RightColumnX, y),
-                new Vector2(ButtonWidth + 24f, ButtonHeight + 12f));
-            TintButton(host, new Color(1f, 0.96f, 0.84f, 1f));
-            SetButtonLabelSize(host, 32f);
+            float y = MenuTopY;
 
-            y -= ButtonHeight + ButtonGap;
+            // 主入口：荧光底 + 黑字，唯一一个高亮项
+            NewMenuItem(menu.transform, "HostBtn", "进入游戏", "01", y, true);
+            y -= MenuItemHeight + MenuItemGap;
 
-            Button friend = NewButton("FriendBtn", parent, "私聊", IconFriend);
-            PlaceCenter((RectTransform)friend.transform, new Vector2(RightColumnX, y),
-                new Vector2(ButtonWidth, ButtonHeight));
+            NewMenuItem(menu.transform, "FriendBtn", "私聊", "02", y, false);
+            y -= MenuItemHeight + MenuItemGap;
 
-            y -= ButtonHeight + ButtonGap;
+            NewMenuItem(menu.transform, "DepotBtn", "背包", "03", y, false);
+            y -= MenuItemHeight + MenuItemGap;
 
-            Button depot = NewButton("DepotBtn", parent, "背包", IconDepot);
-            PlaceCenter((RectTransform)depot.transform, new Vector2(RightColumnX, y),
-                new Vector2(ButtonWidth, ButtonHeight));
-
-            y -= ButtonHeight + ButtonGap;
-
-            Button exit = NewButton("ExitBtn", parent, "退出登录", IconExit);
-            PlaceCenter((RectTransform)exit.transform, new Vector2(RightColumnX, y),
-                new Vector2(ButtonWidth, ButtonHeight));
+            NewMenuItem(menu.transform, "ExitBtn", "退出登录", "04", y, false);
         }
 
-        private static void BuildFooter(Transform parent)
+        private static Button NewMenuItem(Transform parent, string name, string label, string index,
+            float y, bool primary)
         {
-            TMP_Text version = NewText("Footer", parent, "UnderWordYoo  ·  热更客户端", 20f,
-                TextAlignmentOptions.Center, ColSub);
-            PlaceCenter(version.rectTransform, new Vector2(0f, -500f), new Vector2(800f, 32f));
+            var go = NewUI(name, parent);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = new Vector2(MenuWidth, MenuItemHeight);
+            rt.anchoredPosition = new Vector2(0f, y);
+
+            var img = go.AddComponent<Image>();
+            img.color = primary ? ColAccent : ColItemBg;
+            img.raycastTarget = true;
+
+            var btn = go.AddComponent<Button>();
+            btn.targetGraphic = img;
+            // ColorTint 是乘法（底色 × 状态色），黑底乘什么都是黑，所以悬停变色交给 ButtonHoverTint：
+            // 次按钮整块变荧光黄、文字和左侧色条转近黑，和主按钮同一套视觉
+            btn.transition = Selectable.Transition.None;
+
+            var tint = go.AddComponent<ButtonHoverTint>();
+            tint.SetColors(primary ? ColAccentHover : ColAccent, ColOnAccent, 0.1f);
+
+            // 左侧色条：主按钮用黑色，次按钮用荧光色
+            var bar = NewUI("Bar", go.transform);
+            var barRt = (RectTransform)bar.transform;
+            barRt.anchorMin = new Vector2(0f, 0f);
+            barRt.anchorMax = new Vector2(0f, 1f);
+            barRt.pivot = new Vector2(0f, 0.5f);
+            barRt.sizeDelta = new Vector2(6f, 0f);
+            barRt.anchoredPosition = Vector2.zero;
+            var barImg = bar.AddComponent<Image>();
+            barImg.color = primary ? ColOnAccent : ColAccent;
+            barImg.raycastTarget = false;
+
+            // 序号：英文窄体，弱化
+            TMP_Text idx = NewText("Index", go.transform, index, 18f,
+                TextAlignmentOptions.MidlineLeft, primary ? new Color(0f, 0f, 0f, 0.45f) : ColTextDim, _enFont);
+            PlaceCenter(idx.rectTransform, new Vector2(-160f, 0f), new Vector2(60f, 24f));
+
+            // 文案
+            TMP_Text txt = NewText("Label", go.transform, label, 36f,
+                TextAlignmentOptions.MidlineLeft, primary ? ColOnAccent : ColText, _font);
+            PlaceCenter(txt.rectTransform, new Vector2(44f, 0f), new Vector2(300f, 48f));
+
+            // 悬停放大
+            var hover = go.AddComponent<HoverScale>();
+            hover.SetScale(primary ? 1.035f : 1.02f, 0.1f);
+
+            return btn;
+        }
+
+        // 右下：斜排的水印大字（英文用 Oswald，形比中文楷体硬）
+        private static void BuildWatermark(Transform parent)
+        {
+            TMP_Text mark = NewText("Watermark", parent, "UNDER WORLD", 132f,
+                TextAlignmentOptions.Right, ColWatermark, _enFont);
+            PlaceCenter(mark.rectTransform, new Vector2(260f, -230f), new Vector2(1100f, 180f));
+            mark.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -5f);
+        }
+
+        // 边角小字：右上版本 / 左下项目标识
+        private static void BuildCorners(Transform parent)
+        {
+            TMP_Text brand = NewText("Brand", parent, "BUILD 0.1.0  //  ONLINE", 18f,
+                TextAlignmentOptions.Right, ColTextDim, _enFont);
+            PlaceCenter(brand.rectTransform, new Vector2(700f, 486f), new Vector2(500f, 26f));
+
+            TMP_Text footer = NewText("Footer", parent, "UNDERWORDYOO  热更客户端", 16f,
+                TextAlignmentOptions.Left, new Color(1f, 1f, 1f, 0.22f), _font);
+            PlaceCenter(footer.rectTransform, new Vector2(-540f, -500f), new Vector2(600f, 24f));
         }
 
         // =====================================================================
@@ -406,7 +487,7 @@ namespace ProjectEditor
         }
 
         private static TMP_Text NewText(string name, Transform parent, string text, float size,
-            TextAlignmentOptions align, Color color)
+            TextAlignmentOptions align, Color color, TMP_FontAsset font)
         {
             var go = NewUI(name, parent);
             var tmp = go.AddComponent<TextMeshProUGUI>();
@@ -416,97 +497,8 @@ namespace ProjectEditor
             tmp.color = color;
             tmp.raycastTarget = false;
             tmp.textWrappingMode = TextWrappingModes.NoWrap;
-            if (_font != null) tmp.font = _font;
+            if (font != null) tmp.font = font;
             return tmp;
-        }
-
-        // 复用 SharpUI RectButton（自带 rect_button 贴图），再补一个左侧图标
-        private static Button NewButton(string name, Transform parent, string label, string iconPath)
-        {
-            Button btn = null;
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SharpButtonPath);
-            if (prefab != null)
-            {
-                var inst = InstantiateUnpacked(prefab, parent, name);
-                if (inst != null)
-                {
-                    btn = inst.GetComponent<Button>();
-                    if (btn == null) Object.DestroyImmediate(inst);
-                }
-            }
-
-            if (btn == null)
-            {
-                // 回退：自绘
-                var go = NewUI(name, parent);
-                var img = go.AddComponent<Image>();
-                ApplySprite(img, SpriteButton, true);
-                btn = go.AddComponent<Button>();
-                btn.targetGraphic = img;
-                TMP_Text fb = NewText("Label", go.transform, label, 28f, TextAlignmentOptions.Center, ColLabel);
-                Stretch(fb.rectTransform);
-                return btn;
-            }
-
-            StyleButton(btn, label, iconPath);
-            return btn;
-        }
-
-        // 统一按钮文案左对齐 + 左侧图标，保持四个按钮视觉一致
-        private static void StyleButton(Button btn, string label, string iconPath)
-        {
-            if (btn == null) return;
-
-            bool labeled = false;
-            foreach (var t in btn.GetComponentsInChildren<TMP_Text>(true))
-            {
-                if (_font != null) t.font = _font;
-                if (labeled)
-                {
-                    t.enabled = false;
-                    continue;
-                }
-
-                t.text = label;
-                t.fontSize = 28f;
-                t.fontStyle = FontStyles.Normal;
-                t.color = ColLabel;
-                t.alignment = TextAlignmentOptions.MidlineLeft;
-                t.textWrappingMode = TextWrappingModes.NoWrap;
-
-                var trt = t.rectTransform;
-                trt.anchorMin = Vector2.zero;
-                trt.anchorMax = Vector2.one;
-                trt.offsetMin = new Vector2(104f, 0f);
-                trt.offsetMax = new Vector2(-28f, 0f);
-                labeled = true;
-            }
-
-            if (string.IsNullOrEmpty(iconPath)) return;
-
-            var iconGo = NewUI("Icon", btn.transform);
-            var iconRt = (RectTransform)iconGo.transform;
-            iconRt.anchorMin = iconRt.anchorMax = new Vector2(0f, 0.5f);
-            iconRt.pivot = new Vector2(0f, 0.5f);
-            iconRt.sizeDelta = new Vector2(52f, 52f);
-            iconRt.anchoredPosition = new Vector2(34f, 0f);
-
-            var iconImg = iconGo.AddComponent<Image>();
-            ApplySprite(iconImg, iconPath, false);
-            iconImg.preserveAspect = true;
-            iconImg.raycastTarget = false;
-        }
-
-        private static void TintButton(Button btn, Color color)
-        {
-            var img = btn != null ? btn.GetComponent<Image>() : null;
-            if (img != null) img.color = color;
-        }
-
-        private static void SetButtonLabelSize(Button btn, float size)
-        {
-            if (btn == null) return;
-            foreach (var t in btn.GetComponentsInChildren<TMP_Text>(true)) t.fontSize = size;
         }
 
         // =====================================================================
@@ -616,20 +608,6 @@ namespace ProjectEditor
             rt.anchorMax = Vector2.one;
             rt.offsetMin = new Vector2(left, bottom);
             rt.offsetMax = new Vector2(-right, -top);
-        }
-
-        private static void Anchor(RectTransform rt, Vector2 min, Vector2 max)
-        {
-            rt.anchorMin = min;
-            rt.anchorMax = max;
-        }
-
-        private static void Center(RectTransform rt, Vector2 size)
-        {
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = size;
-            rt.anchoredPosition = Vector2.zero;
         }
 
         // 相对父节点中心摆放（父节点 pivot 为 (0.5,0.5) 时即「容器内坐标」）

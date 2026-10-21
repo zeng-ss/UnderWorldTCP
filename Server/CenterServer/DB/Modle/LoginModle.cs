@@ -192,6 +192,9 @@ public class LoginModle
                         {
                             RoleId = roleTable.Id,
                             Nickname = roleTable.NickName,
+                            // 头像必须在这里带回：客户端登录后只拿到 RoleId / 昵称，
+                            // 点「进入游戏」前的开始界面要显示头像，等 StartGame 就太晚了
+                            Avatar = AvatarCatalog.Normalize(roleTable.Avatar),
                         };
                     }
                 }

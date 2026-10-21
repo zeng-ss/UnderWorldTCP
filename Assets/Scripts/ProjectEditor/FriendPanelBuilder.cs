@@ -51,7 +51,7 @@ namespace ProjectEditor
         private const string SharpButtonPath = SharpPrefabDir + "Button/RectButton.prefab";
         private const string SharpIconButtonPath = SharpPrefabDir + "Button/IconButton.prefab";
         private const string SharpInputPath = SharpPrefabDir + "Input/InputField.prefab";
-        private const string SharpListItemPath = SharpPrefabDir + "List/ListItemCustom.prefab";
+        private const string SharpListItemPath = ""; // 纯色自绘，不再解包 SharpUI
 
         // ---------- 项目自带 UIItem 预制体 ----------
         private const string HeadFramePrefabPath = "Assets/Res/UI/UIItem/headFrame.prefab"; // 头像框（含 Mask，裁切内部头像）
@@ -66,14 +66,26 @@ namespace ProjectEditor
         private const string TemplateHolder = "FriendPanelTemplates";
 
         // 好友项固定高度（LoopList 虚拟滚动需要固定行高，运行时按预制体实际高度读，见 FriendPanel.LoadFriendItemPrefab）
-        private const float FriendItemHeight = 80f;
+        private const float FriendItemHeight = 88f;
+        private const float FriendItemWidth = 360f;
 
         private const float ScrollbarWidth = 16f;
 
-        // ---------- 配色（仅用于遮罩，其余走贴图）----------
-        private static readonly Color ColMask = new Color(0f, 0f, 0f, 0.62f);
-        private static readonly Color ColName = new Color(0.92f, 0.94f, 0.98f, 1f);
-        private static readonly Color ColStatus = new Color(0.6f, 0.62f, 0.68f, 1f);
+        // ---------- 全屏版式（1920×1080 参考）----------
+        private const float TopBarHeight = 110f;   // 顶栏（标题 + 加好友 + 关闭）
+        private const float SidePadding = 60f;     // 左右留白
+        private const float RailWidth = 380f;      // 左侧好友栏宽度
+        private const float RailGap = 44f;         // 栏间距（中间放分隔线）
+        private const float ChatInputHeight = 72f; // 聊天底部输入区高度
+
+        // ---------- 配色 ----------
+        private static readonly Color ColMask = new Color(0f, 0f, 0f, 0.88f);
+        private static readonly Color ColName = new Color(0.95f, 0.96f, 0.98f, 1f);
+        private static readonly Color ColStatus = new Color(0.42f, 0.43f, 0.5f, 1f);
+        private static readonly Color ColAccent = new Color(0.85f, 1f, 0.24f, 1f);
+        private static readonly Color ColLine = new Color(1f, 1f, 1f, 0.08f);
+        private static readonly Color ColButton = new Color(0.09f, 0.09f, 0.115f, 1f);
+        private static readonly Color ColMuted = new Color(0.38f, 0.39f, 0.46f, 1f);
 
         private static TMP_FontAsset _font;
         private static readonly Dictionary<string, Sprite> _spriteCache = new();
@@ -231,108 +243,124 @@ namespace ProjectEditor
             var root = NewUI(RootName, canvas);
             Undo.RegisterCreatedObjectUndo(root, "Create FriendPanel");
             Stretch((RectTransform)root.transform);
-            root.AddComponent<Image>().color = ColMask; // 遮罩保持纯色（半透明黑）
+            root.AddComponent<Image>().color = ColMask;
             root.AddComponent<FriendPanel>();
 
-            // ---- 主面板容器 ----
+            // ---- Panel 直接铺满：不再是居中的卡片，改成全屏分区 ----
             var panel = NewUI("Panel", root.transform);
-            var prt = (RectTransform)panel.transform;
-            Center(prt, new Vector2(1400, 800));
-            ApplySprite(panel.AddComponent<Image>(), SpritePanelBg, true);
+            Stretch((RectTransform)panel.transform);
 
             BuildHeader(panel.transform);
 
-            // 关闭按钮（复用 SharpUI IconButton + 关闭图标）
-            var closeBtn = NewIconButton("CloseBtn", panel.transform, SpriteClose);
-            var crt = closeBtn.GetComponent<RectTransform>();
-            Anchor(crt, new Vector2(1f, 1f), new Vector2(1f, 1f));
-            crt.pivot = new Vector2(0.5f, 0.5f);
-            crt.sizeDelta = new Vector2(46, 46);
-            crt.anchoredPosition = new Vector2(-42, -38);
+            // 主体：顶栏以下，左右留白
+            var body = NewUI("Body", panel.transform);
+            Stretch((RectTransform)body.transform, SidePadding, SidePadding, 40f, TopBarHeight + 20f);
 
-            // 添加好友：输入框 + 按钮（复用 SharpUI InputField / RectButton）
-            var addInput = NewInput("AddFriendInput", panel.transform, "输入对方角色ID");
-            var airt = addInput.GetComponent<RectTransform>();
-            Anchor(airt, new Vector2(0f, 1f), new Vector2(0f, 1f));
-            airt.pivot = new Vector2(0f, 0.5f);
-            airt.sizeDelta = new Vector2(300, 44);
-            airt.anchoredPosition = new Vector2(24, -108);
+            BuildFriendList(body.transform);
+            BuildChatArea(body.transform);
 
-            var addBtn = NewButton("AddFriendBtn", panel.transform, "加好友");
-            var abrt = addBtn.GetComponent<RectTransform>();
-            Anchor(abrt, new Vector2(0f, 1f), new Vector2(0f, 1f));
-            abrt.pivot = new Vector2(0f, 0.5f);
-            abrt.sizeDelta = new Vector2(112, 44);
-            abrt.anchoredPosition = new Vector2(336, -108);
-
-            // 左侧好友列表
-            BuildFriendList(panel.transform);
-
-            // 右侧聊天区
-            BuildChatArea(panel.transform);
+            // 左右之间的分隔竖线
+            var divider = NewUI("Divider", body.transform);
+            var drt = (RectTransform)divider.transform;
+            drt.anchorMin = new Vector2(0f, 0f);
+            drt.anchorMax = new Vector2(0f, 1f);
+            drt.pivot = new Vector2(0.5f, 0.5f);
+            drt.sizeDelta = new Vector2(1f, 0f);
+            drt.anchoredPosition = new Vector2(RailWidth + RailGap * 0.5f, 0f);
+            var dimg = divider.AddComponent<Image>();
+            dimg.color = ColLine;
+            dimg.raycastTarget = false;
 
             return root;
         }
 
+        // 顶栏：左边「好友 / FRIENDS」大字，右边加好友输入 + 按钮 + 关闭
         private static void BuildHeader(Transform parent)
         {
             var header = NewUI("Header", parent);
             var hrt = (RectTransform)header.transform;
-            Anchor(hrt, new Vector2(0f, 1f), new Vector2(1f, 1f));
+            hrt.anchorMin = new Vector2(0f, 1f);
+            hrt.anchorMax = new Vector2(1f, 1f);
             hrt.pivot = new Vector2(0.5f, 1f);
-            hrt.sizeDelta = new Vector2(0, 72);
+            hrt.sizeDelta = new Vector2(0f, TopBarHeight);
             hrt.anchoredPosition = Vector2.zero;
-            ApplySprite(header.AddComponent<Image>(), SpriteHeader, false);
 
-            var title = NewText("Title", header.transform, "好友", 34, TextAlignmentOptions.Center, ColName);
-            Stretch(title.rectTransform);
+            // 底部一条细线，代替原来那块布质标题栏
+            AddLine("Line", header.transform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0.5f, 0f), 1f);
+
+            var title = NewText("Title", header.transform, "好友", 54, TextAlignmentOptions.MidlineLeft, ColName);
+            Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(300f, 64f), new Vector2(SidePadding, -14f));
+
+            var sub = NewText("Sub", header.transform, "FRIENDS", 16, TextAlignmentOptions.MidlineLeft, ColAccent);
+            Place(sub.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                new Vector2(300f, 22f), new Vector2(SidePadding + 4f, -78f));
+
+            // 加好友：输入框 + 按钮，靠右
+            var addInput = NewInput("AddFriendInput", header.transform, "输入对方角色ID");
+            Place(addInput.GetComponent<RectTransform>(), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                new Vector2(300f, 46f), new Vector2(-280f, 0f));
+
+            var addBtn = NewButton("AddFriendBtn", header.transform, "加好友");
+            Place(addBtn.GetComponent<RectTransform>(), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                new Vector2(120f, 46f), new Vector2(-148f, 0f));
+
+            var closeBtn = NewIconButton("CloseBtn", header.transform, SpriteClose);
+            Place(closeBtn.GetComponent<RectTransform>(), new Vector2(1f, 0.5f), new Vector2(1f, 0.5f),
+                new Vector2(44f, 44f), new Vector2(-50f, 0f));
         }
 
+        // 左栏：好友列表（无卡片底，直接贴在面板上）
         private static void BuildFriendList(Transform parent)
         {
-            var bg = NewUI("FriendListBg", parent);
-            var brt = (RectTransform)bg.transform;
-            Anchor(brt, new Vector2(0f, 0f), new Vector2(0f, 1f));
-            brt.offsetMin = new Vector2(20, 20);
-            brt.offsetMax = new Vector2(-1000, -152);
-            ApplySprite(bg.AddComponent<Image>(), SpritePanelBg, true);
+            var rail = NewUI("FriendListBg", parent);
+            var rrt = (RectTransform)rail.transform;
+            rrt.anchorMin = new Vector2(0f, 0f);
+            rrt.anchorMax = new Vector2(0f, 1f);
+            rrt.pivot = new Vector2(0f, 0.5f);
+            rrt.sizeDelta = new Vector2(RailWidth, 0f);
+            rrt.anchoredPosition = Vector2.zero;
 
-            // ScrollRect + LoopList 直接被 FriendPanel 按节点名 "FriendScroll" 找到，挂在这个节点上
-            BuildScrollArea("FriendScroll", bg.transform, 8, 8, 8, 8, true);
+            BuildScrollArea("FriendScroll", rail.transform, 0, 0, 0, 0, true);
         }
 
+        // 右区：聊天标题 + 消息列表 + 底部输入
         private static void BuildChatArea(Transform parent)
         {
-            var bg = NewUI("ChatBg", parent);
-            var brt = (RectTransform)bg.transform;
-            Anchor(brt, new Vector2(1f, 0f), new Vector2(1f, 1f));
-            brt.offsetMin = new Vector2(-980, 20);
-            brt.offsetMax = new Vector2(-20, -152);
-            ApplySprite(bg.AddComponent<Image>(), SpritePanelBg, true);
+            var area = NewUI("ChatBg", parent);
+            var art = (RectTransform)area.transform;
+            art.anchorMin = new Vector2(0f, 0f);
+            art.anchorMax = new Vector2(1f, 1f);
+            art.pivot = new Vector2(0.5f, 0.5f);
+            art.offsetMin = new Vector2(RailWidth + RailGap, 0f);
+            art.offsetMax = Vector2.zero;
 
-            var chatTitle = NewText("ChatTitle", bg.transform, "选择好友开始聊天", 28, TextAlignmentOptions.Center, ColName);
+            var chatTitle = NewText("ChatTitle", area.transform, "选择好友开始聊天", 30,
+                TextAlignmentOptions.MidlineLeft, ColName);
             var ctrt = chatTitle.rectTransform;
-            Anchor(ctrt, new Vector2(0f, 1f), new Vector2(1f, 1f));
+            ctrt.anchorMin = new Vector2(0f, 1f);
+            ctrt.anchorMax = new Vector2(1f, 1f);
             ctrt.pivot = new Vector2(0.5f, 1f);
-            ctrt.sizeDelta = new Vector2(0, 48);
-            ctrt.anchoredPosition = Vector2.zero;
+            ctrt.offsetMin = new Vector2(4f, -56f);
+            ctrt.offsetMax = Vector2.zero;
+
+            AddLine("TitleLine", area.transform, new Vector2(0f, 1f), new Vector2(1f, 1f),
+                new Vector2(0.5f, 0f), 1f, -58f);
 
             // 消息区：不生成列表项，直接用现成的 ChatRootLeft / ChatRootRight 气泡（高度自适应）
-            BuildScrollArea("MsgScroll", bg.transform, 16, 16, 76, 52, false);
+            BuildScrollArea("MsgScroll", area.transform, 0, 0, ChatInputHeight, 68, false);
 
-            var msgInput = NewInput("MsgInput", bg.transform, "输入消息");
+            var msgInput = NewInput("MsgInput", area.transform, "输入消息");
             var mirt = msgInput.GetComponent<RectTransform>();
-            Anchor(mirt, new Vector2(0f, 0f), new Vector2(0f, 0f));
-            mirt.pivot = new Vector2(0f, 0.5f);
-            mirt.sizeDelta = new Vector2(760, 48);
-            mirt.anchoredPosition = new Vector2(20, 40);
+            mirt.anchorMin = new Vector2(0f, 0f);
+            mirt.anchorMax = new Vector2(1f, 0f);
+            mirt.pivot = new Vector2(0.5f, 0.5f);
+            mirt.offsetMin = new Vector2(0f, 10f);
+            mirt.offsetMax = new Vector2(-148f, 62f);
 
-            var sendBtn = NewButton("SendBtn", bg.transform, "发送");
-            var sbrt = sendBtn.GetComponent<RectTransform>();
-            Anchor(sbrt, new Vector2(1f, 0f), new Vector2(1f, 0f));
-            sbrt.pivot = new Vector2(1f, 0.5f);
-            sbrt.sizeDelta = new Vector2(112, 48);
-            sbrt.anchoredPosition = new Vector2(-20, 40);
+            var sendBtn = NewButton("SendBtn", area.transform, "发送");
+            Place(sendBtn.GetComponent<RectTransform>(), new Vector2(1f, 0f), new Vector2(1f, 0.5f),
+                new Vector2(128f, 52f), new Vector2(0f, 36f));
         }
 
         // 生成一个「ScrollRect + Viewport/Content + Vertical Scrollbar」的滚动区
@@ -381,16 +409,18 @@ namespace ProjectEditor
             rt.pivot = new Vector2(1f, 0.5f);
             rt.sizeDelta = new Vector2(ScrollbarWidth, 0);
             rt.anchoredPosition = Vector2.zero;
-            ApplySprite(go.AddComponent<Image>(), SpriteScrollBg, true);
+
+            var track = go.AddComponent<Image>();
+            track.color = new Color(1f, 1f, 1f, 0.03f);
 
             var area = NewUI("Sliding Area", go.transform);
-            Stretch((RectTransform)area.transform, 2, 2, 2, 2);
+            Stretch((RectTransform)area.transform, 3, 3, 3, 3);
 
             var handle = NewUI("Handle", area.transform);
             var hrt = (RectTransform)handle.transform;
             Stretch(hrt);
             var himg = handle.AddComponent<Image>();
-            ApplySprite(himg, SpriteScrollHandle, true);
+            himg.color = new Color(1f, 1f, 1f, 0.16f);
 
             var scrollbar = go.AddComponent<Scrollbar>();
             scrollbar.handleRect = hrt;
@@ -429,7 +459,7 @@ namespace ProjectEditor
                     StripMissingScripts(item);
                     item.name = "FriendItem";
                     // SharpUI 的 ListItem 原高偏小，这里统一成列表行高（LoopList 按这个高度排位）
-                    ((RectTransform)item.transform).sizeDelta = new Vector2(400, FriendItemHeight);
+                    ((RectTransform)item.transform).sizeDelta = new Vector2(FriendItemWidth, FriendItemHeight);
                     RenameChild(item.transform, "TextLeft", "Name");
                     RenameChild(item.transform, "TextRight", "Status");
 
@@ -445,7 +475,7 @@ namespace ProjectEditor
                 // 回退：自绘
                 item = NewUI("FriendItem", holder);
                 var irt = (RectTransform)item.transform;
-                irt.sizeDelta = new Vector2(400, FriendItemHeight);
+                irt.sizeDelta = new Vector2(FriendItemWidth, FriendItemHeight);
                 item.AddComponent<Image>();
                 item.AddComponent<Button>();
                 NewText("Name", item.transform, "昵称", 22, TextAlignmentOptions.Left, ColName);
@@ -454,27 +484,24 @@ namespace ProjectEditor
 
             var img = item.GetComponent<Image>();
             if (img == null) img = item.AddComponent<Image>();
-            ApplySprite(img, SpriteListItem, true);
+            // 纯色行底：极淡的一层白，hover / 选中靠覆盖层和 HoverScale
+            img.sprite = null;
+            img.type = Image.Type.Simple;
+            img.color = new Color(1f, 1f, 1f, 0.035f);
             img.raycastTarget = true;
 
-            // 按钮：常态 / 高亮 用两张列表项贴图做 SpriteSwap
             var btn = item.GetComponent<Button>();
             if (btn == null) btn = item.AddComponent<Button>();
             btn.targetGraphic = img;
-            btn.transition = Selectable.Transition.SpriteSwap;
-            Sprite sel = LoadSprite(SpriteListItemSel);
-            var state = btn.spriteState;
-            state.highlightedSprite = sel;
-            state.pressedSprite = sel;
-            state.selectedSprite = sel;
-            btn.spriteState = state;
+            btn.transition = Selectable.Transition.None;
 
             // 选中覆盖层（“当前聊天对象”高亮）：默认隐藏，由 FriendItem.SetSelected 控制。
             // 放到同级最底层，免得盖住头像与文字。
             var overlay = NewUI("Selected", item.transform);
             Stretch((RectTransform)overlay.transform);
             var overlayImg = overlay.AddComponent<Image>();
-            ApplySprite(overlayImg, SpriteListItemSel, true);
+            overlayImg.sprite = null;
+            overlayImg.color = new Color(0.85f, 1f, 0.24f, 0.10f);
             overlayImg.raycastTarget = false;
             overlay.transform.SetSiblingIndex(0);
             overlay.SetActive(false);
@@ -483,8 +510,8 @@ namespace ProjectEditor
             Transform head = BuildFriendHead(item.transform);
 
             // 文本排布：头像右侧，昵称在上、状态在下
-            LayoutChildText(item.transform, "Name", new Vector2(74, 12), new Vector2(240, 30), 22, ColName);
-            LayoutChildText(item.transform, "Status", new Vector2(74, -14), new Vector2(200, 22), 17, ColStatus);
+            LayoutChildText(item.transform, "Name", new Vector2(74, 16), new Vector2(240, 32), 22, ColName);
+            LayoutChildText(item.transform, "Status", new Vector2(74, -18), new Vector2(200, 22), 17, ColStatus);
 
             // 昵称改为左右自适应：左侧开头像、右侧留白，长昵称不会被裁。
             // 申请形态下「同意 / 拒绝」按钮浮在右侧，按钮自带不透明底图，会盖住溢出的尾部。
@@ -494,8 +521,8 @@ namespace ProjectEditor
                 nameRt.anchorMin = new Vector2(0f, 0.5f);
                 nameRt.anchorMax = new Vector2(1f, 0.5f);
                 nameRt.pivot = new Vector2(0f, 0.5f);
-                nameRt.offsetMin = new Vector2(74f, -3f);
-                nameRt.offsetMax = new Vector2(-12f, 27f);
+                nameRt.offsetMin = new Vector2(74f, 2f);
+                nameRt.offsetMax = new Vector2(-12f, 32f);
             }
 
             // 好友申请形态：右侧「同意 / 拒绝」两个按钮（复用 SharpUI RectButton），
@@ -591,108 +618,99 @@ namespace ProjectEditor
             return tmp;
         }
 
-        // 复用 SharpUI RectButton.prefab（自带 rect_button 贴图）
+        // 纯色按钮：深色底 + 左侧 4px 强调条 + 居中文字（不依赖任何贴图）
         private static Button NewButton(string name, Transform parent, string label)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SharpButtonPath);
-            if (prefab != null)
-            {
-                var inst = InstantiateUnpacked(prefab, parent, name);
-                if (inst != null)
-                {
-                    var btn = inst.GetComponent<Button>();
-                    if (btn != null)
-                    {
-                        ApplyFontAndLabel(inst, label);
-                        return btn;
-                    }
-                    Object.DestroyImmediate(inst);
-                }
-            }
-
-            // 回退：自绘（用按钮贴图）
             var go = NewUI(name, parent);
             var img = go.AddComponent<Image>();
-            ApplySprite(img, SpriteButton, true);
-            var b = go.AddComponent<Button>();
-            b.targetGraphic = img;
-            var t = NewText("Label", go.transform, label, 22, TextAlignmentOptions.Center, Color.white);
-            Stretch(t.rectTransform);
-            return b;
+            img.color = ColButton;
+            img.raycastTarget = true;
+
+            var btn = go.AddComponent<Button>();
+            btn.targetGraphic = img;
+            // ColorTint 是乘法（底色 × 状态色），深色底乘什么都是深色 → 用 ButtonHoverTint 直接改颜色：
+            // 悬停时整块变荧光黄、文字与左侧色条转近黑
+            btn.transition = Selectable.Transition.None;
+
+            var tint = go.AddComponent<ButtonHoverTint>();
+            tint.SetColors(UIBuilderKit.Accent, UIBuilderKit.OnAccent, 0.1f);
+
+            var bar = NewUI("Bar", go.transform);
+            var brt = (RectTransform)bar.transform;
+            brt.anchorMin = new Vector2(0f, 0f);
+            brt.anchorMax = new Vector2(0f, 1f);
+            brt.pivot = new Vector2(0f, 0.5f);
+            brt.sizeDelta = new Vector2(4f, 0f);
+            brt.anchoredPosition = Vector2.zero;
+            var barImg = bar.AddComponent<Image>();
+            barImg.color = ColAccent;
+            barImg.raycastTarget = false;
+
+            var t = NewText("Label", go.transform, label, 22, TextAlignmentOptions.Center, ColName);
+            Stretch(t.rectTransform, 10f, 8f, 0f, 0f);
+            return btn;
         }
 
-        // 复用 SharpUI IconButton.prefab（自带方形按钮贴图），图标换成指定贴图
+        // 纯色图标按钮：半透明方块 + 一个文字符号（×），不用图标贴图
         private static Button NewIconButton(string name, Transform parent, string iconSpritePath)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SharpIconButtonPath);
-            if (prefab != null)
-            {
-                var inst = InstantiateUnpacked(prefab, parent, name);
-                if (inst != null)
-                {
-                    var icon = FindDeep(inst.transform, "IconImage");
-                    var iconImg = icon != null ? icon.GetComponent<Image>() : null;
-                    if (iconImg != null) ApplySprite(iconImg, iconSpritePath, false);
-
-                    var btn = inst.GetComponent<Button>();
-                    if (btn != null) return btn;
-                    Object.DestroyImmediate(inst);
-                }
-            }
-
-            // 回退：自绘
             var go = NewUI(name, parent);
             var img = go.AddComponent<Image>();
-            ApplySprite(img, iconSpritePath, false);
-            img.preserveAspect = true;
-            var b = go.AddComponent<Button>();
-            b.targetGraphic = img;
-            return b;
+            img.color = new Color(1f, 1f, 1f, 0.07f);
+            img.raycastTarget = true;
+
+            var btn = go.AddComponent<Button>();
+            btn.targetGraphic = img;
+            // ColorTint 是乘法（底色 × 状态色），深色底乘什么都是深色 → 用 ButtonHoverTint 直接改颜色：
+            // 悬停时整块变荧光黄、文字与左侧色条转近黑
+            btn.transition = Selectable.Transition.None;
+
+            var tint = go.AddComponent<ButtonHoverTint>();
+            tint.SetColors(UIBuilderKit.Accent, UIBuilderKit.OnAccent, 0.1f);
+
+            var t = NewText("Icon", go.transform, "×", 26, TextAlignmentOptions.Center, ColName);
+            Stretch(t.rectTransform);
+            return btn;
         }
 
-        // 复用 SharpUI InputField.prefab（自带 rect_input 贴图）
+        // 纯色输入框：半透明底 + 底部一条 2px 强调线
         private static TMP_InputField NewInput(string name, Transform parent, string placeholder)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SharpInputPath);
-            if (prefab != null)
-            {
-                var inst = InstantiateUnpacked(prefab, parent, name);
-                if (inst != null)
-                {
-                    var input = inst.GetComponent<TMP_InputField>();
-                    if (input != null)
-                    {
-                        RepairInput(input, placeholder);
-                        return input;
-                    }
-                    Object.DestroyImmediate(inst);
-                }
-            }
-
-            // 回退：自绘（用输入框贴图）
             var go = NewUI(name, parent);
             var img = go.AddComponent<Image>();
-            ApplySprite(img, SpriteInput, true);
+            img.color = new Color(1f, 1f, 1f, 0.045f);
 
-            var inputFb = go.AddComponent<TMP_InputField>();
-            inputFb.image = img;
+            var input = go.AddComponent<TMP_InputField>();
+            input.image = img;
+            input.targetGraphic = img;
 
             var textArea = NewUI("Text Area", go.transform);
-            Stretch((RectTransform)textArea.transform, 10, 10, 5, 5);
+            Stretch((RectTransform)textArea.transform, 12f, 12f, 4f, 6f);
 
-            var text = NewText("Text", textArea.transform, "", 22, TextAlignmentOptions.Left, new Color(0.1f, 0.1f, 0.12f, 1f));
+            var text = NewText("Text", textArea.transform, "", 22, TextAlignmentOptions.Left, ColName);
             Stretch(text.rectTransform);
             text.textWrappingMode = TextWrappingModes.NoWrap;
 
-            var ph = NewText("Placeholder", textArea.transform, placeholder, 22, TextAlignmentOptions.Left,
-                new Color(0.5f, 0.5f, 0.55f, 1f));
+            var ph = NewText("Placeholder", textArea.transform, placeholder, 22, TextAlignmentOptions.Left, ColMuted);
             Stretch(ph.rectTransform);
             ph.textWrappingMode = TextWrappingModes.NoWrap;
 
-            inputFb.textViewport = (RectTransform)textArea.transform;
-            inputFb.textComponent = text;
-            inputFb.placeholder = ph;
-            return inputFb;
+            input.textViewport = (RectTransform)textArea.transform;
+            input.textComponent = text;
+            input.placeholder = ph;
+
+            var line = NewUI("Underline", go.transform);
+            var lrt = (RectTransform)line.transform;
+            lrt.anchorMin = new Vector2(0f, 0f);
+            lrt.anchorMax = new Vector2(1f, 0f);
+            lrt.pivot = new Vector2(0.5f, 0f);
+            lrt.sizeDelta = new Vector2(0f, 2f);
+            lrt.anchoredPosition = Vector2.zero;
+            var limg = line.AddComponent<Image>();
+            limg.color = new Color(ColAccent.r, ColAccent.g, ColAccent.b, 0.45f);
+            limg.raycastTarget = false;
+
+            return input;
         }
 
         // =====================================================================
@@ -917,6 +935,33 @@ namespace ProjectEditor
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.sizeDelta = size;
             rt.anchoredPosition = Vector2.zero;
+        }
+
+        // 按锚点 + 轴心 + 尺寸 + 位置摆放（比 Anchor 之后手写 anchoredPosition 少出错）
+        private static void Place(RectTransform rt, Vector2 anchor, Vector2 pivot, Vector2 size, Vector2 pos)
+        {
+            if (rt == null) return;
+            rt.anchorMin = rt.anchorMax = anchor;
+            rt.pivot = pivot;
+            rt.sizeDelta = size;
+            rt.anchoredPosition = pos;
+        }
+
+        // 一条 1px 装饰线（不用九宫图，避免被拉成一条缝）
+        private static void AddLine(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax,
+            Vector2 pivot, float thickness, float y = 0f)
+        {
+            var go = NewUI(name, parent);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = anchorMin;
+            rt.anchorMax = anchorMax;
+            rt.pivot = pivot;
+            rt.sizeDelta = new Vector2(0f, thickness);
+            rt.anchoredPosition = new Vector2(0f, y);
+
+            var img = go.AddComponent<Image>();
+            img.color = ColLine;
+            img.raycastTarget = false;
         }
 
         private static void TopAnchoredContent(RectTransform rt)

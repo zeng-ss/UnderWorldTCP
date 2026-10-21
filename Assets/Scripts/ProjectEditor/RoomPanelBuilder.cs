@@ -38,21 +38,21 @@ namespace ProjectEditor
 
         // ---------- SharpUI 贴图 ----------
         private const string TexDir = "Assets/Resources/SharpUI/Textures/";
-        private const string SpritePanelBg = TexDir + "info_box.png";
-        private const string SpriteHeader = TexDir + "dialog_header_background.png";
-        private const string SpriteButton = TexDir + "rect_button.png";
-        private const string SpriteInput = TexDir + "rect_input.png";
-        private const string SpriteListItem = TexDir + "list_item_background.png";
-        private const string SpriteListItemSel = TexDir + "list_item_background_selected.png";
-        private const string SpriteScrollBg = TexDir + "scroll_background.png";
-        private const string SpriteScrollHandle = TexDir + "scroll_handle.png";
+        private const string SpritePanelBg = "";
+        private const string SpriteHeader = "";
+        private const string SpriteButton = "";
+        private const string SpriteInput = "";
+        private const string SpriteListItem = "";
+        private const string SpriteListItemSel = "";
+        private const string SpriteScrollBg = "";
+        private const string SpriteScrollHandle = "";
 
         // ---------- SharpUI 预制体 ----------
         private const string SharpPrefabDir = "Assets/Resources/SharpUI/Prefabs/UI/";
         private const string SharpButtonPath = SharpPrefabDir + "Button/RectButton.prefab";
         private const string SharpIconButtonPath = SharpPrefabDir + "Button/IconButton.prefab";
         private const string SharpInputPath = SharpPrefabDir + "Input/InputField.prefab";
-        private const string SharpListItemPath = SharpPrefabDir + "List/ListItemCustom.prefab";
+        private const string SharpListItemPath = "";
 
         // ---------- 项目自带 UIItem 预制体 ----------
         private const string HeadFramePrefabPath = "Assets/Res/UI/UIItem/headFrame.prefab";
@@ -447,16 +447,18 @@ namespace ProjectEditor
             rt.pivot = new Vector2(1f, 0.5f);
             rt.sizeDelta = new Vector2(ScrollbarWidth, 0);
             rt.anchoredPosition = Vector2.zero;
-            ApplySprite(go.AddComponent<Image>(), SpriteScrollBg, true);
+
+            var track = go.AddComponent<Image>();
+            track.color = new Color(1f, 1f, 1f, 0.03f);
 
             var area = NewUI("Sliding Area", go.transform);
-            Stretch((RectTransform)area.transform, 2, 2, 2, 2);
+            Stretch((RectTransform)area.transform, 3, 3, 3, 3);
 
             var handle = NewUI("Handle", area.transform);
             var hrt = (RectTransform)handle.transform;
             Stretch(hrt);
             var himg = handle.AddComponent<Image>();
-            ApplySprite(himg, SpriteScrollHandle, true);
+            himg.color = new Color(1f, 1f, 1f, 0.16f);
 
             var scrollbar = go.AddComponent<Scrollbar>();
             scrollbar.handleRect = hrt;
@@ -465,11 +467,6 @@ namespace ProjectEditor
             return scrollbar;
         }
 
-        // =====================================================================
-        // 列表项模板
-        // =====================================================================
-
-        // 模板容器：隐藏起来只作模板用；返回它是为了让保存流程能直接拿到（隐藏对象 GameObject.Find 找不到）
         private static GameObject BuildTemplates(Transform parent)
         {
             var holder = NewUI(TemplateHolder, parent);
@@ -487,68 +484,14 @@ namespace ProjectEditor
         // 房间列表项：房间名（左，主文案）+ 房主 / 人数 / 状态（左，副文案），两行排布
         private static void BuildRoomItemTemplate(Transform holder)
         {
-            GameObject item = CreateListItemBase("RoomListItem", holder, out Image img, out Button btn);
-
-            // ListItemCustom 自带的左右文本改成我们的两行文案
-            RenameIfMissing(item.transform, "TextLeft", "Name");
-            RenameIfMissing(item.transform, "TextRight", "Info");
-
-            TMP_Text name = EnsureChildText(item.transform, "Name", "房间名");
-            TMP_Text info = EnsureChildText(item.transform, "Info", "房主：玩家   1/4   等待中");
-
-            // 两行都靠左：Name 在上、Info 在下
-            LayoutLeftText((RectTransform)name.transform, new Vector2(16, 14), new Vector2(680, 28), 24, ColName);
-            LayoutLeftText((RectTransform)info.transform, new Vector2(16, -14), new Vector2(680, 24), 17, ColSub);
-
-            ApplySprite(img, SpriteListItem, true);
-            SetupSpriteSwap(btn, img);
-
-            var view = item.GetComponent<RoomListItem>();
-            if (view == null) view = item.AddComponent<RoomListItem>();
-
-            var so = new SerializedObject(view);
-            SetRef(so, "nameText", name);
-            SetRef(so, "infoText", info);
-            so.ApplyModifiedPropertiesWithoutUndo();
+            // 外观统一由 UIItemBuilder 生成，避免两处各画一套
+            UIItemBuilder.CreateRoomItem(holder);
         }
 
         // 房间内玩家项：头像 + 昵称（左）+ 房主 / 准备状态（右）
         private static void BuildMemberItemTemplate(Transform holder)
         {
-            GameObject item = CreateListItemBase("RoomPlayerItem", holder, out Image img, out Button btn);
-
-            RenameIfMissing(item.transform, "TextLeft", "Name");
-            RenameIfMissing(item.transform, "TextRight", "State");
-
-            TMP_Text name = EnsureChildText(item.transform, "Name", "玩家昵称");
-            TMP_Text state = EnsureChildText(item.transform, "State", "未准备");
-
-            // 头像复用 headFrame 预制体（自带 Mask）
-            Transform head = BuildHead(item.transform);
-
-            LayoutLeftText((RectTransform)name.transform, new Vector2(68, 0), new Vector2(300, 28), 22, ColName);
-            LayoutRightText((RectTransform)state.transform, new Vector2(-16, 0), new Vector2(160, 26), 18, ColSub);
-
-            ApplySprite(img, SpriteListItem, true);
-            SetupSpriteSwap(btn, img);
-
-            // 房主视角：鼠标移到这一行时盖上「踢出该玩家」蒙层，点整行即踢人。
-            // 蒙层 Image 的 raycastTarget 必须为 false，否则会挡住整行点击。
-            GameObject kickTip = BuildKickTip(item.transform);
-
-            // 悬停放大（通用组件）
-            if (item.GetComponent<HoverScale>() == null) item.AddComponent<HoverScale>();
-
-            var view = item.GetComponent<RoomPlayerItem>();
-            if (view == null) view = item.AddComponent<RoomPlayerItem>();
-
-            var so = new SerializedObject(view);
-            SetRef(so, "headImage", head != null ? FindDeep(head, "headImage")?.GetComponent<Image>() : null);
-            SetRef(so, "nameText", name);
-            SetRef(so, "stateText", state);
-            SetRef(so, "kickTip", kickTip);
-            SetRef(so, "rowButton", btn);
-            so.ApplyModifiedPropertiesWithoutUndo();
+            UIItemBuilder.CreateRoomPlayerItem(holder);
         }
 
         // 盖满整行的踢人蒙层：半透明红底 + 居中「踢出该玩家」
@@ -688,105 +631,95 @@ namespace ProjectEditor
 
         private static Button NewButton(string name, Transform parent, string label)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SharpButtonPath);
-            if (prefab != null)
-            {
-                var inst = InstantiateUnpacked(prefab, parent, name);
-                if (inst != null)
-                {
-                    var btn = inst.GetComponent<Button>();
-                    if (btn != null)
-                    {
-                        ApplyFontAndLabel(inst, label);
-                        return btn;
-                    }
-                    Object.DestroyImmediate(inst);
-                }
-            }
-
             var go = NewUI(name, parent);
             var img = go.AddComponent<Image>();
-            ApplySprite(img, SpriteButton, true);
-            var b = go.AddComponent<Button>();
-            b.targetGraphic = img;
-            var t = NewText("Label", go.transform, label, 22, TextAlignmentOptions.Center, Color.white);
-            Stretch(t.rectTransform);
-            return b;
+            img.color = new Color(0.09f, 0.09f, 0.115f, 1f);
+            img.raycastTarget = true;
+
+            var btn = go.AddComponent<Button>();
+            btn.targetGraphic = img;
+            // ColorTint 是乘法（底色 × 状态色），深色底乘什么都是深色 → 用 ButtonHoverTint 直接改颜色：
+            // 悬停时整块变荧光黄、文字与左侧色条转近黑
+            btn.transition = Selectable.Transition.None;
+
+            var tint = go.AddComponent<ButtonHoverTint>();
+            tint.SetColors(UIBuilderKit.Accent, UIBuilderKit.OnAccent, 0.1f);
+
+            var bar = NewUI("Bar", go.transform);
+            var brt = (RectTransform)bar.transform;
+            brt.anchorMin = new Vector2(0f, 0f);
+            brt.anchorMax = new Vector2(0f, 1f);
+            brt.pivot = new Vector2(0f, 0.5f);
+            brt.sizeDelta = new Vector2(4f, 0f);
+            brt.anchoredPosition = Vector2.zero;
+            var barImg = bar.AddComponent<Image>();
+            barImg.color = new Color(0.85f, 1f, 0.24f, 1f);
+            barImg.raycastTarget = false;
+
+            var t = NewText("Label", go.transform, label, 22, TextAlignmentOptions.Center, ColName);
+            Stretch(t.rectTransform, 10f, 8f, 0f, 0f);
+            return btn;
         }
 
         private static Button NewIconButton(string name, Transform parent, string iconSpritePath)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SharpIconButtonPath);
-            if (prefab != null)
-            {
-                var inst = InstantiateUnpacked(prefab, parent, name);
-                if (inst != null)
-                {
-                    var icon = FindDeep(inst.transform, "IconImage");
-                    var iconImg = icon != null ? icon.GetComponent<Image>() : null;
-                    if (iconImg != null) ApplySprite(iconImg, iconSpritePath, false);
-
-                    var btn = inst.GetComponent<Button>();
-                    if (btn != null) return btn;
-                    Object.DestroyImmediate(inst);
-                }
-            }
-
             var go = NewUI(name, parent);
             var img = go.AddComponent<Image>();
-            ApplySprite(img, iconSpritePath, false);
-            img.preserveAspect = true;
-            var b = go.AddComponent<Button>();
-            b.targetGraphic = img;
-            return b;
+            img.color = new Color(1f, 1f, 1f, 0.07f);
+            img.raycastTarget = true;
+
+            var btn = go.AddComponent<Button>();
+            btn.targetGraphic = img;
+            // ColorTint 是乘法（底色 × 状态色），深色底乘什么都是深色 → 用 ButtonHoverTint 直接改颜色：
+            // 悬停时整块变荧光黄、文字与左侧色条转近黑
+            btn.transition = Selectable.Transition.None;
+
+            var tint = go.AddComponent<ButtonHoverTint>();
+            tint.SetColors(UIBuilderKit.Accent, UIBuilderKit.OnAccent, 0.1f);
+
+            var t = NewText("Icon", go.transform, "×", 26, TextAlignmentOptions.Center, ColName);
+            Stretch(t.rectTransform);
+            return btn;
         }
 
         private static TMP_InputField NewInput(string name, Transform parent, string placeholder)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SharpInputPath);
-            if (prefab != null)
-            {
-                var inst = InstantiateUnpacked(prefab, parent, name);
-                if (inst != null)
-                {
-                    var input = inst.GetComponent<TMP_InputField>();
-                    if (input != null)
-                    {
-                        RepairInput(input, placeholder);
-                        return input;
-                    }
-                    Object.DestroyImmediate(inst);
-                }
-            }
-
             var go = NewUI(name, parent);
             var img = go.AddComponent<Image>();
-            ApplySprite(img, SpriteInput, true);
+            img.color = new Color(1f, 1f, 1f, 0.045f);
 
-            var inputFb = go.AddComponent<TMP_InputField>();
-            inputFb.image = img;
+            var input = go.AddComponent<TMP_InputField>();
+            input.image = img;
+            input.targetGraphic = img;
 
             var textArea = NewUI("Text Area", go.transform);
-            Stretch((RectTransform)textArea.transform, 10, 10, 5, 5);
+            Stretch((RectTransform)textArea.transform, 12f, 12f, 4f, 6f);
 
-            var text = NewText("Text", textArea.transform, "", 22, TextAlignmentOptions.Left, new Color(0.1f, 0.1f, 0.12f, 1f));
+            var text = NewText("Text", textArea.transform, "", 22, TextAlignmentOptions.Left, ColName);
             Stretch(text.rectTransform);
             text.textWrappingMode = TextWrappingModes.NoWrap;
 
-            var ph = NewText("Placeholder", textArea.transform, placeholder, 22, TextAlignmentOptions.Left,
-                new Color(0.5f, 0.5f, 0.55f, 1f));
+            var ph = NewText("Placeholder", textArea.transform, placeholder, 22, TextAlignmentOptions.Left, ColSub);
             Stretch(ph.rectTransform);
             ph.textWrappingMode = TextWrappingModes.NoWrap;
 
-            inputFb.textViewport = (RectTransform)textArea.transform;
-            inputFb.textComponent = text;
-            inputFb.placeholder = ph;
-            return inputFb;
-        }
+            input.textViewport = (RectTransform)textArea.transform;
+            input.textComponent = text;
+            input.placeholder = ph;
 
-        // =====================================================================
-        // 工具
-        // =====================================================================
+            var line = NewUI("Underline", go.transform);
+            var lrt = (RectTransform)line.transform;
+            lrt.anchorMin = new Vector2(0f, 0f);
+            lrt.anchorMax = new Vector2(1f, 0f);
+            lrt.pivot = new Vector2(0.5f, 0f);
+            lrt.sizeDelta = new Vector2(0f, 2f);
+            lrt.anchoredPosition = Vector2.zero;
+            var limg = line.AddComponent<Image>();
+            limg.color = new Color(0.85f, 1f, 0.24f, 0.45f);
+            limg.raycastTarget = false;
+
+            return input;
+        }
 
         private static GameObject InstantiateUnpacked(GameObject prefab, Transform parent, string newName)
         {
@@ -948,7 +881,8 @@ namespace ProjectEditor
             if (img == null) return;
             if (string.IsNullOrEmpty(spritePath))
             {
-                img.color = Color.white;
+                // 纯色拼接：不指定贴图时给面板底色，而不是纯白
+                img.color = new Color(0.055f, 0.055f, 0.07f, 1f);
                 return;
             }
 

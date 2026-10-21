@@ -137,7 +137,13 @@ namespace HotUpdate.Controller
             }
 
             bool hasRole = ret.CreateRoleInfo != null && ret.CreateRoleInfo.RoleId > 0;
-            if (hasRole) AppContext.Session.RoleId = ret.CreateRoleInfo.RoleId;
+            if (hasRole)
+            {
+                AppContext.Session.RoleId = ret.CreateRoleInfo.RoleId;
+                if (!string.IsNullOrEmpty(ret.CreateRoleInfo.Nickname))
+                    AppContext.Session.PlayerName = ret.CreateRoleInfo.Nickname;
+                AppContext.Session.Avatar = ret.CreateRoleInfo.Avatar;
+            }
             else CreateRole();
 
             AppContext.Ui.Transition(0.8f, TransitionPanel.ScrollBgType.Normal, () =>
