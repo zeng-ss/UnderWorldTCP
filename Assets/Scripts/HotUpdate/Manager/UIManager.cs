@@ -18,8 +18,8 @@ namespace HotUpdate.Manager
     /// </summary>
     public class UIManager
     {
-        // 已实例化的面板（按资源路径索引，保留实例以便复用）
-        private readonly Dictionary<string, BasePanel> _uiPanelDict = new Dictionary<string, BasePanel>();
+        // 已实例化的面板
+        private readonly Dictionary<string, BasePanel> _uiPanelDict = new();
 
         // Canvas相关
         [HideInInspector] public RectTransform Canvas;
@@ -29,9 +29,17 @@ namespace HotUpdate.Manager
         // 面板容器
         private GameObject _currentPanel;
 
-        // 全屏转场遮罩（常驻 Canvas 最上层，不参与面板字典）
+        #region 不进入面板字典
+
+        // 全屏转场遮罩
         private const string TransitionAddress = "TransitionPanel";
         private TransitionPanel _transitionPanel;
+
+        // 左下角提示条
+        private const string ToastAddress = "ToastPanel";
+        private ToastPanel _toastPanel;
+
+        #endregion
 
         private bool _isCanvasInitialized;
 
@@ -228,7 +236,7 @@ namespace HotUpdate.Manager
                 }
 
                 EnsureTransition(prefab);
-                _transitionPanel.Play(minHold, bgType, onCovered);
+                _transitionPanel?.Play(minHold, bgType, onCovered);
             });
         }
 
@@ -258,6 +266,63 @@ namespace HotUpdate.Manager
 
         #endregion
 
+        #region 左下角提示
+
+        /// <summary>
+        /// 左下角滑入一条提示
+        /// </summary>
+        public void ShowToast(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return;
+            ShowToasts(new[] { text });
+        }
+
+        /// <summary>
+        /// 左下角排队滑入一批提示
+        /// </summary>
+        public void ShowToasts(IList<string> texts)
+        {
+            if (texts == null) return;
+
+            // 加载是异步的，先把要显示的东西固化下来，别让外部列表之后再变
+            List<string> buffer = new List<string>(texts);
+            if (buffer.Count == 0) return;
+
+            if (_toastPanel != null)
+            {
+                _toastPanel.PushBatch(buffer);
+                return;
+            }
+
+            // 第一次用：等预制体加载完再压入，不丢这些提示
+            AppContext.UILoader.LoadAsync(ToastAddress, prefab =>
+            {
+                if (prefab == null) return;
+                EnsureToast(prefab);
+                _toastPanel?.PushBatch(buffer);
+            });
+        }
+
+        private void PreloadToast()
+        {
+            AppContext.UILoader.LoadAsync(ToastAddress, prefab =>
+            {
+                if (prefab != null) EnsureToast(prefab);
+            });
+        }
+
+        private void EnsureToast(GameObject prefab)
+        {
+            if (_toastPanel != null) return;
+
+            GameObject obj = Object.Instantiate(prefab, Canvas, false);
+            obj.name = ToastAddress;
+            _toastPanel = obj.GetComponent<ToastPanel>();
+            _toastPanel.gameObject.SetActive(false);
+        }
+
+        #endregion
+
         #region Canvas 初始化
 
         public void Init()
@@ -269,16 +334,11 @@ namespace HotUpdate.Manager
             InitEventSystem();
             _isCanvasInitialized = true;
 
-            // 提前把转场面板加载好，第一次切界面时才不会卡在加载上
+            // 提前把转场 / 提示条加载好，第一次用的时候才不会卡在加载上
             PreloadTransition();
+            PreloadToast();
         }
 
-        /// <summary>
-        /// 弹出全局提示条。任何地方想弹 TipPanel 直接调 AppContext.Ui.ShowTip(...)，
-        /// 不需要经过事件系统绕一圈。
-        /// </summary>
-        /// <param name="text">提示内容</param>
-        /// <param name="showTime">大于 0 时覆盖面板默认显示时长</param>
         public void ShowTip(string text, float showTime = 0f)
         {
             OpenPanel<TipPanel>(panel =>
@@ -303,14 +363,14 @@ namespace HotUpdate.Manager
             }
             else
             {
-                canvasObj = GameObject.Instantiate(canvasObj);
+                canvasObj = Object.Instantiate(canvasObj);
                 canvasObj.name = "Canvas";
                 _canvasComponent = canvasObj.GetComponent<Canvas>();
                 _canvasScaler = canvasObj.GetComponent<CanvasScaler>();
             }
 
             Canvas = canvasObj.transform as RectTransform;
-            GameObject.DontDestroyOnLoad(canvasObj);
+            Object.DontDestroyOnLoad(canvasObj);
 
             _currentPanel = new GameObject("currentShowPanel");
             RectTransform rect = _currentPanel.AddComponent<RectTransform>();

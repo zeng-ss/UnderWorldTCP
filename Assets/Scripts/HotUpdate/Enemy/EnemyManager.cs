@@ -14,6 +14,9 @@ namespace HotUpdate.Enemy
         // 被击中者的命中点高度（胸口）。服务端只下发「命中了 + 伤害」，不下发命中坐标。
         private const float HitPointHeight = 1f;
 
+        // 敌人表没配 model 时的兜底预制体地址
+        private const string DefaultEnemyAddress = "enemy";
+
         public void Init()
         {
             AppContext.Proto.OnEnemyPositionSyncReceived += OnEnemyPositionSync;
@@ -53,7 +56,8 @@ namespace HotUpdate.Enemy
         }
 
         // 按服务端实例ID查找（位置同步 / 动作同步 / 受击 / 命中表现都走这里）
-        public bool TryGet(int enemyInstanceId, out EnemyCtrl enemy) => _enemies.TryGetValue(enemyInstanceId, out enemy);
+        public bool TryGet(int enemyInstanceId, out EnemyCtrl enemy) =>
+            _enemies.TryGetValue(enemyInstanceId, out enemy);
 
         #endregion
 
@@ -68,7 +72,8 @@ namespace HotUpdate.Enemy
                 return;
             }
 
-            InstantiateEnemy(ret.EnemyInstanceId, ret.MaxHp, ret.CurrHp, new Vector3(ret.PosX, ret.PosY, ret.PosZ));
+            InstantiateEnemy(ret.EnemyInstanceId, ret.MaxHp, ret.CurrHp, new Vector3(ret.PosX, ret.PosY, ret.PosZ),
+                ret.Model, ret.Name);
         }
 
         /// <summary>
@@ -77,12 +82,15 @@ namespace HotUpdate.Enemy
         /// </summary>
         public void SpawnLocal(int instanceId, float maxHp, Vector3 pos)
         {
-            InstantiateEnemy(instanceId, maxHp, maxHp, pos);
+            InstantiateEnemy(instanceId, maxHp, maxHp, pos, null, null);
         }
 
-        private void InstantiateEnemy(int instanceId, float maxHp, float currHp, Vector3 spawnPos)
+        private void InstantiateEnemy(int instanceId, float maxHp, float currHp, Vector3 spawnPos, string modelAddress,
+            string enemyName)
         {
-            AppContext.Res.LoadAndInstantiateAsync("enemy", null, enemy =>
+            // 模型地址来自敌人表（SpawnEnemyRet.model），空则用默认预制体
+            string address = string.IsNullOrEmpty(modelAddress) ? DefaultEnemyAddress : modelAddress;
+            AppContext.Res.LoadAndInstantiateAsync(address, null, enemy =>
             {
                 EnemyCtrl ctrl = enemy.GetComponent<EnemyCtrl>();
                 if (ctrl == null)
@@ -92,7 +100,7 @@ namespace HotUpdate.Enemy
                 }
 
                 // 敌人由服务端驱动，客户端只落地出生数据，之后位置/动作都等服务端下发
-                ctrl.InitFromServer(instanceId, maxHp, currHp, spawnPos);
+                ctrl.InitFromServer(instanceId, maxHp, currHp, spawnPos, enemyName);
             });
         }
 
@@ -121,6 +129,39 @@ namespace HotUpdate.Enemy
             {
                 enemy.OnServerAttackResult(ret);
             }
+        }
+
+        #endregion
+
+        #region 击杀掉落
+
+        /// <summary>
+        /// 上报击杀：只有最后一击的客户端调一次，服务端校验后按敌人表 roll 掉落并交给中心服落库。
+        /// </summary>
+        public void RequestKillReward(int instanceId, string enemyName)
+        {
+            if (AppContext.IsOffline) return; // 离线调试没有服务端，不打这个包
+            AppContext.Proto.RequestEnemyKill(AppContext.Session.RoleId, instanceId,
+                ret => OnKillReward(ret, enemyName));
+        }
+
+        // 回包里的数量是「发放后」的最新值，直接覆盖本地，不用自己再加一遍
+        private void OnKillReward(EnemyKillRet ret, string enemyName)
+        {
+            if (ret.CmdCode != CmdCode.Succeed) return;
+
+            if (ret.MaterialCounts.Count > 0) AppContext.Material.ApplyMaterialCounts(ret.MaterialCounts);
+            if (string.IsNullOrEmpty(ret.RewardDesc)) return;
+
+            // 服务端把每条掉落用 "/" 断开。先全部收集好再一把交给提示面板，
+            string who = string.IsNullOrEmpty(enemyName) ? "敌人" : enemyName;
+            List<string> lines = new List<string>();
+            foreach (string part in ret.RewardDesc.Split('/'))
+            {
+                lines.Add($"击杀{who}，{part.Trim()}");
+            }
+
+            AppContext.Ui.ShowToasts(lines);
         }
 
         #endregion

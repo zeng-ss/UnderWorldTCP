@@ -8,6 +8,7 @@ public class LubanMgr : Singleton<LubanMgr>
     private Dictionary<int, taskData> _taskDataDic;
     private Dictionary<int, materialData> _materialDic;
     private Dictionary<int, driverDisk> _driverDiskDic;
+    private Dictionary<int, enemyData> _enemyDic;
 
     public void Init()
     {
@@ -17,6 +18,7 @@ public class LubanMgr : Singleton<LubanMgr>
         _taskDataDic = tables.TbtaskData.DataMap;
         _materialDic = tables.TbmaterialData.DataMap;
         _driverDiskDic = tables.TbdriverDisk.DataMap;
+        _enemyDic = tables.TbenemyData.DataMap;
     }
 
     // 读取单张 byte 表的完整路径：优先在可执行文件所在目录下查找，找不到再向上级目录回退
@@ -75,6 +77,21 @@ public class LubanMgr : Singleton<LubanMgr>
         }
 
         return ids;
+    }
+
+    #endregion
+
+    #region 敌人相关的方法
+
+    // 通过编号获取敌人配置（血量 / 攻击 / 移动 / 掉落都在这张表里）
+    public enemyData GetEnemyDataById(int enemyId)
+    {
+        if (_enemyDic != null && _enemyDic.TryGetValue(enemyId, out var enemyById))
+        {
+            return enemyById;
+        }
+
+        return null;
     }
 
     #endregion

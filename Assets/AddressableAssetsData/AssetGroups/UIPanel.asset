@@ -20,6 +20,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 06dde617c5443ad4181a674f3fd072dc
+    m_Address: ToastPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 3156fb7f304d36b4d821b2019e2859b7
     m_Address: StartPanel
     m_ReadOnly: 0

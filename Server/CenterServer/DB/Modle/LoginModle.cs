@@ -424,6 +424,57 @@ public class LoginModle
     }
 
     /// <summary>
+    /// 击杀掉落落库：登录服已经把「谁打的、掉什么」算好了，这里只写进背包并把最新数量回给客户端。
+    /// </summary>
+    public EnemyDropRet GrantEnemyDrops(EnemyDropReq req)
+    {
+        EnemyDropRet ret = new EnemyDropRet();
+        if (req.RoleId <= 0 || req.Drops.Count == 0)
+        {
+            ret.CmdCode = CmdCode.ReqParamError;
+            return ret;
+        }
+
+        // 同一种物品在掉落列表里重复出现时先合并，避免同一条记录被加两次
+        Dictionary<int, int> rewardMap = new Dictionary<int, int>();
+        foreach (DropItem drop in req.Drops)
+        {
+            if (drop.ItemId <= 0 || drop.Count <= 0) continue;
+            rewardMap[drop.ItemId] = rewardMap.TryGetValue(drop.ItemId, out int old) ? old + drop.Count : drop.Count;
+        }
+
+        if (rewardMap.Count == 0)
+        {
+            ret.CmdCode = CmdCode.Succeed;
+            return ret;
+        }
+
+        GrantToBag(req.RoleId, rewardMap);
+
+        // 回「发放后」的最新数量：客户端直接覆盖
+        List<RoleBagInfo> rows = _db.Queryable<RoleBagInfo>().Where(v => v.RoleId == req.RoleId).ToList();
+        foreach (var kv in rewardMap)
+        {
+            RoleBagInfo row = rows.Find(v => v.ItemId == kv.Key);
+            if (row != null) ret.MaterialCounts[kv.Key] = row.Count;
+        }
+
+        // 每条掉落一段文案，用 "/" 断开；敌人名字由客户端在生成敌人时已经拿到，
+        // 这里只管「掉了什么」，表现层的事不下发到中心服这一层
+        string desc = string.Empty;
+        foreach (var kv in rewardMap)
+        {
+            if (desc.Length > 0) desc += "/";
+            desc += $"{ItemCatalog.GetName(kv.Key)}×{kv.Value}";
+        }
+
+        ret.RewardDesc = desc;
+        ret.CmdCode = CmdCode.Succeed;
+        LogMsg.Info($"[Center]击杀掉落落库: roleId={req.RoleId} {desc}");
+        return ret;
+    }
+
+    /// <summary>
     /// 退出登录：把角色的场景重置为主界面，下次登录不会直接落进 Lobby / Game。
     /// 在线列表在 LoginServer 侧维护，那边收到请求时就调 OnPlayerLeave 了。
     /// </summary>
@@ -591,7 +642,7 @@ public class LoginModle
         rewardMap[itemId] = current + count;
     }
 
-    /// <summary>把奖励明细写进角色背包：已有则累加，没有则新建（物品类型与名称统一走 ItemCatalog）</summary>
+    /// <summary>把奖励明细写进角色背包：已有则累加，没有则新建</summary>
     private void GrantToBag(int roleId, IDictionary<int, int> rewardMap)
     {
         List<RoleBagInfo> existingItems = _db.Queryable<RoleBagInfo>().Where(v => v.RoleId == roleId).ToList();

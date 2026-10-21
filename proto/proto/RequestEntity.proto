@@ -300,3 +300,23 @@ message BackToLoginReq{
 message ExitGameRoomReq{
   int32 role_id = 1;
 }
+
+
+// ========== 击杀掉落 ==========
+
+// 客户端上报击杀：只有真正打死它的客户端会上报一次，服务端校验敌人确实已死且是它打的才发奖
+message EnemyKillReq{
+  int32 role_id = 1;
+  int32 enemy_instance_id = 2;
+}
+
+// 中心服内部协议：登录服已经算好掉落，这里只负责落库（客户端拿不到这个码）
+message EnemyDropReq{
+  int32 role_id = 1;
+  repeated DropItem drops = 2;
+}
+
+message DropItem{
+  int32 item_id = 1;
+  int32 count = 2;
+}

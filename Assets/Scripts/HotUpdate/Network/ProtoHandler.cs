@@ -72,6 +72,7 @@ namespace HotUpdate.Network
         private Action<FriendHistoryRet> _friendHistoryCallback;
         private Action<RoomChatNtf> _roomChatCallback;
         private Action<SetAvatarRet> _setAvatarCallback;
+        private Action<EnemyKillRet> _enemyKillCallback;
         private Action<BackToLoginRet> _backToLoginCallback;
         private Action<ExitGameRoomRet> _exitGameRoomCallback;
         private Action<RoomStartGameNtf> _roomStartGameCallback;
@@ -135,6 +136,7 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_FriendMsgReadCode, OnMarkFriendMsgReadResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_BackToLoginCode, OnBackToLoginResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_ExitGameRoomCode, OnExitGameRoomResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_EnemyKillCode, OnEnemyKillResult);
         }
 
         // 由 GameManager.Update 每帧驱动
@@ -633,6 +635,25 @@ namespace HotUpdate.Network
             _setAvatarCallback = null;
         }
 
+        /// <summary>
+        /// 上报击杀：只有真正打死它的客户端调一次，服务端校验后按敌人表 roll 掉落。
+        /// </summary>
+        public void RequestEnemyKill(int roleId, int enemyInstanceId, Action<EnemyKillRet> callback)
+        {
+            _enemyKillCallback = callback;
+            EnemyKillReq req = new EnemyKillReq { RoleId = roleId, EnemyInstanceId = enemyInstanceId };
+            NetClientMgr.Instance.Send(NetDefine.CMD_EnemyKillCode, req.ToByteString());
+        }
+
+        private void OnEnemyKillResult(ByteString data)
+        {
+            EnemyKillRet ret = EnemyKillRet.Parser.ParseFrom(data);
+            if (ret.CmdCode != CmdCode.Succeed)
+                Debug.LogWarning($"ProtoHandler: 击杀掉落失败 CmdCode={ret.CmdCode}");
+            _enemyKillCallback?.Invoke(ret);
+            _enemyKillCallback = null;
+        }
+
         private void OnChangeSceneResult(ByteString data)
         {
             ChangeSceneRet ret = ChangeSceneRet.Parser.ParseFrom(data);
@@ -1025,6 +1046,7 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_SetAvatarCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendMsgReadCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_BackToLoginCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_EnemyKillCode);
         }
     }
 }

@@ -53,19 +53,19 @@ public sealed partial class taskData : Luban.BeanBase
     /// </summary>
     public readonly bool IsUnlock;
     /// <summary>
-    /// 驱动盘奖励id列表（见 ItemCatalog，1-4）
+    /// 驱动盘奖励id列表
     /// </summary>
     public readonly System.Collections.Generic.List<int> DepotIds;
     /// <summary>
-    /// 材料奖励id列表（见 ItemCatalog，5-9）
+    /// 材料奖励id列表
     /// </summary>
     public readonly System.Collections.Generic.List<int> MaterialsId;
     /// <summary>
-    /// 驱动盘奖励数量（与 depotIds 一一对应，缺省按 1）
+    /// 驱动盘奖励数量
     /// </summary>
     public readonly System.Collections.Generic.List<int> DepotNums;
     /// <summary>
-    /// 材料奖励数量（与 materialsId 一一对应，缺省按 1）
+    /// 材料奖励数量
     /// </summary>
     public readonly System.Collections.Generic.List<int> MaterialNums;
    

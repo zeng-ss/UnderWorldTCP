@@ -87,6 +87,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_BackToLoginCode:
                 OnBackToLoginResultHandle(session, basePackage);
                 break;
+            case NetDefine.CMD_EnemyDropCode:
+                OnEnemyDropResultHandle(session, basePackage);
+                break;
             default:
                 LogMsg.Info("[LoginCtrl]中心服务器发过来的结果的请求码没有注册");
                 break;
@@ -578,6 +581,9 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_ExitGameRoomCode:
                 OnExitGameRoomHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_EnemyKillCode:
+                OnEnemyKillHandle(serverBase, basePackage);
+                break;
             case NetDefine.CMD_RoomStartGameCode:
                 OnRoomStartGameHandle(serverBase, basePackage);
                 break;
@@ -880,6 +886,61 @@ public class LoginCtrl : IContainer
         };
         session.SendData(basePackage, NetDefine.CMD_ExitGameRoomCode, ret.ToByteString());
         LogMsg.Info($"[Login]退出游戏房间: roleId={req.RoleId} inRoom={inRoom}");
+    }
+
+    // 击杀上报：服务端判定掉落并把它交给中心服落库（数据流与任务领奖一致，客户端不参与发奖）
+    private void OnEnemyKillHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        if (!(serverBase is Session session)) return;
+
+        EnemyKillReq req = EnemyKillReq.Parser.ParseFrom(basePackage.Data);
+
+        // 上报的 roleId 必须是这个会话自己的角色，防止替别人领掉落
+        int expectSessionId = GetSessionIdByRole(req.RoleId);
+        if (expectSessionId > 0 && expectSessionId != session.SessionId)
+        {
+            LogMsg.Info($"[Login]击杀上报角色与会话不符: roleId={req.RoleId} session={session.SessionId} expect={expectSessionId}");
+            EnemyKillRet deny = new EnemyKillRet { CmdCode = CmdCode.ReqParamError };
+            session.SendData(basePackage, NetDefine.CMD_EnemyKillCode, deny.ToByteString());
+            return;
+        }
+
+        List<DropItem> drops = new List<DropItem>();
+        bool valid = EnemyMgr.Instance.ClaimKill(req.RoleId, req.EnemyInstanceId, drops, out string enemyName);
+
+        // 没掉落 / 重复上报 / 不是他打死的：回一个空包，客户端只当没奖，不报错
+        if (!valid || drops.Count == 0)
+        {
+            EnemyKillRet empty = new EnemyKillRet { CmdCode = CmdCode.Succeed };
+            session.SendData(basePackage, NetDefine.CMD_EnemyKillCode, empty.ToByteString());
+            LogMsg.Info($"[Login]击杀无掉落: roleId={req.RoleId} enemyId={req.EnemyInstanceId} valid={valid} enemy={enemyName}");
+            return;
+        }
+
+        // 转成中心服内部协议：Data 换成「算好的掉落」，码换成 11511，包里的 UnitySessionId 原样保留，
+        // 这样中心服处理完，回包能按 UnitySessionId 找回这个玩家的 Session
+        EnemyDropReq dropReq = new EnemyDropReq { RoleId = req.RoleId };
+        dropReq.Drops.Add(drops);
+        basePackage.ProtoCode = NetDefine.CMD_EnemyDropCode;
+        basePackage.Data = dropReq.ToByteString();
+        serverBase._Client.SendData(basePackage);
+
+        LogMsg.Info($"[Login]击杀上报转发中心服: roleId={req.RoleId} enemy={enemyName} 掉落种类={drops.Count}");
+    }
+
+    // 中心服落库结果：拆成客户端认识的 EnemyKillRet 再回给玩家
+    private void OnEnemyDropResultHandle(Session session, BasePackage basePackage)
+    {
+        EnemyDropRet dropRet = EnemyDropRet.Parser.ParseFrom(basePackage.Data);
+        EnemyKillRet ret = new EnemyKillRet
+        {
+            CmdCode = dropRet.CmdCode,
+            RewardDesc = dropRet.RewardDesc,
+        };
+        foreach (var kv in dropRet.MaterialCounts) ret.MaterialCounts[kv.Key] = kv.Value;
+
+        session.SendData(basePackage, NetDefine.CMD_EnemyKillCode, ret.ToByteString());
+        LogMsg.Info($"[Login]击杀掉落落库完成: cmd={dropRet.CmdCode} desc={dropRet.RewardDesc}");
     }
 
     // 房主踢人：RoomMgr 校验后通知被踢者退回列表页，并给房主回包

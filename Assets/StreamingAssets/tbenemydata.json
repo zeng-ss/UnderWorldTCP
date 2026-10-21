@@ -1,0 +1,93 @@
+[
+  {
+    "enemyId": 1,
+    "name": "训练用哥布林",
+    "model": "enemy",
+    "maxHp": 1200,
+    "attack": 8,
+    "moveSpeed": 3.2,
+    "chaseDistance": 10,
+    "attackRange": 2.5,
+    "attackInterval": 2.2,
+    "dropNums": [
+      [
+        5,
+        20
+      ],
+      [
+        6,
+        1
+      ]
+    ],
+    "dropChances": [
+      [
+        5,
+        100
+      ],
+      [
+        6,
+        30
+      ]
+    ]
+  },
+  {
+    "enemyId": 2,
+    "name": "地铁哥布林",
+    "model": "enemy",
+    "maxHp": 4000,
+    "attack": 16,
+    "moveSpeed": 3.6,
+    "chaseDistance": 12,
+    "attackRange": 2.6,
+    "attackInterval": 2,
+    "dropNums": [
+      [
+        5,
+        80
+      ],
+      [
+        6,
+        2
+      ],
+      [
+        7,
+        2
+      ],
+      [
+        8,
+        2
+      ]
+    ],
+    "dropChances": [
+      [
+        5,
+        100
+      ],
+      [
+        6,
+        50
+      ],
+      [
+        7,
+        50
+      ],
+      [
+        8,
+        50
+      ]
+    ]
+  },
+  {
+    "enemyId": 3,
+    "name": "训练木桩",
+    "model": "enemy",
+    "maxHp": 20000,
+    "attack": 0,
+    "moveSpeed": 0,
+    "chaseDistance": 0,
+    "attackRange": 0,
+    "attackInterval": 999,
+    "dropNums": [],
+    "dropChances": []
+  }
+]

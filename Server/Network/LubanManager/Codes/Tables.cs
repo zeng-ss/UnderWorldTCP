@@ -15,6 +15,7 @@ public partial class Tables
     public TbdialogueLine TbdialogueLine {get; }
     public TbdialogueOption TbdialogueOption {get; }
     public TbdriverDisk TbdriverDisk {get; }
+    public TbenemyData TbenemyData {get; }
     public TbmaterialData TbmaterialData {get; }
     public TbtaskData TbtaskData {get; }
 
@@ -25,6 +26,7 @@ public partial class Tables
         TbdialogueLine = new TbdialogueLine(loader("tbdialogueline"));
         TbdialogueOption = new TbdialogueOption(loader("tbdialogueoption"));
         TbdriverDisk = new TbdriverDisk(loader("tbdriverdisk"));
+        TbenemyData = new TbenemyData(loader("tbenemydata"));
         TbmaterialData = new TbmaterialData(loader("tbmaterialdata"));
         TbtaskData = new TbtaskData(loader("tbtaskdata"));
         ResolveRef();
@@ -37,6 +39,7 @@ public partial class Tables
         TbdialogueLine.ResolveRef(this);
         TbdialogueOption.ResolveRef(this);
         TbdriverDisk.ResolveRef(this);
+        TbenemyData.ResolveRef(this);
         TbmaterialData.ResolveRef(this);
         TbtaskData.ResolveRef(this);
     }

@@ -100,7 +100,20 @@ public class Center_LoginCtrl : IContainer
             case NetDefine.CMD_BackToLoginCode:
                 OnBackToLoginHandle(serverBase, basePackage);
                 break;
+            case NetDefine.CMD_EnemyDropCode:
+                OnEnemyDropHandle(serverBase, basePackage);
+                break;
         }
+    }
+
+    // 击杀掉落落库：登录服已经校验过归属并算好了掉落，这里只负责写库并回最新数量
+    private void OnEnemyDropHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        EnemyDropReq req = EnemyDropReq.Parser.ParseFrom(basePackage.Data);
+        LogMsg.Info($"[Center]收到击杀掉落: roleId={req.RoleId} 种类={req.Drops.Count}");
+
+        EnemyDropRet ret = _loginModle.GrantEnemyDrops(req);
+        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
     }
 
     // 退出登录：把角色场景重置回主界面

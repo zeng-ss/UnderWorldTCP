@@ -79,6 +79,8 @@ message SpawnEnemyRet{
   float max_hp = 6;            // 最大血量
   float curr_hp = 7;           // 当前血量
   int32 enemy_config_id = 8;   // 敌人配置表ID
+  string model = 9;            // 客户端预制体地址（敌人表里配的，空则用默认 enemy）
+  string name = 10;            // 敌人名字（客户端拼「击杀XXX，金币×20」提示用）
 }
 
 // 玩家攻击返回
@@ -420,4 +422,21 @@ message BackToLoginRet{
 message ExitGameRoomRet{
   CmdCode cmd_code = 1;
   string tip = 2;
+}
+
+
+// ========== 击杀掉落 ==========
+
+// 击杀回包：material_counts 是发放后各材料的最新数量，客户端直接覆盖本地值
+message EnemyKillRet{
+  CmdCode cmd_code = 1;
+  string reward_desc = 2;  // 每条用 "/" 断开，客户端拆开逐条推提示
+  map<int32, int32> material_counts = 3;
+}
+
+// 中心服落库结果（登录服内部用，再包成 EnemyKillRet 回给客户端）
+message EnemyDropRet{
+  CmdCode cmd_code = 1;
+  string reward_desc = 2;
+  map<int32, int32> material_counts = 3;
 }

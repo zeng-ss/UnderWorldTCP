@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Google.Protobuf;
+using cfg;
 
 /// <summary>
 /// 敌人状态机。数值必须与客户端 HotUpdate.Event.EnemyStateType 一一对齐，
@@ -59,9 +60,14 @@ public class EnemyInstance
     public float AttackInterval = 2.2f; // 两次攻击之间的最小间隔
     public float RemoveDelay = 6f; // 死亡后多久从服务端移除
 
-    // 服务端结算用的攻击力。与客户端 enemy.prefab 上 HitData.damageValue 对齐（那边的值只用于表现参数，
-    // 伤害数值一律以本字段为准，后续挪到 Luban 敌人配置表）。
+    // 服务端结算用的攻击力。现在由 Luban 敌人表下发（配置缺省时退回 10）
     public float AttackDamage = 10f;
+
+    // 最后一击的角色：只有这个人上报击杀才算数，避免同屏其他人蹭掉落
+    public int LastAttackerRoleId;
+
+    // 掉落只能领一次（重复上报 / 断线重连补发都挡掉）
+    public bool DropClaimed;
 }
 
 /// <summary>
@@ -91,6 +97,10 @@ public class EnemyMgr : Singleton<EnemyMgr>
     /// </summary>
     public int SpawnEnemy(int configId, float maxHp, float posX, float posY, float posZ)
     {
+        // 数值全部以 Luban 敌人表为准；表里没有这个 id 时才退回调用方传进来的血量
+        enemyData config = LubanMgr.Instance.GetEnemyDataById(configId);
+        float realMaxHp = config != null ? config.MaxHp : maxHp;
+
         int id;
         lock (_lock)
         {
@@ -99,8 +109,8 @@ public class EnemyMgr : Singleton<EnemyMgr>
             {
                 InstanceId = id,
                 ConfigId = configId,
-                MaxHp = maxHp,
-                CurrHp = maxHp,
+                MaxHp = realMaxHp,
+                CurrHp = realMaxHp,
                 PosX = posX,
                 PosY = posY,
                 PosZ = posZ,
@@ -108,6 +118,16 @@ public class EnemyMgr : Singleton<EnemyMgr>
                 State = EnemyAiState.Idle,
                 Anim = "Idle",
             };
+
+            if (config != null)
+            {
+                enemy.AttackDamage = config.Attack;
+                enemy.MoveSpeed = config.MoveSpeed;
+                enemy.ChaseDistance = config.ChaseDistance;
+                enemy.AttackRange = config.AttackRange;
+                enemy.AttackInterval = config.AttackInterval;
+            }
+
             _enemies[id] = enemy;
         }
 
@@ -116,16 +136,20 @@ public class EnemyMgr : Singleton<EnemyMgr>
             CmdCode = CmdCode.Succeed,
             EnemyInstanceId = id,
             EnemyConfigId = configId,
-            MaxHp = maxHp,
-            CurrHp = maxHp,
+            MaxHp = realMaxHp,
+            CurrHp = realMaxHp,
             PosX = posX,
             PosY = posY,
             PosZ = posZ,
+            Model = config != null ? config.Model : string.Empty,
+            Name = config != null ? config.Name : string.Empty,
         };
 
         BroadcastAll(NetDefine.CMD_SpawnEnemyCode, ret.ToByteString());
+
+        string configName = config != null ? config.Name : "未配置";
         LogMsg.Info(
-            $"[EnemyMgr]敌人生成: instanceId={id} configId={configId} pos=({posX:F1},{posY:F1},{posZ:F1}) maxHp={maxHp}",
+            $"[EnemyMgr]敌人生成: instanceId={id} configId={configId} name={configName} pos=({posX:F1},{posY:F1},{posZ:F1}) maxHp={realMaxHp}",
             ConsoleColor.Magenta);
         return id;
     }
@@ -204,6 +228,7 @@ public class EnemyMgr : Singleton<EnemyMgr>
                 enemy.State = EnemyAiState.Dead;
                 enemy.Anim = "Dead";
                 enemy.DeadTimer = 0f;
+                enemy.LastAttackerRoleId = req.RoleId;
             }
 
             ret.CmdCode = CmdCode.Succeed;
@@ -220,6 +245,52 @@ public class EnemyMgr : Singleton<EnemyMgr>
         LogMsg.Info(
             $"[EnemyMgr]攻击处理: enemyId={req.EnemyInstanceId} damage={ret.DamageDealt} hp={ret.EnemyCurrHp}/{ret.EnemyMaxHp} isDead={ret.IsDead} isBaoji={ret.IsBaoji}");
         return ret;
+    }
+
+    #endregion
+
+    #region 击杀掉落
+
+    /// <summary>
+    /// 结算一次击杀掉落：校验「敌人确实死了 + 是这个人打死的 + 还没领过」，
+    /// 再按 Luban 敌人表的概率逐个 roll。返回 false 表示这次上报不合法（重复上报 / 冒领）。
+    /// </summary>
+    public bool ClaimKill(int roleId, int instanceId, List<DropItem> drops, out string enemyName)
+    {
+        drops.Clear();
+        enemyName = string.Empty;
+
+        lock (_lock)
+        {
+            if (!_enemies.TryGetValue(instanceId, out EnemyInstance enemy)) return false;
+            if (enemy.CurrHp > 0 || enemy.DropClaimed) return false;
+            if (enemy.LastAttackerRoleId != roleId) return false;
+
+            // 先占位再 roll：同一个击杀只会发一次，重复上报直接挡掉
+            enemy.DropClaimed = true;
+
+            enemyData config = LubanMgr.Instance.GetEnemyDataById(enemy.ConfigId);
+            if (config == null) return true; // 没配置就只当击杀有效，不给掉落
+
+            enemyName = config.Name;
+
+            // 数量表是「材料id → 数量」，概率表是「材料id → 百分比」；
+            // 数量表里有、概率表里没配的，按必掉处理
+            foreach (var kv in config.DropNums)
+            {
+                int itemId = kv.Key;
+                int num = kv.Value;
+                if (itemId <= 0 || num <= 0) continue;
+
+                int chance = config.DropChances.TryGetValue(itemId, out int percent) ? percent : 100;
+                if (chance <= 0 || _rand.Next(0, 100) >= chance) continue;
+
+                drops.Add(new DropItem { ItemId = itemId, Count = num });
+            }
+        }
+
+        LogMsg.Info($"[EnemyMgr]击杀掉落: instanceId={instanceId} roleId={roleId} enemy={enemyName} 掉落种类={drops.Count}");
+        return true;
     }
 
     #endregion

@@ -7,6 +7,9 @@ namespace LoginServer
     {
         private static void Main()
         {
+            // 敌人表（血量 / 攻击 / 移动 / 掉落）在登录服也要用：刷怪与击杀结算都在这边
+            LubanMgr.Instance.Init();
+
             //登录服务器   连接中心服务器  
             NetClient client = new NetClient(NetDefine.IPHost, NetDefine.CenterServerPort, ClientType.LoginServer);
             client.StartConnect();
@@ -55,6 +58,7 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_FriendMsgReadCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_BackToLoginCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_ExitGameRoomCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_EnemyKillCode, loginCtrl);
 
             client.RegistCommand(NetDefine.CMD_RegistCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_LoginCode, loginCtrl);
@@ -81,6 +85,7 @@ namespace LoginServer
             client.RegistCommand(NetDefine.CMD_FriendMsgReadCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_BackToLoginCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_ExitGameRoomCode, loginCtrl);
+            client.RegistCommand(NetDefine.CMD_EnemyDropCode, loginCtrl);
 
             // new Timer(_ =>
             // {

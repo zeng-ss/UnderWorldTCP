@@ -21,6 +21,9 @@ namespace HotUpdate.Enemy
         // 服务端分配的敌人实例ID
         [HideInInspector] public int serverInstanceId;
 
+        // 敌人名字（生成时由服务端下发），击杀提示里用
+        private string _enemyName = "敌人";
+
         #region 数据
 
         public HitData hitData;
@@ -124,10 +127,11 @@ namespace HotUpdate.Enemy
         #region 服务端同步入口
 
         /// 服务端生成敌人后，由 EnemyManager 调用落地基础数据并向实例表登记
-        public void InitFromServer(int instanceId, float maxHp, float currHp, Vector3 pos)
+        public void InitFromServer(int instanceId, float maxHp, float currHp, Vector3 pos, string enemyName)
         {
             _inited = true;
             serverInstanceId = instanceId;
+            if (!string.IsNullOrEmpty(enemyName)) _enemyName = enemyName;
             maxHealthValue = maxHp;
             networkHealth = currHp;
             _targetPos = pos;
@@ -282,7 +286,12 @@ namespace HotUpdate.Enemy
             isCanPlayHurtAni = false;
             _animBlockUntil = 0f;
 
-            if (advanceTask) AppContext.Task.AdvanceByType(TaskType.击败第一个敌人);
+            if (advanceTask)
+            {
+                AppContext.Task.AdvanceByType(TaskType.击败第一个敌人);
+                // 同一个击杀只上报一次，服务端按敌人表 roll 掉落并落库
+                AppContext.Enemy.RequestKillReward(serverInstanceId, _enemyName);
+            }
 
             if (_capsuleCollider != null) _capsuleCollider.enabled = false;
             if (_characterController != null) _characterController.enabled = false;
