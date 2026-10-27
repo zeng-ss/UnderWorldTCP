@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotUpdate.Core;
 using HotUpdate.Event;
 using HotUpdate.UI.UIPanel;
@@ -123,7 +124,6 @@ namespace HotUpdate.Manager
             if (_uiPanelDict.TryGetValue(path, out var panel)) DoClosePanel(path, panel);
         }
 
-        /// <summary>关闭指定面板实例，供 BasePanel 的关闭按钮回调使用</summary>
         public void ClosePanel(BasePanel panel)
         {
             if (panel == null) return;
@@ -139,9 +139,6 @@ namespace HotUpdate.Manager
 
         private void DoClosePanel(string path, BasePanel panel)
         {
-            // Hide 会先播关闭动画、动画结束才 SetActive(false)；
-            // reparent 与解锁照旧立即执行（_currentPanel 与 Canvas 根都是全屏拉伸且 pivot 一致，
-            // 带 worldPositionStays=false 换父节点不会让动画中的面板位移 / 缩放跳变）
             panel.Hide();
             panel.transform.SetParent(Canvas.transform, false);
             PopInputLock(path);
@@ -160,19 +157,14 @@ namespace HotUpdate.Manager
 
         public void ClearAllPanel()
         {
-            // 整体清理（退出游戏 / 卸载资源）不需要动画，直接立即隐藏
             foreach (var kv in _uiPanelDict) kv.Value.HideImmediate();
         }
 
-        /// <summary>
-        /// 销毁所有已加载面板并释放其资源句柄。
-        /// 用于彻底清理（卸载资源包 / 退出游戏）；日常开关面板请用 ClosePanel，它会缓存实例。
-        /// </summary>
         public void DestroyAllPanels()
         {
-            foreach (var kv in _uiPanelDict)
+            foreach (var kv in _uiPanelDict.Where(kv => kv.Value != null))
             {
-                if (kv.Value != null) GameObject.Destroy(kv.Value.gameObject);
+                Object.Destroy(kv.Value.gameObject);
             }
 
             _uiPanelDict.Clear();
@@ -180,7 +172,6 @@ namespace HotUpdate.Manager
             // 面板全没了，输入锁也该全部释放，避免残留锁死玩法操作
             _panelInputLocks.Clear();
             InputManager.Instance.PopAllInputLocks();
-
             AppContext.UILoader.ReleaseAll();
         }
 

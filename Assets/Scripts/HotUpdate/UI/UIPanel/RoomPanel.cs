@@ -59,6 +59,16 @@ namespace HotUpdate.UI.UIPanel
             BindHierarchy();
         }
 
+        /// <summary>
+        /// 服务端已经把我们退出房间时，客户端把本地房间状态清干净。
+        /// 结算面板「返回大厅」用它，否则大厅还停在「房间内」形态。
+        /// </summary>
+        public void ResetRoomState()
+        {
+            _room?.Clear();
+            EnterListView();
+        }
+
         public override void Show()
         {
             base.Show();
@@ -444,17 +454,7 @@ namespace HotUpdate.UI.UIPanel
         private void OnHomeClicked()
         {
             if (_room is { IsInRoom: true }) _room.LeaveRoom();
-
-            AppContext.Proto.RequestChangeScene("EnterScene", ret =>
-            {
-                if (ret.CmdCode != CmdCode.Succeed)
-                {
-                    Debug.LogError($"跳转场景失败：{ret.CmdCode}");
-                    return;
-                }
-
-                AppContext.Scene.LoadScene("EnterScene", 0.4f, TransitionPanel.ScrollBgType.Normal, OnCoveredHandle);
-            });
+            AppContext.Scene.LoadScene("EnterScene", 0.4f, TransitionPanel.ScrollBgType.Normal, OnCoveredHandle);
         }
 
         private void OnCoveredHandle()

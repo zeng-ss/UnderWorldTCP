@@ -97,6 +97,28 @@ namespace HotUpdate.Network
             }
         }
 
+        /// <summary>找离 from 最近的远程玩家（宿主 AI 索敌用）</summary>
+        public bool TryGetNearest(Vector3 from, out int roleId, out Vector3 pos)
+        {
+            roleId = 0;
+            pos = Vector3.zero;
+            bool found = false;
+            float minSq = float.MaxValue;
+
+            foreach (RemotePlayer rp in _remotePlayers.Values)
+            {
+                if (rp == null) continue;
+                float sq = (rp.transform.position - from).sqrMagnitude;
+                if (sq >= minSq) continue;
+                minSq = sq;
+                roleId = rp.RoleId;
+                pos = rp.transform.position;
+                found = true;
+            }
+
+            return found;
+        }
+
         public void ResetForNewScene()
         {
             foreach (var kv in _remotePlayers)

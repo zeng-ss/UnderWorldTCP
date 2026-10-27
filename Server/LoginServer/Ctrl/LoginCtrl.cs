@@ -36,12 +36,6 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_SaveRoleCode:
                 OnSaveRoleResultHandle(session, basePackage);
                 break;
-            case NetDefine.CMD_ChangeSceneCode:
-                OnChangeSceneResultHandle(session, basePackage);
-                break;
-            /*case NetDefine.CMD_SpawnEnemyCode:
-                OnSpawnEnemyResultHandle(session, basePackage);
-                break;*/
             case NetDefine.CMD_PlayerAttackCode:
                 OnPlayerAttackResultHandle(session, basePackage);
                 break;
@@ -293,20 +287,6 @@ public class LoginCtrl : IContainer
         session.SendData(basePackage);
     }
 
-    // 跳转场景返回
-    private void OnChangeSceneResultHandle(Session session, BasePackage basePackage)
-    {
-        ChangeSceneRet ret = ChangeSceneRet.Parser.ParseFrom(basePackage.Data);
-        if (ret.CmdCode != CmdCode.Succeed)
-        {
-            session.SendError(basePackage, ret.CmdCode);
-            return;
-        }
-
-        LogMsg.Info("[Login]跳转场景结果:" + ret);
-        session.SendData(basePackage);
-    }
-
     // 保存角色返回
     private void OnSaveRoleResultHandle(Session session, BasePackage basePackage)
     {
@@ -506,9 +486,6 @@ public class LoginCtrl : IContainer
             case NetDefine.CMD_SaveRoleCode:
                 OnSaveRoleHandle(serverBase, basePackage);
                 break;
-            case NetDefine.CMD_ChangeSceneCode:
-                OnChangeSceneHandle(serverBase, basePackage);
-                break;
             case NetDefine.CMD_SpawnEnemyCode:
                 OnSpawnEnemyHandle(serverBase, basePackage);
                 break;
@@ -583,6 +560,12 @@ public class LoginCtrl : IContainer
                 break;
             case NetDefine.CMD_EnemyKillCode:
                 OnEnemyKillHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_EnemyAiSyncCode:
+                OnEnemyAiSyncHandle(serverBase, basePackage);
+                break;
+            case NetDefine.CMD_EnemyAttackCode:
+                OnEnemyAttackHandle(serverBase, basePackage);
                 break;
             case NetDefine.CMD_RoomStartGameCode:
                 OnRoomStartGameHandle(serverBase, basePackage);
@@ -741,6 +724,9 @@ public class LoginCtrl : IContainer
         PlayerSceneMgr.Instance.OnPlayerEnter(roleId, selfSession.SessionId, req.NikeName);
         PlayerSceneMgr.Instance.UpdatePosition(roleId, req.PosX, req.PosY, req.PosZ, req.RotationY);
 
+        // 第一次同步位置 = 客户端已经站在 GameScene 里了，此时才开一局（按房间分组刷波次）
+        if (isFirstSync) BattleMgr.Instance.OnPlayerEnterGame(roleId);
+
         // 构建位置同步广播包
         PlayerSceneMgr.Instance.GetOtherPlayersInScene(roleId).ForEach(other =>
         {
@@ -878,6 +864,18 @@ public class LoginCtrl : IContainer
 
         bool inRoom = RoomMgr.Instance.LeaveRoom(req.RoleId);
         PlayerSceneMgr.Instance.OnPlayerLeave(req.RoleId);
+        BattleMgr.Instance.OnPlayerLeave(req.RoleId);
+
+        // 让中心服把 role.SceneName 重置回主界面：客户端结算完是回大厅（LobbyScene），
+        // 场景名不重置的话，下一次从大厅开局的 ChangeScene 校验会失败
+        BasePackage resetPkg = new BasePackage
+        {
+            ProtoCode = NetDefine.CMD_BackToLoginCode,
+            UnitySessionId = basePackage.UnitySessionId,
+            GateSessionId = basePackage.GateSessionId,
+            Data = new BackToLoginReq { RoleId = req.RoleId }.ToByteString(),
+        };
+        serverBase._Client.SendData(resetPkg);
 
         ExitGameRoomRet ret = new ExitGameRoomRet
         {
@@ -919,6 +917,8 @@ public class LoginCtrl : IContainer
 
         // 转成中心服内部协议：Data 换成「算好的掉落」，码换成 11511，包里的 UnitySessionId 原样保留，
         // 这样中心服处理完，回包能按 UnitySessionId 找回这个玩家的 Session
+        BattleMgr.Instance.AddDrops(req.RoleId, drops);
+
         EnemyDropReq dropReq = new EnemyDropReq { RoleId = req.RoleId };
         dropReq.Drops.Add(drops);
         basePackage.ProtoCode = NetDefine.CMD_EnemyDropCode;
@@ -944,6 +944,39 @@ public class LoginCtrl : IContainer
     }
 
     // 房主踢人：RoomMgr 校验后通知被踢者退回列表页，并给房主回包
+    // 敌人 AI 同步（Owner 模式）：只有房主的包会被接受，服务端校验跳变后转发给其他人
+    private void OnEnemyAiSyncHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        EnemyAiSyncReq req = EnemyAiSyncReq.Parser.ParseFrom(basePackage.Data);
+        if (!IsRoomMaster(req.RoleId))
+        {
+            LogMsg.Info($"[Login]非房主的敌人同步已忽略: roleId={req.RoleId}", ConsoleColor.Red);
+            return;
+        }
+
+        EnemyMgr.Instance.ApplyHostSync(req);
+    }
+
+    // 敌人攻击上报（Owner 模式）：服务端校验距离后结算伤害
+    private void OnEnemyAttackHandle(ServerBase serverBase, BasePackage basePackage)
+    {
+        EnemyAttackReq req = EnemyAttackReq.Parser.ParseFrom(basePackage.Data);
+        if (!IsRoomMaster(req.RoleId))
+        {
+            LogMsg.Info($"[Login]非房主的敌人攻击已忽略: roleId={req.RoleId}", ConsoleColor.Red);
+            return;
+        }
+
+        EnemyMgr.Instance.HandleHostAttack(req);
+    }
+
+    // 没有房间（单人）时也允许，进了房间就只认房主
+    private static bool IsRoomMaster(int roleId)
+    {
+        Room room = RoomMgr.Instance.GetRoomByRoleId(roleId);
+        return room == null || room.MasterRoleId == roleId;
+    }
+
     private void OnKickPlayerHandle(ServerBase serverBase, BasePackage basePackage)
     {
         KickPlayerReq req = KickPlayerReq.Parser.ParseFrom(basePackage.Data);
@@ -979,14 +1012,6 @@ public class LoginCtrl : IContainer
     }
 
     #endregion
-
-    // 跳转场景请求
-    private void OnChangeSceneHandle(ServerBase serverBase, BasePackage basePackage)
-    {
-        ChangeSceneReq req = ChangeSceneReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
-        LogMsg.Info("[Login]收到跳转场景请求:" + req);
-    }
 
     // 保存角色请求
     private void OnSaveRoleHandle(ServerBase serverBase, BasePackage basePackage)

@@ -2,7 +2,8 @@
   {
     "taskID": 1,
     "taskDesc": "击败第一个敌人",
-    "taskType": 0,
+    "taskType": 1,
+    "condition": "",
     "targetCount": 1,
     "isUnlock": true,
     "depotIds": [
@@ -35,7 +36,8 @@
   {
     "taskID": 2,
     "taskDesc": "给每一个驱动盘都升一级",
-    "taskType": 1,
+    "taskType": 2,
+    "condition": "",
     "targetCount": 1,
     "isUnlock": false,
     "depotIds": [
@@ -63,6 +65,108 @@
       20,
       20,
       20
+    ]
+  },
+  {
+    "taskID": 3,
+    "taskDesc": "击败 10 个敌人",
+    "taskType": 1,
+    "condition": "",
+    "targetCount": 10,
+    "isUnlock": true,
+    "depotIds": [],
+    "materialsId": [
+      5
+    ],
+    "depotNums": [],
+    "materialNums": [
+      300
+    ]
+  },
+  {
+    "taskID": 4,
+    "taskDesc": "通关 1 次战斗",
+    "taskType": 3,
+    "condition": "",
+    "targetCount": 1,
+    "isUnlock": true,
+    "depotIds": [],
+    "materialsId": [
+      5,
+      6
+    ],
+    "depotNums": [],
+    "materialNums": [
+      200,
+      1
+    ]
+  },
+  {
+    "taskID": 5,
+    "taskDesc": "击败 30 个敌人",
+    "taskType": 1,
+    "condition": "",
+    "targetCount": 30,
+    "isUnlock": true,
+    "depotIds": [],
+    "materialsId": [
+      5
+    ],
+    "depotNums": [],
+    "materialNums": [
+      800
+    ]
+  },
+  {
+    "taskID": 6,
+    "taskDesc": "完成 3 次战斗",
+    "taskType": 3,
+    "condition": "",
+    "targetCount": 3,
+    "isUnlock": true,
+    "depotIds": [],
+    "materialsId": [
+      5,
+      7
+    ],
+    "depotNums": [],
+    "materialNums": [
+      500,
+      1
+    ]
+  },
+  {
+    "taskID": 7,
+    "taskDesc": "升级驱动盘 5 次",
+    "taskType": 2,
+    "condition": "",
+    "targetCount": 5,
+    "isUnlock": true,
+    "depotIds": [],
+    "materialsId": [
+      5
+    ],
+    "depotNums": [],
+    "materialNums": [
+      400
+    ]
+  },
+  {
+    "taskID": 8,
+    "taskDesc": "击败 3 只精英哥布林",
+    "taskType": 1,
+    "condition": "2",
+    "targetCount": 3,
+    "isUnlock": true,
+    "depotIds": [],
+    "materialsId": [
+      5,
+      8
+    ],
+    "depotNums": [],
+    "materialNums": [
+      400,
+      1
     ]
   }
 ]

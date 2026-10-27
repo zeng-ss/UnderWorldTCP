@@ -288,7 +288,7 @@ public class RoomMgr : Singleton<RoomMgr>
         return true;
     }
 
-    private Room GetRoomByRoleId(int roleId)
+    public Room GetRoomByRoleId(int roleId)
     {
         if (_playerRoom.TryGetValue(roleId, out int roomId))
         {

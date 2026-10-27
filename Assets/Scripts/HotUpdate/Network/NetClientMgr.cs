@@ -42,8 +42,9 @@ namespace HotUpdate.Network
                 return;
             }
 
-            Debug.Log($"NetClientMgr: 发送消息 ProtoCode={protoCode}");
             NetSocketMgr.Instance.SendMsg(protoCode, data);
+            if (protoCode == 11120 || protoCode == 11210 || protoCode == 11230) return;
+            Debug.Log($"NetClientMgr: 发送消息 ProtoCode={protoCode}");
         }
 
         /// <summary>

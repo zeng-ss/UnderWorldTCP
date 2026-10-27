@@ -17,7 +17,7 @@
     public const ushort CMD_StartGameCode = 11060; //开始游戏请求码
 
     public const ushort CMD_SaveRoleCode = 11070; //保存角色数据请求码
-    public const ushort CMD_ChangeSceneCode = 11080; // 跳转场景请求码
+    //public const ushort CMD_ChangeSceneCode = 11080; // 跳转场景请求码
     public const ushort CMD_SpawnEnemyCode = 11090; // 创建敌人请求码
     public const ushort CMD_PlayerAttackCode = 11100; // 玩家攻击请求码
     public const ushort CMD_GetRewardCode = 11110; // 获取奖励请求码
@@ -62,6 +62,9 @@
     public const ushort CMD_ExitGameRoomCode = 11500; // 战斗场景里退出房间
     public const ushort CMD_EnemyKillCode = 11510; // 击杀上报（客户端 → 登录服，服务端校验后发掉落）
     public const ushort CMD_EnemyDropCode = 11511; // 掉落落库（登录服 ↔ 中心服，内部协议，客户端拿不到）
+    public const ushort CMD_BattleResultCode = 11520; // 战斗结算（登录服 → 客户端，清完波次 / 全员阵亡）
+    public const ushort CMD_EnemyAiSyncCode = 11530;   // 敌人 AI 同步（房主 → 登录服 → 其他人）
+    public const ushort CMD_EnemyAttackCode = 11531;   // 敌人攻击上报（房主 → 登录服，服务端校验距离后结算）
 
     /// <summary>服务端逻辑帧率（Hz）。敌人 AI、位置与动作广播都按这个频率推进。</summary>
     public const int ServerTickRate = 30;

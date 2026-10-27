@@ -12,8 +12,8 @@ namespace HotUpdate.UI.UIPanel
     [PanelPath("TaskPanel")]
     public class TaskPanel : BasePanel
     {
-        // 面板自带打开动画（OnEnable 里卷轴式 ScaleY + 淡入），关掉通用打开动画
         protected override PanelTween.Config? AnimConfig => PanelTween.Config.None;
+        public override bool BlocksGameplayInput => true;
 
         private TaskController _taskController;
         [Header("任务面板UI组件")] public Transform taskContent; // 任务项父物体
@@ -70,17 +70,14 @@ namespace HotUpdate.UI.UIPanel
         /// </summary>
         public void RefreshTaskUI(IReadOnlyList<TaskDataRuntime> taskList)
         {
-            // 清空旧 Item
             ClearAllTaskItem();
             // 遍历创建任务项，带逐个入场动画
             for (int i = 0; i < taskList.Count; i++)
             {
                 int index = i;
                 var task = taskList[i];
-                // 跳过已完成/未解锁的任务
                 if (task.IsFinished || !task.IsUnlock) continue;
-                // 延迟创建，实现逐个弹出的效果
-                DOVirtual.DelayedCall(ItemDelayInterval * index, () => { CreateTaskItem(task); });
+                DOVirtual.DelayedCall(ItemDelayInterval * index, () => CreateTaskItem(task));
             }
         }
 

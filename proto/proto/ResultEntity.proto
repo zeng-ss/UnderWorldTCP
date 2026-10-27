@@ -65,10 +65,10 @@ message CreateRoleRet{
 message SaveRoleRet{
   CmdCode cmd_code = 1;
 }
-//跳转场景返回
+/*//跳转场景返回
 message ChangeSceneRet{
   CmdCode cmd_code = 1;
-}
+}*/
 //生成敌人返回
 message SpawnEnemyRet{
   CmdCode cmd_code = 1;
@@ -439,4 +439,14 @@ message EnemyDropRet{
   CmdCode cmd_code = 1;
   string reward_desc = 2;
   map<int32, int32> material_counts = 3;
+}
+
+// ========== 战斗结算 ==========
+
+// 一局结束时下发：清完所有波次 = 胜利(1)，全员阵亡 = 失败(0)
+message BattleResultNtf{
+  int32 result = 1;         // 1 = 胜利，0 = 失败
+  int32 duration_sec = 2;   // 本局用时（秒）
+  int32 kills = 3;          // 击杀数
+  string reward_desc = 4;   // 本局获得的掉落（金币×40  攻击驱动×2）
 }

@@ -243,6 +243,17 @@ public class PlayerSceneMgr : Singleton<PlayerSceneMgr>
     /// 找出距离指定点最近的「活着的」玩家，供敌人 AI 索敌使用。没有任何可打目标时返回 false。
     /// 已死亡的玩家不再被索敌（敌人会转而追别人）；还没上报过位置的玩家也不参与，避免敌人全挤向原点。
     /// </summary>
+    /// <summary>指定玩家是否还活着（不在场景里 / 血量归零都算死）</summary>
+    public bool IsPlayerAlive(int roleId)
+    {
+        lock (_lock)
+        {
+            if (!_players.TryGetValue(roleId, out PlayerSceneInfo info)) return false;
+            if (!info.StatsInited) return true; // 还没上报属性，先当作活着
+            return info.CurrHp > 0f;
+        }
+    }
+
     public bool TryGetNearestPlayer(float x, float y, float z, out int roleId, out float px, out float py, out float pz)
     {
         roleId = 0;

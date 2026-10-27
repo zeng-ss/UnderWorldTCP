@@ -18,7 +18,8 @@ public sealed partial class taskData : Luban.BeanBase
     {
         TaskID = _buf.ReadInt();
         TaskDesc = _buf.ReadString();
-        TaskType = (TaskType)_buf.ReadInt();
+        TaskType = _buf.ReadInt();
+        Condition = _buf.ReadString();
         TargetCount = _buf.ReadInt();
         IsUnlock = _buf.ReadBool();
         {int n0 = System.Math.Min(_buf.ReadSize(), _buf.Size);DepotIds = new System.Collections.Generic.List<int>(n0);for(var i0 = 0 ; i0 < n0 ; i0++) { int _e0;  _e0 = _buf.ReadInt(); DepotIds.Add(_e0);}}
@@ -41,9 +42,13 @@ public sealed partial class taskData : Luban.BeanBase
     /// </summary>
     public readonly string TaskDesc;
     /// <summary>
-    /// 任务类型
+    /// 任务类型（1=击杀 2=升级驱动盘 3=通关）
     /// </summary>
-    public readonly TaskType TaskType;
+    public readonly int TaskType;
+    /// <summary>
+    /// 条件参数（击杀填敌人配置id，空=任意）
+    /// </summary>
+    public readonly string Condition;
     /// <summary>
     /// 目标数量
     /// </summary>
@@ -82,6 +87,7 @@ public sealed partial class taskData : Luban.BeanBase
         + "taskID:" + TaskID + ","
         + "taskDesc:" + TaskDesc + ","
         + "taskType:" + TaskType + ","
+        + "condition:" + Condition + ","
         + "targetCount:" + TargetCount + ","
         + "isUnlock:" + IsUnlock + ","
         + "depotIds:" + Luban.StringUtil.CollectionToString(DepotIds) + ","

@@ -9,6 +9,7 @@ public class LubanMgr : Singleton<LubanMgr>
     private Dictionary<int, materialData> _materialDic;
     private Dictionary<int, driverDisk> _driverDiskDic;
     private Dictionary<int, enemyData> _enemyDic;
+    private Dictionary<int, waveData> _waveDic;
 
     public void Init()
     {
@@ -19,6 +20,7 @@ public class LubanMgr : Singleton<LubanMgr>
         _materialDic = tables.TbmaterialData.DataMap;
         _driverDiskDic = tables.TbdriverDisk.DataMap;
         _enemyDic = tables.TbenemyData.DataMap;
+        _waveDic = tables.TbwaveData.DataMap;
     }
 
     // 读取单张 byte 表的完整路径：优先在可执行文件所在目录下查找，找不到再向上级目录回退
@@ -89,6 +91,17 @@ public class LubanMgr : Singleton<LubanMgr>
         if (_enemyDic != null && _enemyDic.TryGetValue(enemyId, out var enemyById))
         {
             return enemyById;
+        }
+
+        return null;
+    }
+
+    // 通过关卡 id 获取波次配置
+    public waveData GetWaveDataById(int levelId)
+    {
+        if (_waveDic != null && _waveDic.TryGetValue(levelId, out var waveById))
+        {
+            return waveById;
         }
 
         return null;

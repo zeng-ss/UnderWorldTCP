@@ -53,6 +53,20 @@ public class StateMachine // 什么时候会new这个状态机？玩家脚本初
     }
 
     /// <summary>
+    /// 停止状态机：退出当前状态并摘掉 MonoManager 上的监听（对象销毁前必须调用）
+    /// </summary>
+    public void Stop()
+    {
+        if (_currentState == null) return;
+
+        _currentState.Exit();
+        MonoManager.Instance.RemoveUpdateListener(_currentState.Update);
+        MonoManager.Instance.RemoveLateUpdateListener(_currentState.LateUpdate);
+        MonoManager.Instance.RemoveFixedUpdateListener(_currentState.FixedUpdate);
+        _currentState = null;
+    }
+
+    /// <summary>
     /// 从字典中获取状态 如果状态不存在则创建一个新的状态对象放到字典中
     /// </summary>
     /// <typeparam name="T"></typeparam>

@@ -28,26 +28,9 @@ namespace HotUpdate.Manager
             RegisterGlobalHotkeys();
         }
 
-        private List<string> _texts = new()
-        {
-            "击杀哥布林，金币×20",
-            "击杀哥布林，金币×20",
-            "击杀哥布林，金币×20",
-            "击杀哥布林，金币×20",
-            "击杀哥布林，金币×20",
-            "击杀哥布林，金币×20"
-        };
         private void Update()
         {
             AppContext.Proto.Tick();
-            if (Input.GetKeyDown(KeyCode.O))
-            {
-                AppContext.Ui.ShowToast("击杀哥布林，金币×20");
-            }
-            if (Input.GetKeyDown(KeyCode.P))
-            {
-                AppContext.Ui.ShowToasts(_texts);
-            }
         }
 
         /// <summary>

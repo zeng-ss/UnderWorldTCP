@@ -18,6 +18,7 @@ public partial class Tables
     public TbenemyData TbenemyData {get; }
     public TbmaterialData TbmaterialData {get; }
     public TbtaskData TbtaskData {get; }
+    public TbwaveData TbwaveData {get; }
 
     public Tables(System.Func<string, ByteBuf> loader)
     {
@@ -29,6 +30,7 @@ public partial class Tables
         TbenemyData = new TbenemyData(loader("tbenemydata"));
         TbmaterialData = new TbmaterialData(loader("tbmaterialdata"));
         TbtaskData = new TbtaskData(loader("tbtaskdata"));
+        TbwaveData = new TbwaveData(loader("tbwavedata"));
         ResolveRef();
     }
     
@@ -42,6 +44,7 @@ public partial class Tables
         TbenemyData.ResolveRef(this);
         TbmaterialData.ResolveRef(this);
         TbtaskData.ResolveRef(this);
+        TbwaveData.ResolveRef(this);
     }
 }
 

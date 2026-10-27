@@ -27,15 +27,16 @@ public class Game_LoginCtrl : IContainer
             case NetDefine.CMD_SaveRoleCode:
                 OnSaveRoleHandle(serverBase, basePackage);
                 break;
-            case NetDefine.CMD_ChangeSceneCode:
+            /*case NetDefine.CMD_ChangeSceneCode:
                 OnChangeSceneHandle(serverBase, basePackage);
-                break;
+                break;*/
             default:
                 LogMsg.Info("[Game_LoginCtrl]有没有注册的请求码", ConsoleColor.Red);
                 break;
         }
     }
 
+    /*
     // 跳转场景请求
     private void OnChangeSceneHandle(ServerBase serverBase, BasePackage basePackage)
     {
@@ -43,6 +44,7 @@ public class Game_LoginCtrl : IContainer
         serverBase._Client.SendData(basePackage);
         LogMsg.Info("[Game]收到跳转场景请求:" + req);
     }
+    */
 
     // 保存角色数据请求
     private void OnSaveRoleHandle(ServerBase serverBase, BasePackage basePackage)
@@ -100,12 +102,13 @@ public class Game_LoginCtrl : IContainer
             case NetDefine.CMD_SaveRoleCode:
                 OnSaveRoleResultHandle(session, basePackage);
                 break;
-            case NetDefine.CMD_ChangeSceneCode:
+            /*case NetDefine.CMD_ChangeSceneCode:
                 OnChangeSceneResultHandle(session, basePackage);
-                break;
+                break;*/
         }
     }
 
+    /*
     // 跳转场景返回
     private void OnChangeSceneResultHandle(Session session, BasePackage basePackage)
     {
@@ -113,6 +116,7 @@ public class Game_LoginCtrl : IContainer
         LogMsg.Info("[Game]跳转场景结果:" + ret);
         session.SendData(basePackage);
     }
+    */
 
     // 保存角色数据返回
     private void OnSaveRoleResultHandle(Session session, BasePackage basePackage)

@@ -1,0 +1,19 @@
+[
+  {
+    "levelId": 1,
+    "name": "新手关：地铁入口",
+    "enemyIds": [
+      1,
+      1,
+      2
+    ],
+    "counts": [
+      3,
+      4,
+      1
+    ],
+    "startDelay": 1.5,
+    "waveInterval": 2,
+    "spawnRadius": 9
+  }
+]

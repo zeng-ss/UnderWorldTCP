@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotUpdate.Event;
+using HotUpdate.Enemy;
+using HotUpdate.Network;
 using UnityEngine;
+using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.Player
 {
@@ -15,17 +18,33 @@ namespace HotUpdate.Player
         [Header("命中标签列表")] [SerializeField] private List<string> targetTagList = new();
         private List<IHurt> _enemyList = new();
 
+        // 敌人武器：宿主端用碰撞盒做命中判定，一次挥招每个目标只报一次
+        private EnemyCtrl _enemyOwner;
+        private readonly List<int> _hitRoleIds = new();
+
         private void Start()
         {
             _collider = GetComponent<BoxCollider>();
             _collider.enabled = false;
         }
 
-        // 敌人武器的命中判定已移到服务端（EnemyMgr 出招后按距离结算并广播 PlayerHurtNtf），
-        // player 为空即敌人武器，动画事件照旧会调到这里，但不再开合碰撞盒。
+        /// <summary>敌人武器初始化：由 EnemyCtrl 在自己 Start 时调（player 为空即敌人武器）</summary>
+        public void SetupForEnemy(EnemyCtrl enemy)
+        {
+            _enemyOwner = enemy;
+        }
+
         public void StartSkillHit()
         {
-            if (player == null) return;
+            _hitRoleIds.Clear();
+
+            if (player == null)
+            {
+                // 敌人武器：只有宿主端需要开碰撞盒做命中判定，其他人只看动画
+                if (_enemyOwner != null && _enemyOwner.IsHost) _collider.enabled = true;
+                return;
+            }
+
             _collider.enabled = true;
         }
 
@@ -33,15 +52,24 @@ namespace HotUpdate.Player
         {
             _collider.enabled = false;
             _enemyList.Clear();
+            _hitRoleIds.Clear();
         }
 
         private void OnTriggerStay(Collider other)
         {
-            // 只处理本地玩家的武器碰撞；敌人武器的命中表现由服务端受击广播驱动（见 EnemyCtrl.OnHit）
-            if (player == null) return;
+            // 敌人武器：命中判定就在碰撞盒里做（宿主端），命中谁上报谁
+            if (player == null)
+            {
+                HandleEnemyHit(other);
+                return;
+            }
+
             if (!player.Core.IsLocalPlayer) return;
             if (!targetTagList.Contains(other.tag)) return;
             IHurt target = other.GetComponent<IHurt>();
+            if (target == null) return;
+            // 已经倒下的敌人不再算目标（哪怕碰撞体残留）
+            if (target is HotUpdate.Enemy.EnemyCtrl dead && dead.IsDead) return;
             if (_enemyList.Contains(target)) return;
             player.OnHit(target, other.ClosestPoint(transform.position));
             _enemyList.Add(target);
@@ -50,6 +78,32 @@ namespace HotUpdate.Player
             var attackState = (PlayerAttackState)player.StateMachine.Machine.CurrentState;
             if (attackState == null) return;
             if (!attackState.IsInHitStop) attackState.EnterHitStop(); // 使用默认配置（0.08s顿帧，完全暂停）
+        }
+
+        // 敌人武器命中：碰撞盒碰到谁就上报谁，服务端只负责扣血
+        private void HandleEnemyHit(Collider other)
+        {
+            if (_enemyOwner == null || !_enemyOwner.IsHost || _enemyOwner.IsDead) return;
+
+            PlayerCtrl target = other.GetComponentInParent<PlayerCtrl>();
+            if (target == null || target.Core == null || target.Core.Health <= 0f) return;
+
+            int roleId;
+            RemotePlayer remote = target.GetComponent<RemotePlayer>();
+            if (remote != null)
+            {
+                roleId = remote.RoleId;
+            }
+            else
+            {
+                if (!target.Core.IsLocalPlayer) return;
+                roleId = AppContext.Session.RoleId;
+            }
+
+            if (roleId <= 0 || _hitRoleIds.Contains(roleId)) return;
+
+            _hitRoleIds.Add(roleId);
+            _enemyOwner.ReportHit(roleId);
         }
     }
 }

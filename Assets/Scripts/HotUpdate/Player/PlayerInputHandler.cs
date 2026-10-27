@@ -139,7 +139,7 @@ namespace HotUpdate.Player
             if (_isPining) return;
 
             _enemy = Object.FindAnyObjectByType<EnemyCtrl>();
-            if (!_enemy || !_enemy.isStartPin || _enemy.isPinFinished) return;
+            if (!_enemy || !_enemy.IsStartPin || _enemy.IsPinFinished) return;
 
             TeleportToEnemy();
             if (_enemy.isStartPinTip) _enemy.isStartPinTip.gameObject.SetActive(false);

@@ -40,6 +40,7 @@ namespace HotUpdate.Event
         Attack,
         Hurt,
         Dead,
+        Move,   // 走位 / 冲刺（只在本端状态机里用，同步给服务端时按 4 传）
     }
 
     public interface IHurt

@@ -516,46 +516,6 @@ public class LoginModle
         return ret;
     }
 
-    // 跳转场景
-    public ChangeSceneRet ChangeScene(ChangeSceneReq req)
-    {
-        ChangeSceneRet ret = new ChangeSceneRet();
-        RoleTable role = _db.Queryable<RoleTable>().Where(v => v.Id == req.RoleId).First();
-        if (role == null)
-        {
-            ret.CmdCode = CmdCode.RoleNotExist;
-            return ret;
-        }
-
-        // 验证场景跳转是否合法：根据当前所在场景，只能跳到指定的下一个场景
-        bool valid = false;
-        switch (role.SceneName)
-        {
-            case "EnterScene":
-                if (req.SceneName == "LobbyScene" || req.SceneName == "GameScene") valid = true;
-                break;
-            case "LobbyScene":
-                if (req.SceneName == "EnterScene" || req.SceneName == "GameScene") valid = true;
-                break;
-            case "GameScene":
-                if (req.SceneName == "EnterScene") valid = true;
-                break;
-        }
-
-        if (!valid)
-        {
-            LogMsg.Info($"[Center.DB]场景跳转校验失败:不能从{role.SceneName}跳转到{req.SceneName}！", ConsoleColor.Red);
-            ret.CmdCode = CmdCode.ReqParamError;
-            return ret;
-        }
-
-        // 更新角色所在场景
-        role.SceneName = req.SceneName;
-        role.UpdateDate = DateTime.Now;
-        _db.Updateable(role).ExecuteCommand();
-        return ret;
-    }
-
     /// <summary>
     /// 处理并返回获得奖励相关的数据。
     /// 任务奖励（reward_type=1）：奖励内容与数量以服务端 Luban taskData 为权威，
@@ -881,8 +841,9 @@ public class LoginModle
             {
                 TaskId = t.TaskID,
                 TaskDesc = t.TaskDesc,
-                TaskType = (int)t.TaskType,
+                TaskType = t.TaskType,
                 TargetCount = t.TargetCount,
+                Condition = t.Condition ?? string.Empty,
                 // 1=InProgress 0=Locked（对应 TaskState 枚举）
                 State = progress?.State ?? (t.IsUnlock ? 1 : 0),
                 CurrentCount = progress?.CurrentCount ?? 0

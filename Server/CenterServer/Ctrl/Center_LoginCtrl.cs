@@ -49,9 +49,6 @@ public class Center_LoginCtrl : IContainer
             case NetDefine.CMD_SaveRoleCode:
                 OnSaveRoleHandle(serverBase, basePackage);
                 break;
-            case NetDefine.CMD_ChangeSceneCode:
-                OnChangeSceneHandle(serverBase, basePackage);
-                break;
             /*case NetDefine.CMD_SpawnEnemyCode:
                 OnSpawnEnemyHandle(serverBase, basePackage);
                 break;
@@ -312,16 +309,6 @@ public class Center_LoginCtrl : IContainer
         serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
     }
 
-    // 跳转场景
-    private void OnChangeSceneHandle(ServerBase serverBase, BasePackage basePackage)
-    {
-        ChangeSceneReq req = ChangeSceneReq.Parser.ParseFrom(basePackage.Data);
-        LogMsg.Info("[Center]收到跳转场景请求:" + req);
-        ChangeSceneRet ret = _loginModle.ChangeScene(req);
-        LogMsg.Info("[Center]跳转场景处理完成:" + ret);
-        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
-    }
-
     // 保存角色数据
     private void OnSaveRoleHandle(ServerBase serverBase, BasePackage basePackage)
     {
@@ -331,25 +318,4 @@ public class Center_LoginCtrl : IContainer
         LogMsg.Info("[Center]保存角色处理完成:" + ret);
         serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
     }
-
-    /*// 玩家攻击
-    private void OnPlayerAttackHandle(ServerBase serverBase, BasePackage basePackage)
-    {
-        PlayerAttackReq req = PlayerAttackReq.Parser.ParseFrom(basePackage.Data);
-        LogMsg.Info("[Center]收到玩家攻击请求:" + req);
-        PlayerAttackRet ret = EnemyMgr.Instance.ProcessAttack(req);
-        LogMsg.Info("[Center]攻击处理完成:" + ret);
-        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
-    }
-
-    // 生成敌人
-    private void OnSpawnEnemyHandle(ServerBase serverBase, BasePackage basePackage)
-    {
-        SpawnEnemyReq req = SpawnEnemyReq.Parser.ParseFrom(basePackage.Data);
-        LogMsg.Info("[Center]收到生成敌人请求:" + req);
-        int instanceId = EnemyMgr.Instance.SpawnEnemy(req.RoleId, req.EnemyConfigId, req.MaxHp, req.PosX, req.PosY, req.PosZ);
-        SpawnEnemyRet ret = new SpawnEnemyRet { EnemyInstanceId = instanceId };
-        LogMsg.Info("[Center]生成敌人完成: instanceId=" + instanceId);
-        serverBase.SendData(basePackage, basePackage.ProtoCode, ret.ToByteString());
-    }*/
 }

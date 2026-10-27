@@ -29,13 +29,14 @@ namespace ProjectEditor
                 PlayerDataPanelBuilder.Build();
                 DialoguePanelBuilder.Build();
                 ImprovePanelBuilder.Build();
+                BattleResultPanelBuilder.Build();
             }
             finally
             {
                 UIBuilderKit.KeepPreview = true;
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
-                Debug.Log("[小面板] 全部生成完毕：Exit / Tip / Login / Register / Task / Depot / PlayerData / Dialogue / Improve");
+                Debug.Log("[小面板] 全部生成完毕：Exit / Tip / Login / Register / Task / Depot / PlayerData / Dialogue / Improve / BattleResult");
             }
         }
     }

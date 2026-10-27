@@ -83,15 +83,11 @@ namespace HotUpdate.Controller
                 return;
             }
 
-            // 升级后等级要先于覆盖前判断：首次升到 2 级（即升过一级）推进对应任务
-            int newLevel = ret.DriverDisk != null ? ret.DriverDisk.Level : item.Level;
-            bool firstUpgrade = ret.OldLevel < DriverDiskDataRuntime.UpgradedLevel
-                                && newLevel >= DriverDiskDataRuntime.UpgradedLevel;
-
             AppContext.Depot.ApplyDriverDiskData(ret.DriverDisk);
             AppContext.Material.ApplyMaterialCounts(ret.MaterialMap);
 
-            if (firstUpgrade) AppContext.Task.AdvanceByType(TaskType.给每一个驱动盘都升一级);
+            // 每次升级都上报：任务表里用 targetCount 决定「升几级算完成」
+            AppContext.Task.AdvanceByType(TaskEvent.UpgradeDriveDisk);
 
             // 升级会改变驱动盘数值，属性要跟着重算；订阅者（属性面板 / 强化面板）会自行刷新
             AppContext.PlayerData.ApplyEquipped(AppContext.Depot.Equipped);

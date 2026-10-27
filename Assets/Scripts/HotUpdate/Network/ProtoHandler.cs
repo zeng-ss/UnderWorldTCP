@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Google.Protobuf;
 using HotUpdate.Data;
+using HotUpdate.Event;
 using HotUpdate.RedDot;
 using HotUpdate.UI.UIPanel;
 using UnityEngine;
@@ -50,7 +51,6 @@ namespace HotUpdate.Network
         private Action<CreateRoleRet> _createRoleCallback;
         private Action<StartGameRet> _startGameCallback;
         private Action<SaveRoleRet> _saveRoleCallback;
-        private Action<ChangeSceneRet> _changeSceneCallback;
         private Action<SpawnEnemyRet> _spawnEnemyCallback;
         private readonly Dictionary<int, Action<PlayerAttackRet>> _playerAttackCallbacks = new();
         private int _nextAttackSeqId;
@@ -72,7 +72,8 @@ namespace HotUpdate.Network
         private Action<FriendHistoryRet> _friendHistoryCallback;
         private Action<RoomChatNtf> _roomChatCallback;
         private Action<SetAvatarRet> _setAvatarCallback;
-        private Action<EnemyKillRet> _enemyKillCallback;
+        // 击杀回包按顺序回来，用队列一一对应；单个字段会被连杀覆盖，导致少弹提示
+        private readonly Queue<Action<EnemyKillRet>> _enemyKillCallbacks = new();
         private Action<BackToLoginRet> _backToLoginCallback;
         private Action<ExitGameRoomRet> _exitGameRoomCallback;
         private Action<RoomStartGameNtf> _roomStartGameCallback;
@@ -98,7 +99,6 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_CreateRoleCode, OnCreateRoleResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_StartGameCode, OnStartGameResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_SaveRoleCode, OnSaveRoleResult);
-            AppContext.Events.AddNetHandler(NetDefine.CMD_ChangeSceneCode, OnChangeSceneResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_SpawnEnemyCode, OnSpawnEnemyResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_PlayerAttackCode, OnPlayerAttackResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_GetRewardCode, OnGetRewardResult);
@@ -137,6 +137,7 @@ namespace HotUpdate.Network
             AppContext.Events.AddNetHandler(NetDefine.CMD_BackToLoginCode, OnBackToLoginResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_ExitGameRoomCode, OnExitGameRoomResult);
             AppContext.Events.AddNetHandler(NetDefine.CMD_EnemyKillCode, OnEnemyKillResult);
+            AppContext.Events.AddNetHandler(NetDefine.CMD_BattleResultCode, OnBattleResult);
         }
 
         // 由 GameManager.Update 每帧驱动
@@ -266,13 +267,6 @@ namespace HotUpdate.Network
         {
             _saveRoleCallback = callback;
             NetClientMgr.Instance.Send(NetDefine.CMD_SaveRoleCode, req.ToByteString());
-        }
-
-        public void RequestChangeScene(string sceneName, Action<ChangeSceneRet> callback)
-        {
-            _changeSceneCallback = callback;
-            ChangeSceneReq req = new ChangeSceneReq { RoleId = AppContext.Session.RoleId, SceneName = sceneName };
-            NetClientMgr.Instance.Send(NetDefine.CMD_ChangeSceneCode, req.ToByteString());
         }
 
         public void RequestSpawnEnemy(int roleId, int enemyConfigId, float maxHp, Vector3 pos,
@@ -640,9 +634,50 @@ namespace HotUpdate.Network
         /// </summary>
         public void RequestEnemyKill(int roleId, int enemyInstanceId, Action<EnemyKillRet> callback)
         {
-            _enemyKillCallback = callback;
+            _enemyKillCallbacks.Enqueue(callback);
             EnemyKillReq req = new EnemyKillReq { RoleId = roleId, EnemyInstanceId = enemyInstanceId };
             NetClientMgr.Instance.Send(NetDefine.CMD_EnemyKillCode, req.ToByteString());
+        }
+
+        // 一局结束：胜利才推进「通关关卡」类任务，然后弹结算面板
+        private void OnBattleResult(ByteString data)
+        {
+            BattleResultNtf ntf = BattleResultNtf.Parser.ParseFrom(data);
+            Debug.Log($"ProtoHandler: 战斗结算 result={ntf.Result} 用时={ntf.DurationSec}s 击杀={ntf.Kills}");
+
+            if (ntf.Result == 1) AppContext.Task.AdvanceByType(TaskEvent.ClearStage);
+            AppContext.Events.EventTrigger(GameEvent.CursorShow);
+            AppContext.Ui.OpenPanel<BattleResultPanel>(panel => panel.Refresh(ntf));
+        }
+
+        /// <summary>房主上报敌人状态（位置 / 朝向 / 动作），服务端校验跳变后转发给其他人</summary>
+        public void RequestEnemyAiSync(int roleId, int enemyInstanceId, Vector3 pos, float rotationY,
+            string anim, int state)
+        {
+            EnemyAiSyncReq req = new EnemyAiSyncReq
+            {
+                RoleId = roleId,
+                EnemyInstanceId = enemyInstanceId,
+                PosX = pos.x,
+                PosY = pos.y,
+                PosZ = pos.z,
+                RotationY = rotationY,
+                Anim = anim ?? string.Empty,
+                State = state,
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_EnemyAiSyncCode, req.ToByteString());
+        }
+
+        /// <summary>房主上报「敌人打中了谁」，服务端校验距离后扣血</summary>
+        public void RequestEnemyAttack(int roleId, int enemyInstanceId, int targetRoleId)
+        {
+            EnemyAttackReq req = new EnemyAttackReq
+            {
+                RoleId = roleId,
+                EnemyInstanceId = enemyInstanceId,
+                TargetRoleId = targetRoleId,
+            };
+            NetClientMgr.Instance.Send(NetDefine.CMD_EnemyAttackCode, req.ToByteString());
         }
 
         private void OnEnemyKillResult(ByteString data)
@@ -650,16 +685,8 @@ namespace HotUpdate.Network
             EnemyKillRet ret = EnemyKillRet.Parser.ParseFrom(data);
             if (ret.CmdCode != CmdCode.Succeed)
                 Debug.LogWarning($"ProtoHandler: 击杀掉落失败 CmdCode={ret.CmdCode}");
-            _enemyKillCallback?.Invoke(ret);
-            _enemyKillCallback = null;
-        }
 
-        private void OnChangeSceneResult(ByteString data)
-        {
-            ChangeSceneRet ret = ChangeSceneRet.Parser.ParseFrom(data);
-            Debug.Log($"ProtoHandler: 切换场景结果 CmdCode={ret.CmdCode}");
-            _changeSceneCallback?.Invoke(ret);
-            _changeSceneCallback = null;
+            if (_enemyKillCallbacks.Count > 0) _enemyKillCallbacks.Dequeue()?.Invoke(ret);
         }
 
         private void OnSpawnEnemyResult(ByteString data)
@@ -1008,7 +1035,6 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_CreateRoleCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_StartGameCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_SaveRoleCode);
-            AppContext.Events.RemoveNetHandler(NetDefine.CMD_ChangeSceneCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_SpawnEnemyCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_PlayerAttackCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_GetRewardCode);
@@ -1047,6 +1073,7 @@ namespace HotUpdate.Network
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_FriendMsgReadCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_BackToLoginCode);
             AppContext.Events.RemoveNetHandler(NetDefine.CMD_EnemyKillCode);
+            AppContext.Events.RemoveNetHandler(NetDefine.CMD_BattleResultCode);
         }
     }
 }

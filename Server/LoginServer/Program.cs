@@ -28,7 +28,7 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_CreateRoleCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_StartGameCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SaveRoleCode, loginCtrl);
-            server.RegistCommand(NetDefine.CMD_ChangeSceneCode, loginCtrl);
+            //server.RegistCommand(NetDefine.CMD_ChangeSceneCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PlayerAttackCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_GetRewardCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SpawnEnemyCode, loginCtrl);
@@ -59,6 +59,8 @@ namespace LoginServer
             server.RegistCommand(NetDefine.CMD_BackToLoginCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_ExitGameRoomCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_EnemyKillCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_EnemyAiSyncCode, loginCtrl);
+            server.RegistCommand(NetDefine.CMD_EnemyAttackCode, loginCtrl);
 
             client.RegistCommand(NetDefine.CMD_RegistCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_LoginCode, loginCtrl);
@@ -67,7 +69,7 @@ namespace LoginServer
             client.RegistCommand(NetDefine.CMD_CreateRoleCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_StartGameCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_SaveRoleCode, loginCtrl);
-            client.RegistCommand(NetDefine.CMD_ChangeSceneCode, loginCtrl);
+            //client.RegistCommand(NetDefine.CMD_ChangeSceneCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_SpawnEnemyCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_PlayerAttackCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_GetRewardCode, loginCtrl);
@@ -87,20 +89,6 @@ namespace LoginServer
             client.RegistCommand(NetDefine.CMD_ExitGameRoomCode, loginCtrl);
             client.RegistCommand(NetDefine.CMD_EnemyDropCode, loginCtrl);
 
-            // new Timer(_ =>
-            // {
-            //     //模拟 发送数据给中心服务器 让其处理注册的信息   
-            //     RegistReq req = new RegistReq()
-            //     {
-            //         UserName = "aaaaaa",
-            //         PhoneNum = "13000000000",
-            //         Password = "12345"
-            //     };
-            //     client.SendData(NetDefine.CMD_RegistCode, req.ToByteString());
-            //
-            // }, null, 5000, Timeout.Infinite);
-
-            // 之后的 while(true) 里跑服务端逻辑帧（敌人 AI + 位置/动作广播）
             RunLogicTick();
         }
 
@@ -116,7 +104,8 @@ namespace LoginServer
             {
                 long start = watch.ElapsedMilliseconds;
 
-                EnemyMgr.Instance.Tick(1f / NetDefine.ServerTickRate);
+                EnemyMgr.Instance.CleanupDead(1f / NetDefine.ServerTickRate);
+                BattleMgr.Instance.Tick(1f / NetDefine.ServerTickRate);
 
                 int elapsed = (int)(watch.ElapsedMilliseconds - start);
                 int sleep = tickIntervalMs - elapsed;

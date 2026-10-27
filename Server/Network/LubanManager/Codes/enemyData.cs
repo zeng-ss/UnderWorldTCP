@@ -39,11 +39,11 @@ public sealed partial class enemyData : Luban.BeanBase
     /// </summary>
     public readonly int EnemyId;
     /// <summary>
-    /// 名字（日志/调试用）
+    /// 名字
     /// </summary>
     public readonly string Name;
     /// <summary>
-    /// 客户端预制体地址（Addressables）
+    /// 客户端预制体地址
     /// </summary>
     public readonly string Model;
     /// <summary>
@@ -51,7 +51,7 @@ public sealed partial class enemyData : Luban.BeanBase
     /// </summary>
     public readonly int MaxHp;
     /// <summary>
-    /// 攻击力（玩家扣血）
+    /// 攻击力
     /// </summary>
     public readonly int Attack;
     /// <summary>

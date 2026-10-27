@@ -10,69 +10,49 @@ using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.Enemy
 {
-    /// 敌人控制器
-    /// 位置、朝向、状态与动作全部由服务端下发，本类只做两件事：
-    /// ① 把 transform 平滑插值到服务端权威位置；② 播放服务端指定的动作。
-    /// 受击、死亡、以及「打中玩家」的表现，全部由服务端结算后下发的广播触发，本地不做命中判定。
-    /// 敌人没有「归属玩家」——所有客户端看到的是同一只怪，按 serverInstanceId 定位，
-    /// 实例表由 EnemyManager 持有（AppContext.Enemy），本类只在落地/销毁时登记与注销。
-    public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner
+    public class EnemyCtrl : MonoBehaviour, IHurt, ISkillOwner, IStateMachineOwner
     {
-        // 服务端分配的敌人实例ID
+        private const float HurtAnimDuration = 0.8f;
         [HideInInspector] public int serverInstanceId;
-
-        // 敌人名字（生成时由服务端下发），击杀提示里用
-        private string _enemyName = "敌人";
+        [HideInInspector] public bool isHostDriven;
+        [Header("配置")] [SerializeField] private EnemyAnimConfig animConfig;
 
         #region 数据
 
         public HitData hitData;
         public EnemyModel enemyModel;
-        public float networkHealth;
-        public float maxHealthValue = 200f;
 
-        // 服务端下发的状态（受击动画保护窗口、死亡判定等内部逻辑会读）
+        public float networkHealth, maxHealthValue = 200f;
+
         [HideInInspector] public EnemyStateType currentState = EnemyStateType.Idle;
-
-        // 是否允许播受击动画（处决/拼刀期间会关掉）
         [HideInInspector] public bool isCanPlayHurtAni = true;
 
-        public GameObject healthBar;
-        public Image fillImage;
-        public TMP_Text healthText;
+        [SerializeField] private GameObject healthBar;
+        [SerializeField] private Image fillImage;
+        [SerializeField] private TMP_Text healthText;
         public GameObject isStartPinTip;
+        [SerializeField] private DamageNumber damageNumber;
 
-        // 拼刀：由动画事件 EnemyModel.StartPin 置位，被玩家拼掉后置 false
-        [HideInInspector] public bool isStartPin;
-        [HideInInspector] public bool isPinFinished;
+        public bool IsStartPin { get; set; }
+        public bool IsPinFinished { get; private set; }
 
-        public DamageNumber damageNumber;
+        #endregion
 
-        private CapsuleCollider _capsuleCollider;
-        private CharacterController _characterController;
+        #region 运行时状态
 
-        private float _gravity = -5f;
-        private Vector3 _velocity;
-
-        // 服务端权威变换（插值目标）
-        private Vector3 _targetPos;
-        private float _targetYaw;
-        private bool _hasServerPos;
+        private string _enemyName = "敌人";
+        private int _enemyConfigId;
         private bool _inited;
 
-        // 服务端最近一次下发的动作，受击动画播完后用它复位
+        private string _currentAnimName = "Idle";
+        private float _animBlockUntil;
         private string _lastServerAnim = "Idle";
         private EnemyStateType _lastServerState = EnemyStateType.Idle;
 
-        // 受击动画保护窗口：窗口内忽略服务端的常规动作切换，避免打断受击
-        private float _animBlockUntil;
-
-        // 位置插值速度（越大越紧跟服务端）
-        private const float PositionLerpSpeed = 12f;
-        private const float RotationLerpSpeed = 12f;
-
-        // 受击动画时长（与 HurtFront / HurtBack 大致对齐）
-        private const float HurtAnimDuration = 0.8f;
+        private EnemyMotor _motor;
+        private EnemySync _sync;
+        private EnemyView _view;
+        private EnemyStateMachine _stateMachine;
 
         #endregion
 
@@ -80,31 +60,42 @@ namespace HotUpdate.Enemy
 
         private void Start()
         {
-            _capsuleCollider = GetComponent<CapsuleCollider>();
-            _characterController = GetComponent<CharacterController>();
+            if (!isHostDriven && _inited && !IsDead && EnemyManager.IsLocalHost) EnableHostMode();
+            EnsureHelpers();
+
             enemyModel.Init(this);
 
-            // 命中体积由 CharacterController 提供（tag = enemy），CapsuleCollider 不参与
-            if (_capsuleCollider != null) _capsuleCollider.enabled = false;
-
-            if (!_inited)
+            // 敌人武器：碰撞盒由宿主端开合，命中判定在 WeaponController 里
+            foreach (WeaponController weapon in GetComponentsInChildren<WeaponController>(true))
             {
-                // 没走服务端初始化（例如编辑器里直接摆一只）时给一份默认值
-                maxHealthValue = 200f;
-                networkHealth = maxHealthValue;
-                _targetPos = transform.position;
-                _hasServerPos = true;
-                PlayAnimation("Idle");
+                weapon.SetupForEnemy(this);
             }
 
+            // 位移吃动画根运动：必须开 applyRootMotion，否则 OnAnimatorMove 不会被调用
+            enemyModel.Animator.applyRootMotion = true;
+            enemyModel.SetRootMotionAction(OnRootMotion);
+
+            StopDistance = Anim(_currentAnimName).attackRange;
+            ChangeState(EnemyStateType.Idle);
             RefreshHealthUI();
         }
 
         private void Update()
         {
-            KeepLookPlayer(healthBar);
+            // 房主转移：自己成了新宿主就接管，反之交还控制权
+            if (!isHostDriven && _inited && !IsDead && EnemyManager.IsLocalHost) EnableHostMode();
+            if (isHostDriven && !EnemyManager.IsLocalHost) DisableHostMode();
 
-            // 受击动画播完，复位到服务端最近下发的动作
+            _view.FaceCamera();
+            _motor.TickGravity(Time.deltaTime);
+
+            if (isHostDriven)
+            {
+                _sync.UpdateHostTarget(Time.deltaTime);
+                _sync.Report(Time.deltaTime);
+                return;
+            }
+
             if (_animBlockUntil > 0f && Time.time >= _animBlockUntil)
             {
                 _animBlockUntil = 0f;
@@ -112,109 +103,173 @@ namespace HotUpdate.Enemy
                 PlayAnimation(_lastServerAnim);
             }
 
-            FollowServerPosition();
-            ApplyGravity();
+            _sync.Follow(Time.deltaTime);
         }
 
         private void OnDestroy()
         {
-            // AppContext 可能已随退出流程先销毁（那时实例表也一并没了）
+            _stateMachine?.Stop();
             if (AppContext.IsAlive) AppContext.Enemy.Unregister(this);
+        }
+
+        private void EnsureHelpers()
+        {
+            if (_motor != null) return;
+
+            _motor = new EnemyMotor(this);
+            _sync = new EnemySync(this, _motor);
+            _view = new EnemyView(this, healthBar, fillImage, healthText, damageNumber, hitData);
+        }
+
+        #endregion
+
+        #region 生成 / 对外数据
+
+        /// 服务端生成敌人后，由 EnemyManager 调用落地基础数据并向实例表登记
+        public void InitFromServer(int instanceId, float maxHp, float currHp, Vector3 pos, string enemyName,
+            int enemyConfigId)
+        {
+            EnsureHelpers();
+
+            _inited = true;
+            serverInstanceId = instanceId;
+            _enemyConfigId = enemyConfigId;
+            if (!string.IsNullOrEmpty(enemyName)) _enemyName = enemyName;
+
+            maxHealthValue = maxHp;
+            networkHealth = currHp;
+
+            _motor.Teleport(pos);
+            _sync.ResetBaseline(pos);
+
+            AppContext.Enemy.Register(this);
+            RefreshHealthUI();
+        }
+
+        public bool IsHost => isHostDriven;
+
+        /// <summary>已经倒下：不再作为攻击目标、不再接收位移</summary>
+        public bool IsDead => currentState == EnemyStateType.Dead;
+
+        public Animator ModelAnimator => enemyModel != null ? enemyModel.Animator : null;
+
+        public string CurrentAnimName => _currentAnimName;
+
+        public EnemyStateType CurrentState => currentState;
+
+        public bool HasTarget => _sync != null && _sync.HasTarget;
+
+        public Vector3 TargetPosition => _sync != null ? _sync.TargetPosition : transform.position;
+
+        public float DistanceToTarget => _sync != null ? _sync.DistanceToTarget : 0f;
+
+        public float StopDistance { get; private set; } = 2.5f;
+
+        public EnemyAnimConfig.Entry Anim(string animName)
+            => animConfig is not null ? animConfig.Get(animName) : EnemyAnimConfig.Default(animName);
+
+        // 是不是刚冲刺过来（攻击状态据此决定用 Attack05 收招）
+        public bool ArrivedFromRun { get; set; }
+
+        // 下一次可以出招的时间
+        public float NextAttackTime { get; set; }
+
+        // 受击动画是否允许播放（攻击 / 死亡期间关掉，避免打断）
+        public bool HurtAnimAllowed
+        {
+            set => isCanPlayHurtAni = value;
+        }
+
+        public string PickHurtAnim() => _view.PickHurtAnim();
+
+        private void RefreshHealthUI() => _view.RefreshHealth(networkHealth, maxHealthValue);
+
+        #endregion
+
+        #region 宿主状态机
+
+        public void ChangeState(EnemyStateType state)
+        {
+            if (!isHostDriven || _stateMachine == null) return;
+
+            currentState = state;
+            _stateMachine.ChangeTo(state);
+        }
+
+        public void EnableHostMode()
+        {
+            if (isHostDriven) return;
+
+            isHostDriven = true;
+            _stateMachine = new EnemyStateMachine(this);
+            _stateMachine.Init();
+            ChangeState(EnemyStateType.Idle);
+        }
+
+        private void DisableHostMode()
+        {
+            if (!isHostDriven) return;
+
+            _stateMachine?.Stop();
+            _stateMachine = null;
+            isHostDriven = false;
+        }
+
+        // 武器碰撞盒打中了谁（WeaponController 回调）：交给服务端扣血
+        public void ReportHit(int targetRoleId)
+        {
+            if (targetRoleId <= 0 || IsDead) return;
+            if (AppContext.IsOffline) return;
+
+            AppContext.Proto.RequestEnemyAttack(AppContext.Session.RoleId, serverInstanceId, targetRoleId);
         }
 
         #endregion
 
         #region 服务端同步入口
 
-        /// 服务端生成敌人后，由 EnemyManager 调用落地基础数据并向实例表登记
-        public void InitFromServer(int instanceId, float maxHp, float currHp, Vector3 pos, string enemyName)
-        {
-            _inited = true;
-            serverInstanceId = instanceId;
-            if (!string.IsNullOrEmpty(enemyName)) _enemyName = enemyName;
-            maxHealthValue = maxHp;
-            networkHealth = currHp;
-            _targetPos = pos;
-            _hasServerPos = true;
-            transform.position = pos;
-            AppContext.Enemy.Register(this);
-            RefreshHealthUI();
-        }
-
-        /// 服务端权威位置与朝向（每帧按同步频率下发）
+        /// <summary>服务端权威位置（非宿主才吃）</summary>
         public void ApplyServerPosition(float x, float y, float z, float rotationY)
         {
-            _targetPos = new Vector3(x, y, z);
-            _targetYaw = rotationY;
-            _hasServerPos = true;
+            _sync?.ApplyPosition(x, y, z, rotationY);
         }
 
-        /// 服务端权威动作与状态。服务端只在变化时下发，所以这里不做去重。
+        /// <summary>服务端权威动作与状态（服务端只在变化时下发）</summary>
         public void ApplyServerAnim(string animationName, int state)
         {
+            if (isHostDriven) return; // 宿主自己播动画
             if (string.IsNullOrEmpty(animationName)) return;
 
             _lastServerAnim = animationName;
             _lastServerState = (EnemyStateType)state;
+            _sync?.SetLastAnim(animationName);
 
             // 已死亡后不再被任何动作覆盖
-            if (currentState == EnemyStateType.Dead && (EnemyStateType)state != EnemyStateType.Dead) return;
+            if (currentState == EnemyStateType.Dead && _lastServerState != EnemyStateType.Dead) return;
 
-            // 受击动画播放期间不接受切换，否则受击表现会被自己的动作打断
+            // 受击动画播放期间不接受切换
             if (Time.time < _animBlockUntil) return;
 
             currentState = _lastServerState;
             PlayAnimation(animationName);
         }
 
-        #endregion
-
-        #region 表现（位置 / 动画）
-
-        // XZ 以服务端为权威，Y 交给本地重力贴地（服务端不跑物理，也不该跑）
-        private void FollowServerPosition()
+        /// <summary>动画根运动：只有配置里 useRootMotion 的动画才位移</summary>
+        private void OnRootMotion(Vector3 deltaPos, Quaternion deltaRot)
         {
-            if (!_hasServerPos) return;
+            if (_motor == null || IsDead) return;
+            if (!Anim(_currentAnimName).useRootMotion) return;
 
-            float k = 1f - Mathf.Exp(-PositionLerpSpeed * Time.deltaTime);
-            Vector3 cur = transform.position;
-            transform.position = new Vector3(
-                Mathf.Lerp(cur.x, _targetPos.x, k),
-                cur.y,
-                Mathf.Lerp(cur.z, _targetPos.z, k));
+            deltaPos.y = 0f;
+            if (deltaPos.sqrMagnitude <= 0f) return;
 
-            Transform model = enemyModel.transform;
-
-            float rk = 1f - Mathf.Exp(-RotationLerpSpeed * Time.deltaTime);
-            model.rotation = Quaternion.Slerp(model.rotation, Quaternion.Euler(0f, _targetYaw, 0f), rk);
-        }
-
-        private void ApplyGravity()
-        {
-            if (_characterController == null || !_characterController.enabled) return;
-
-            _characterController.Move(_velocity * Time.deltaTime);
-            if (_characterController.isGrounded) _velocity.y = -2f;
-            else _velocity.y += _gravity * Time.deltaTime;
+            _motor.Move(deltaPos);
         }
 
         public void PlayAnimation(string animationName, float fixedTransitionTime = 0.1f)
         {
-            if (enemyModel == null || enemyModel.Animator == null) return;
+            _currentAnimName = animationName;
             enemyModel.Animator.CrossFadeInFixedTime(animationName, fixedTransitionTime, 0, 0f);
-        }
-
-        private void RefreshHealthUI()
-        {
-            if (fillImage != null) fillImage.fillAmount = Mathf.Clamp01(networkHealth / Mathf.Max(1f, maxHealthValue));
-            if (healthText != null) healthText.text = $"{networkHealth}/{maxHealthValue}";
-        }
-
-        private void KeepLookPlayer(GameObject obj)
-        {
-            if (!obj || !Camera.main) return;
-            obj.transform.LookAt(Camera.main.transform.position);
-            obj.transform.Rotate(0, 180, 0);
         }
 
         #endregion
@@ -239,44 +294,25 @@ namespace HotUpdate.Enemy
             networkHealth = ret.EnemyCurrHp;
             RefreshHealthUI();
 
-            if (!isCanPlayHurtAni) return;
-
-            // 播受击动画，并在受击窗口内屏蔽服务端的常规动作
-            _animBlockUntil = Time.time + HurtAnimDuration;
-            currentState = EnemyStateType.Hurt;
-            PlayHurtAnimation();
-
-            Vector3 hurtPos = transform.position + Vector3.up * 1.5f;
-            if (damageNumber != null)
+            if (isCanPlayHurtAni)
             {
-                damageNumber.SetColor(ret.IsBaoji ? Color.red : Color.white);
-                damageNumber.Spawn(hurtPos, ret.DamageDealt);
+                if (isHostDriven)
+                {
+                    ChangeState(EnemyStateType.Hurt); // 状态机里播完自己回 Idle
+                }
+                else
+                {
+                    // 非宿主：播受击动画，并在窗口内屏蔽服务端下发的常规动作
+                    _animBlockUntil = Time.time + HurtAnimDuration;
+                    currentState = EnemyStateType.Hurt;
+                    PlayAnimation(PickHurtAnim());
+                }
             }
+
+            _view.ShowDamage(ret.DamageDealt, ret.IsBaoji);
         }
 
-        // 按攻击者方位选前/后受击动画
-        private void PlayHurtAnimation()
-        {
-            PlayerCtrl player = FindAnyObjectByType<PlayerCtrl>();
-            if (player == null)
-            {
-                PlayAnimation("HurtFront");
-                return;
-            }
-
-            Vector3 toAttacker = player.transform.position - transform.position;
-            toAttacker.y = 0f;
-            if (toAttacker.sqrMagnitude < 0.0001f)
-            {
-                PlayAnimation("HurtFront");
-                return;
-            }
-
-            float dot = Vector3.Dot(transform.forward, toAttacker.normalized);
-            PlayAnimation(dot > 0f ? "HurtFront" : "HurtBack");
-        }
-
-        // advanceTask：只有真正打死它的玩家才推进「击败敌人」任务，避免同屏其他客户端重复上报
+        // advanceTask：只有真正打死它的玩家才推进任务，避免同屏其他客户端重复上报
         private void OnEnemyDead(bool advanceTask)
         {
             if (currentState == EnemyStateType.Dead) return;
@@ -288,17 +324,21 @@ namespace HotUpdate.Enemy
 
             if (advanceTask)
             {
-                AppContext.Task.AdvanceByType(TaskType.击败第一个敌人);
-                // 同一个击杀只上报一次，服务端按敌人表 roll 掉落并落库
+                AppContext.Task.AdvanceByType(TaskEvent.KillEnemy, _enemyConfigId.ToString());
                 AppContext.Enemy.RequestKillReward(serverInstanceId, _enemyName);
             }
 
-            if (_capsuleCollider != null) _capsuleCollider.enabled = false;
-            if (_characterController != null) _characterController.enabled = false;
+            // 尸体不再参与命中判定：CC + 胶囊 + 子物体上的武器碰撞盒全部关掉
+            CapsuleCollider capsule = GetComponent<CapsuleCollider>();
+            if (capsule != null) capsule.enabled = false;
+            _motor?.Stop();
+            foreach (Collider col in GetComponentsInChildren<Collider>(true)) col.enabled = false;
             tag = "Untagged";
 
-            PlayAnimation("Dead");
-            DOVirtual.DelayedCall(5f, () => { Destroy(gameObject); });
+            if (isHostDriven) ChangeState(EnemyStateType.Dead);
+            else PlayAnimation("Dead");
+
+            DOVirtual.DelayedCall(5f, () => Destroy(gameObject));
         }
 
         /// 敌人受击入口（IHurt）。血量只认服务端结算，这里不做本地扣血。
@@ -308,32 +348,14 @@ namespace HotUpdate.Enemy
 
         #endregion
 
-        #region 武器
+        #region 武器 / ISkillOwner
 
-        // ISkillOwner 契约：敌人武器的命中回调。旧链路（动画事件开武器碰撞盒 → OnTriggerStay 命中玩家）
-        // 已废弃 —— 敌人打中玩家改由服务端结算后广播，表现由 EnemyManager 调 PlayHitFeedback，
-        // 这里保留实现只为满足接口。
+        // 玩家打中敌人时的表现（特效 + 音效），不扣血
         public void OnHit(IHurt hurt, Vector3 hurtPos) => PlayHitFeedback(hurtPos);
 
-        // 命中表现：只播特效与音效，不做任何扣血。hurtPos 由调用方算好（被击中者位置 + 胸口高度）。
-        public void PlayHitFeedback(Vector3 hurtPos)
-        {
-            if (hitData == null) return;
+        public void PlayHitFeedback(Vector3 hurtPos) => _view?.PlayHitFeedback(hurtPos);
 
-            if (hitData.hitPrefabs is { Count: > 0 })
-            {
-                GameObject obj = Instantiate(hitData.hitPrefabs[0]);
-                obj.transform.position = hurtPos;
-                Destroy(obj, obj.GetComponent<ParticleSystem>().main.duration);
-            }
-
-            AppContext.Sound.PlaySound(hitData.hitClip, hurtPos);
-        }
-
-        #endregion
-
-        #region ISkillOwner
-
+        // 敌人武器命中玩家的结果由服务端广播，这三个接口只为满足契约
         public void StartSkillHit(int weaponIndex)
         {
         }
@@ -353,16 +375,16 @@ namespace HotUpdate.Enemy
         // 被玩家拼刀：定身 0.5 秒
         public void OnStiff()
         {
-            if (isPinFinished) return;
+            if (IsPinFinished) return;
 
-            isStartPin = false;
-            isPinFinished = true;
+            IsStartPin = false;
+            IsPinFinished = true;
             if (isStartPinTip != null) isStartPinTip.SetActive(false);
 
-            if (enemyModel != null && enemyModel.Animator != null) enemyModel.Animator.speed = 0f;
+            enemyModel.Animator.speed = 0f;
             DOVirtual.DelayedCall(0.5f, () =>
             {
-                if (enemyModel != null && enemyModel.Animator != null) enemyModel.Animator.speed = 1f;
+                enemyModel.Animator.speed = 1f;
             });
         }
 

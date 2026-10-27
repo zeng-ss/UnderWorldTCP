@@ -50,6 +50,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 89aa17ebd4ceb884f9737059720943a3
+    m_Address: BattleResultPanel
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8e0a3c3c3c028ad45a5285529d834ebe
     m_Address: TaskPanel
     m_ReadOnly: 0

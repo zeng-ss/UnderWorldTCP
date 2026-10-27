@@ -92,13 +92,9 @@ namespace HotUpdate.RedDot
             foreach (var child in _children) total += child.TotalCount;
             if (total == TotalCount) return;
             TotalCount = total;
-            Notify();
+            // Notify
+            for (var i = _watchers.Count - 1; i >= 0; i--) _watchers[i]?.Invoke(TotalCount);
             Parent?.Refresh();
-        }
-
-        private void Notify()
-        {
-            for (int i = _watchers.Count - 1; i >= 0; i--) _watchers[i]?.Invoke(TotalCount);
         }
     }
 }

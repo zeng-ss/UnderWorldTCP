@@ -27,7 +27,6 @@ namespace CenterServer
             server.RegistCommand(NetDefine.CMD_CreateRoleCode, loginCtrl); //创建角色接口指令集
             server.RegistCommand(NetDefine.CMD_StartGameCode, loginCtrl); //开始游戏接口指令集
             server.RegistCommand(NetDefine.CMD_SaveRoleCode, loginCtrl); //保存角色数据指令集
-            server.RegistCommand(NetDefine.CMD_ChangeSceneCode, loginCtrl); //跳转场景指令集
             server.RegistCommand(NetDefine.CMD_GetRewardCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_SpawnEnemyCode, loginCtrl);
             server.RegistCommand(NetDefine.CMD_PlayerAttackCode, loginCtrl);

@@ -7,9 +7,6 @@ using AppContext = HotUpdate.Core.AppContext;
 
 namespace HotUpdate.Service
 {
-    // 房间服务：房间列表 / 创建 / 加入 / 离开 / 准备 / 开始 / 房间内聊天。
-    //
-    // 房间只存在于 LoginServer 内存里，服务端是唯一权威；本类只做「请求 + 本地缓存」。
     public class RoomService
     {
         // 单个房间聊天记录上限
@@ -75,6 +72,7 @@ namespace HotUpdate.Service
                     {
                         EnterRoom(ret.RoomId, ret.Players);
                         IsMaster = true;
+                        AppContext.Session.IsRoomMaster = true;
                     }
 
                     callback?.Invoke(ok, tip);
@@ -156,16 +154,7 @@ namespace HotUpdate.Service
 
         private void OnRoomStartGameHandle(RoomStartGameNtf ret)
         {
-            AppContext.Proto.RequestChangeScene("GameScene", result =>
-            {
-                if (result.CmdCode != CmdCode.Succeed)
-                {
-                    Debug.LogError($"跳转场景失败：{result.CmdCode}");
-                    return;
-                }
-
-                AppContext.Scene.LoadScene("GameScene", 1f, TransitionPanel.ScrollBgType.Battle, OnCoveredHandle);
-            });
+            AppContext.Scene.LoadScene("GameScene", 1f, TransitionPanel.ScrollBgType.Battle, OnCoveredHandle);
         }
 
         private void OnCoveredHandle()
@@ -253,6 +242,7 @@ namespace HotUpdate.Service
         {
             CurrentRoomId = 0;
             IsMaster = false;
+            AppContext.Session.IsRoomMaster = false;
             Members.Clear();
             ChatMessages.Clear();
         }
@@ -260,6 +250,8 @@ namespace HotUpdate.Service
         private void RefreshMasterFlag()
         {
             IsMaster = Members.Exists(m => m.RoleId == AppContext.Session.RoleId && m.IsMaster);
+            // 敌人 Owner 模式靠这个标记决定「谁来跑 AI」
+            AppContext.Session.IsRoomMaster = IsMaster;
         }
     }
 }

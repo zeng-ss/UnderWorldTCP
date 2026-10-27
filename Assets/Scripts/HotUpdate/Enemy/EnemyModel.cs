@@ -90,8 +90,8 @@ namespace HotUpdate.Enemy
 
         public void StartPin(int isStartPin = 0)
         {
-            if (enemy.isPinFinished) return;
-            enemy.isStartPin = isStartPin == 1;
+            if (enemy.IsPinFinished) return;
+            enemy.IsStartPin = isStartPin == 1;
         }
 
         public void StartSkillHit(int weaponIndex = 0)
@@ -112,7 +112,7 @@ namespace HotUpdate.Enemy
                 weapons[weaponIndex].StopSkillHit();
             }
 
-            enemy.isStartPin = false;
+            enemy.IsStartPin = false;
         }
 
         public void CanBeHurt()

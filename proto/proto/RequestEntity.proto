@@ -63,11 +63,13 @@ message NeedSaveMaterialInfo{
   string material_name = 3;     // 材料名称
 }*/
 
+/*
 //跳转场景请求
 message ChangeSceneReq{
   int32 role_id = 1;
   string scene_name = 2;
 }
+*/
 
 //请求生成敌人
 message SpawnEnemyReq{
@@ -209,12 +211,13 @@ message TaskProgressData{
 message TaskInfo{
   int32 task_id = 1;              // 任务唯一 id
   string task_desc = 2;           // 任务描述（UI 展示）
-  int32 task_type = 3;            // 任务类型（对应 TaskType 枚举：0=击败第一个敌人 1=给每一个驱动盘都升一级）
+  int32 task_type = 3;            // 任务类型（1=击杀敌人 2=升级驱动盘 3=通关关卡，见客户端 TaskEvent）
   int32 target_count = 4;         // 目标数量
   repeated int32 depot_ids = 5;   // 驱动盘奖励 id 列表（用服务端物品编号，见 ItemCatalog）
   repeated int32 materials_id = 6;// 材料奖励 id 列表（同上）
   int32 state = 7;                // 任务状态：0=Locked 1=InProgress 2=Completed 3=Claimed
   int32 current_count = 8;        // 当前进度
+  string condition = 9;           // 条件参数（击杀类填敌人配置id，空=任意）
 }
 
 // 上报任务进度请求（状态迁移 / 进度变化时客户端主动上报）
@@ -319,4 +322,25 @@ message EnemyDropReq{
 message DropItem{
   int32 item_id = 1;
   int32 count = 2;
+}
+
+// ========== 敌人宿主（Owner）模式 ==========
+
+// 房主客户端跑敌人 AI，按固定频率上报位置 / 朝向 / 动作，服务端只做异常校验后转发
+message EnemyAiSyncReq{
+  int32 role_id = 1;           // 上报者（必须是房主）
+  int32 enemy_instance_id = 2;
+  float pos_x = 3;
+  float pos_y = 4;
+  float pos_z = 5;
+  float rotation_y = 6;
+  string anim = 7;
+  int32 state = 8;             // 与 EnemyStateType 对齐
+}
+
+// 宿主判定敌人打中了谁：服务端按「敌人最后上报的位置」校验距离后结算伤害
+message EnemyAttackReq{
+  int32 role_id = 1;           // 上报者（房主）
+  int32 enemy_instance_id = 2;
+  int32 target_role_id = 3;
 }

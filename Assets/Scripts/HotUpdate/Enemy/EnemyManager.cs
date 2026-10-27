@@ -17,6 +17,9 @@ namespace HotUpdate.Enemy
         // 敌人表没配 model 时的兜底预制体地址
         private const string DefaultEnemyAddress = "enemy";
 
+        /// <summary>本端是不是敌人宿主：房主（或离线调试）负责跑 AI</summary>
+        public static bool IsLocalHost => AppContext.IsOffline || AppContext.Session.IsRoomMaster;
+
         public void Init()
         {
             AppContext.Proto.OnEnemyPositionSyncReceived += OnEnemyPositionSync;
@@ -73,7 +76,7 @@ namespace HotUpdate.Enemy
             }
 
             InstantiateEnemy(ret.EnemyInstanceId, ret.MaxHp, ret.CurrHp, new Vector3(ret.PosX, ret.PosY, ret.PosZ),
-                ret.Model, ret.Name);
+                ret.Model, ret.Name, ret.EnemyConfigId);
         }
 
         /// <summary>
@@ -82,11 +85,11 @@ namespace HotUpdate.Enemy
         /// </summary>
         public void SpawnLocal(int instanceId, float maxHp, Vector3 pos)
         {
-            InstantiateEnemy(instanceId, maxHp, maxHp, pos, null, null);
+            InstantiateEnemy(instanceId, maxHp, maxHp, pos, null, null, 0);
         }
 
         private void InstantiateEnemy(int instanceId, float maxHp, float currHp, Vector3 spawnPos, string modelAddress,
-            string enemyName)
+            string enemyName, int enemyConfigId)
         {
             // 模型地址来自敌人表（SpawnEnemyRet.model），空则用默认预制体
             string address = string.IsNullOrEmpty(modelAddress) ? DefaultEnemyAddress : modelAddress;
@@ -100,7 +103,10 @@ namespace HotUpdate.Enemy
                 }
 
                 // 敌人由服务端驱动，客户端只落地出生数据，之后位置/动作都等服务端下发
-                ctrl.InitFromServer(instanceId, maxHp, currHp, spawnPos, enemyName);
+                ctrl.InitFromServer(instanceId, maxHp, currHp, spawnPos, enemyName, enemyConfigId);
+
+                // 房主：这只敌人由本端的状态机驱动；其他人只等服务端转发的位置/动作
+                if (IsLocalHost) ctrl.EnableHostMode();
             });
         }
 

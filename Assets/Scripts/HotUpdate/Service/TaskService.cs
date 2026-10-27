@@ -79,13 +79,17 @@ namespace HotUpdate.Service
 
         private TaskDataRuntime GetById(int taskId) => Tasks.FirstOrDefault(task => task.TaskId == taskId);
 
-        /// <summary>推进指定类型的所有进行中任务</summary>
-        public void AdvanceByType(TaskType taskType)
+        /// <summary>
+        /// 推进指定事件类型的所有进行中任务。
+        /// condition 用来区分同类任务的不同条件（比如只统计某一种敌人），任务表里没填就代表任意。
+        /// </summary>
+        public void AdvanceByType(int taskType, string condition = null)
         {
             bool changed = false;
             foreach (var task in Tasks)
             {
                 if (task.State != TaskState.InProgress || task.TaskType != taskType) continue;
+                if (!MatchCondition(task, condition)) continue;
 
                 int oldCount = task.CurrentCount;
                 task.CurrentCount = Mathf.Min(task.CurrentCount + 1, task.TargetCount);
@@ -101,6 +105,13 @@ namespace HotUpdate.Service
             }
 
             if (changed) NotifyTaskChanged();
+        }
+
+        // 表里没填 condition = 任意触发；填了就要求传进来的参数完全一致
+        private static bool MatchCondition(TaskDataRuntime task, string condition)
+        {
+            if (string.IsNullOrEmpty(task.Condition)) return true;
+            return !string.IsNullOrEmpty(condition) && task.Condition == condition;
         }
 
         private static void Transition(TaskDataRuntime task, TaskState to)

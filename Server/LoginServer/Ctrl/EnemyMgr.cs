@@ -13,10 +13,12 @@ public enum EnemyAiState
     Attack = 1,
     Hurt = 2,
     Dead = 3,
+    Move = 4, // 房主上报的「走位/冲刺」，服务端只转发不判断
 }
 
 /// <summary>
-/// 敌人实例
+/// 敌人实例（服务端只存一份「逻辑副本」）
+/// 位置 / 朝向 / 动作都由房主客户端上报，服务端不模拟、不推进。
 /// </summary>
 public class EnemyInstance
 {
@@ -26,65 +28,43 @@ public class EnemyInstance
     public float MaxHp;
     public float CurrHp;
 
-    // 服务端权威变换
+    // 逻辑位置 / 朝向（由房主客户端上报，服务端只做跳变校验）
     public float PosX;
     public float PosY;
     public float PosZ;
     public float RotationY;
 
-    // 服务端权威状态与动作
+    // 逻辑状态：动作由房主客户端上报，这里只是转发用的一份拷贝
     public EnemyAiState State = EnemyAiState.Idle;
     public string Anim = "Idle";
-
-    // 生成后的「待机」时间，过了才开始索敌（保留原来敌人先站一会儿的手感）
-    public float AggroTimer;
-    public float AggroDelay = 2f;
-
-    // 攻击节奏
-    public float AttackTimer;
-
-    // 本次挥招的结算：出招瞬间锁定目标并倒计时，到点才判定命中（对齐动画挥到中段的时刻）
-    public int TargetRoleId;
-    public float PendingHurtTimer;
-
-    // 广播限频
-    public float SyncTimer;
 
     // 死亡后的清场计时
     public float DeadTimer;
 
-    // AI 参数（后续可挪到 Luban 敌人配置表）
-    public float MoveSpeed = 3.5f; // 追击速度（单位/秒）
-    public float AttackRange = 2.5f; // 进入该距离即停下攻击
-    public float ChaseDistance = 10f; // 超过该距离在客户端表现上算「奔跑」
-    public float AttackInterval = 2.2f; // 两次攻击之间的最小间隔
-    public float RemoveDelay = 6f; // 死亡后多久从服务端移除
+    // 是否已经收到过宿主上报（第一次不做跳变校验）
+    public bool HasHostSync;
 
-    // 服务端结算用的攻击力。现在由 Luban 敌人表下发（配置缺省时退回 10）
+    // 服务端校验攻击距离用的参数（来自 Luban 敌人表）
+    public float AttackRange = 2.5f;
+
+    // 死亡后多久从服务端移除
+    public const float RemoveDelay = 6f;
+
+    // 服务端结算用的攻击力。由 Luban 敌人表下发
     public float AttackDamage = 10f;
 
     // 最后一击的角色：只有这个人上报击杀才算数，避免同屏其他人蹭掉落
     public int LastAttackerRoleId;
 
-    // 掉落只能领一次（重复上报 / 断线重连补发都挡掉）
+    // 掉落只能领一次
     public bool DropClaimed;
 }
 
 /// <summary>
-/// 敌人实例管理器
-/// 本类会在【网络线程】和【tick 线程】上被并发访问，所有公共入口内部加锁。
+/// 敌人实例管理器 —— Owner（房主）模式。
 /// </summary>
 public class EnemyMgr : Singleton<EnemyMgr>
 {
-    // 位置广播频率（秒）。10Hz 对插值跟随已经足够平滑。
-    private const float PositionSyncInterval = 0.1f;
-
-    // 从抬手到命中的延迟（秒）：动画挥到中段才结算，避免「刚抬手玩家就掉血」
-    private const float AttackImpactDelay = 0.25f;
-
-    // 命中距离容差：出招后玩家跑了这么远仍算被擦到
-    private const float HitTolerance = 0.6f;
-
     private readonly object _lock = new object();
     private readonly Dictionary<int, EnemyInstance> _enemies = new Dictionary<int, EnemyInstance>();
     private readonly Random _rand = new Random();
@@ -99,7 +79,7 @@ public class EnemyMgr : Singleton<EnemyMgr>
     {
         // 数值全部以 Luban 敌人表为准；表里没有这个 id 时才退回调用方传进来的血量
         enemyData config = LubanMgr.Instance.GetEnemyDataById(configId);
-        float realMaxHp = config != null ? config.MaxHp : maxHp;
+        float realMaxHp = config?.MaxHp ?? maxHp;
 
         int id;
         lock (_lock)
@@ -121,11 +101,9 @@ public class EnemyMgr : Singleton<EnemyMgr>
 
             if (config != null)
             {
+                // 只取「服务端校验攻击」需要的两项；移速 / 追击距离 / 攻击间隔都是房主 AI 的事
                 enemy.AttackDamage = config.Attack;
-                enemy.MoveSpeed = config.MoveSpeed;
-                enemy.ChaseDistance = config.ChaseDistance;
                 enemy.AttackRange = config.AttackRange;
-                enemy.AttackInterval = config.AttackInterval;
             }
 
             _enemies[id] = enemy;
@@ -240,7 +218,11 @@ public class EnemyMgr : Singleton<EnemyMgr>
         }
 
         // 死亡立刻广播一次动作，让所有客户端同步倒下（不用等下一个 tick）
-        if (justDied) BroadcastAll(NetDefine.CMD_SyneEnemyAniCode, BuildAnimPackage(enemy).Data);
+        if (justDied)
+        {
+            BroadcastAll(NetDefine.CMD_SyneEnemyAniCode, BuildAnimPackage(enemy).Data);
+            BattleMgr.Instance.OnEnemyDead(enemy.InstanceId); // 计入这一局的波次进度
+        }
 
         LogMsg.Info(
             $"[EnemyMgr]攻击处理: enemyId={req.EnemyInstanceId} damage={ret.DamageDealt} hp={ret.EnemyCurrHp}/{ret.EnemyMaxHp} isDead={ret.IsDead} isBaoji={ret.IsBaoji}");
@@ -295,206 +277,123 @@ public class EnemyMgr : Singleton<EnemyMgr>
 
     #endregion
 
-    #region 逻辑帧
+    #region 宿主模式
+
+    // 两次同步之间允许的最大位移：10Hz 上报，3 米 ≈ 30m/s，超了就是异常包
+    private const float MaxSyncStep = 3f;
 
     /// <summary>
-    /// 推进所有敌人的状态与位置，并广播需要同步的内容。
-    /// 由 LoginServer 的固定频率循环驱动；dt 为距上一帧的秒数。
+    /// 房主客户端上报的敌人状态：做一次「两次位置跳变过大」的简单校验，然后转发给其他人。
     /// </summary>
-    public void Tick(float dt)
+    public void ApplyHostSync(EnemyAiSyncReq req)
     {
-        if (dt <= 0f) return;
-        // 线程被挂起过久时钳制一下，避免敌人瞬移穿过玩家
-        if (dt > 0.25f) dt = 0.25f;
-
-        List<BasePackage> posPackets = new List<BasePackage>();
-        List<BasePackage> animPackets = new List<BasePackage>();
-        List<BasePackage> hurtPackets = new List<BasePackage>();
-        List<int> toRemove = new List<int>();
+        EnemyInstance enemy;
+        bool reject = false;
+        bool animChanged = false;
 
         lock (_lock)
         {
-            foreach (EnemyInstance enemy in _enemies.Values)
-            {
-                if (enemy.State == EnemyAiState.Dead)
-                {
-                    enemy.DeadTimer += dt;
-                    if (enemy.DeadTimer >= enemy.RemoveDelay)
-                    {
-                        toRemove.Add(enemy.InstanceId);
-                    }
+            if (!_enemies.TryGetValue(req.EnemyInstanceId, out enemy)) return;
+            if (enemy.CurrHp <= 0f) return; // 死了不接受位移，防止尸体被推着走
 
-                    continue;
+            float dx = req.PosX - enemy.PosX;
+            float dy = req.PosY - enemy.PosY;
+            float dz = req.PosZ - enemy.PosZ;
+            float moved = (float)Math.Sqrt(dx * dx + dy * dy + dz * dz);
+
+            // 第一次上报直接接受；之后跳变过大就丢弃这一帧（不踢人，也不处罚）
+            if (enemy.HasHostSync && moved > MaxSyncStep)
+            {
+                reject = true;
+            }
+            else
+            {
+                enemy.PosX = req.PosX;
+                enemy.PosY = req.PosY;
+                enemy.PosZ = req.PosZ;
+                enemy.RotationY = req.RotationY;
+                enemy.HasHostSync = true;
+
+                // 动作只在变化时转发：否则远端每 0.1 秒重播一次同一个动画
+                if (!string.IsNullOrEmpty(req.Anim) && enemy.Anim != req.Anim)
+                {
+                    enemy.Anim = req.Anim;
+                    animChanged = true;
                 }
 
-                // 先结算上一招的命中，再决定这一帧做什么
-                ResolvePendingAttack(enemy, dt, hurtPackets);
-                UpdateEnemy(enemy, dt, posPackets, animPackets);
+                enemy.State = (EnemyAiState)req.State;
             }
-
-            foreach (int id in toRemove) _enemies.Remove(id);
         }
 
-        if (posPackets.Count == 0 && animPackets.Count == 0 && hurtPackets.Count == 0) return;
+        if (reject)
+        {
+            LogMsg.Info($"[EnemyMgr]丢弃异常同步: enemyId={req.EnemyInstanceId} 位移过大", ConsoleColor.Red);
+            return;
+        }
 
-        List<int> sessionIds = PlayerSceneMgr.Instance.GetSessionIdsInScene();
-        if (sessionIds.Count == 0) return;
-
-        SendToSessions(sessionIds, posPackets);
-        SendToSessions(sessionIds, animPackets);
-        // 受击广播发给场景内所有人（含被打者自己，他要更新血条与状态）
-        SendToSessions(sessionIds, hurtPackets);
+        BroadcastAll(NetDefine.CMD_EnemyPositionSyncCode, BuildPositionPackage(enemy).Data);
+        if (animChanged) BroadcastAll(NetDefine.CMD_SyneEnemyAniCode, BuildAnimPackage(enemy).Data);
     }
 
     /// <summary>
-    /// 结算一次挥招：出招时锁定了目标并起了倒计时，到点后校验「目标是否还在攻击距离内」——
-    /// 玩家在这 0.25 秒里跑开就算挥空，打中则扣血并广播。
-    /// 调用方必须已持有 _lock。
+    /// 房主上报「武器碰撞盒打中了谁」：命中判定已经在客户端做完，服务端只结算伤害并广播。
     /// </summary>
-    private void ResolvePendingAttack(EnemyInstance enemy, float dt, List<BasePackage> hurtPackets)
+    public void HandleHostAttack(EnemyAttackReq req)
     {
-        if (enemy.PendingHurtTimer <= 0f) return;
+        float damage;
 
-        enemy.PendingHurtTimer -= dt;
-        if (enemy.PendingHurtTimer > 0f) return;
-        enemy.PendingHurtTimer = 0f;
+        lock (_lock)
+        {
+            if (!_enemies.TryGetValue(req.EnemyInstanceId, out EnemyInstance enemy)) return;
+            if (enemy.CurrHp <= 0f) return;
 
-        // 目标已死亡 / 已离开场景
-        if (!PlayerSceneMgr.Instance.TryGetPlayerPos(enemy.TargetRoleId, out float px, out float py, out float pz))
-            return;
+            damage = enemy.AttackDamage * (0.9f + (float)_rand.NextDouble() * 0.2f);
+        }
 
-        float dx = px - enemy.PosX;
-        float dy = py - enemy.PosY;
-        float dz = pz - enemy.PosZ;
-        float dist = (float)Math.Sqrt(dx * dx + dy * dy + dz * dz);
-
-        // 玩家躲开了：这一招挥空
-        if (dist > enemy.AttackRange + HitTolerance) return;
-
-        // ±10% 浮动，避免每下都是同一个数字
-        float rawDamage = enemy.AttackDamage * (0.9f + (float)_rand.NextDouble() * 0.2f);
-
-        if (!PlayerSceneMgr.Instance.TryApplyHurt(enemy.TargetRoleId, rawDamage,
+        if (!PlayerSceneMgr.Instance.TryApplyHurt(req.TargetRoleId, damage,
                 out float dealtDamage, out float currHp, out float maxHp, out bool isDead)) return;
 
         PlayerHurtNtf ntf = new PlayerHurtNtf
         {
-            RoleId = enemy.TargetRoleId,
-            EnemyInstanceId = enemy.InstanceId,
+            RoleId = req.TargetRoleId,
+            EnemyInstanceId = req.EnemyInstanceId,
             Damage = dealtDamage,
             CurrHp = currHp,
             MaxHp = maxHp,
             IsDead = isDead,
         };
-        hurtPackets.Add(new BasePackage { ProtoCode = NetDefine.CMD_PlayerHurtCode, Data = ntf.ToByteString() });
+        BroadcastAll(NetDefine.CMD_PlayerHurtCode, ntf.ToByteString());
 
-        LogMsg.Info(
-            $"[EnemyMgr]敌人命中玩家: enemyId={enemy.InstanceId} roleId={enemy.TargetRoleId} damage={dealtDamage:F2} hp={currHp:F2}/{maxHp:F2} isDead={isDead}",
-            ConsoleColor.Yellow);
+        LogMsg.Info($"[EnemyMgr]敌人命中玩家(宿主碰撞盒): enemyId={req.EnemyInstanceId} roleId={req.TargetRoleId} " +
+                    $"damage={dealtDamage:F2} hp={currHp:F2}/{maxHp:F2} isDead={isDead}", ConsoleColor.Yellow);
     }
+
+    #endregion
+
+    #region 死亡清理
 
     /// <summary>
-    /// 单只敌人的 AI：找最近玩家 → 追击 / 保持距离 → 站定攻击。
-    /// 调用方必须已持有 _lock。
+    /// 服务端唯一的「每帧」逻辑：把死亡超过 RemoveDelay 的敌人从实例表里摘掉。
+    /// 敌人 AI / 移动 / 出招判定全部在房主客户端（EnemyHostAI），服务端不再推进任何一项。
     /// </summary>
-    private void UpdateEnemy(EnemyInstance enemy, float dt, List<BasePackage> posPackets,
-        List<BasePackage> animPackets)
+    public void CleanupDead(float dt)
     {
-        // 出生后先发呆一小会儿再索敌
-        if (enemy.AggroTimer < enemy.AggroDelay)
-        {
-            enemy.AggroTimer += dt;
-            SetAnim(enemy, "Idle", EnemyAiState.Idle, animPackets);
-            return;
-        }
+        if (dt <= 0f) return;
+        if (dt > 0.25f) dt = 0.25f; // 线程被挂起过久时钳制一下
 
-        if (!PlayerSceneMgr.Instance.TryGetNearestPlayer(enemy.PosX, enemy.PosY, enemy.PosZ,
-                out int targetRoleId, out float targetX, out float targetY, out float targetZ))
+        lock (_lock)
         {
-            // 场景里没人（或都死了）：原地待机
-            SetAnim(enemy, "Idle", EnemyAiState.Idle, animPackets);
-            PushPosition(enemy, dt, posPackets);
-            return;
-        }
-
-        float dx = targetX - enemy.PosX;
-        float dy = targetY - enemy.PosY;
-        float dz = targetZ - enemy.PosZ;
-        float dist = (float)Math.Sqrt(dx * dx + dy * dy + dz * dz);
-
-        // 水平面上始终面向玩家
-        float horizSq = dx * dx + dz * dz;
-        if (horizSq > 0.0001f)
-        {
-            enemy.RotationY = (float)(Math.Atan2(dx, dz) * 180.0 / Math.PI);
-        }
-
-        if (dist > enemy.AttackRange)
-        {
-            // 追击：沿水平方向直线靠近，并且在到达攻击距离时不过冲
-            float horiz = (float)Math.Sqrt(horizSq);
-            if (horiz > 0.0001f)
+            List<int> toRemove = new List<int>();
+            foreach (EnemyInstance enemy in _enemies.Values)
             {
-                float step = enemy.MoveSpeed * dt;
-                float allowed = horiz - enemy.AttackRange;
-                if (allowed < 0f) allowed = 0f;
-                if (step > allowed) step = allowed;
-                enemy.PosX += dx / horiz * step;
-                enemy.PosZ += dz / horiz * step;
+                if (enemy.State != EnemyAiState.Dead) continue;
+
+                enemy.DeadTimer += dt;
+                if (enemy.DeadTimer >= EnemyInstance.RemoveDelay) toRemove.Add(enemy.InstanceId);
             }
 
-            // 没有独立的跑步动作，沿用地表最长的那段位移动画
-            SetAnim(enemy, "Attack05Run", EnemyAiState.Attack, animPackets);
-            PushPosition(enemy, dt, posPackets);
-            return;
+            for (int i = 0; i < toRemove.Count; i++) _enemies.Remove(toRemove[i]);
         }
-
-        // 已进入攻击距离：站定，按间隔出招
-        enemy.AttackTimer -= dt;
-        if (enemy.AttackTimer <= 0f)
-        {
-            enemy.AttackTimer = enemy.AttackInterval;
-            // 出招瞬间锁定目标并起命中倒计时，0.25 秒后再由 ResolvePendingAttack 结算
-            enemy.TargetRoleId = targetRoleId;
-            enemy.PendingHurtTimer = AttackImpactDelay;
-            SetAnim(enemy, PickAttackAnim(), EnemyAiState.Attack, animPackets);
-        }
-        else
-        {
-            SetAnim(enemy, "Idle", EnemyAiState.Attack, animPackets);
-        }
-
-        PushPosition(enemy, dt, posPackets);
-    }
-
-    private string PickAttackAnim()
-    {
-        switch (_rand.Next(0, 4))
-        {
-            case 0: return "Attack01";
-            case 1: return "Attack02";
-            case 2: return "Attack03";
-            default: return "Attack04";
-        }
-    }
-
-    /// <summary>动作或状态变化时才产生一个同步包。调用方必须已持有 _lock。</summary>
-    private static void SetAnim(EnemyInstance enemy, string anim, EnemyAiState state, List<BasePackage> animPackets)
-    {
-        if (enemy.Anim == anim && enemy.State == state) return;
-
-        enemy.Anim = anim;
-        enemy.State = state;
-        animPackets.Add(BuildAnimPackage(enemy));
-    }
-
-    /// <summary>按固定频率产生位置同步包。调用方必须已持有 _lock。</summary>
-    private static void PushPosition(EnemyInstance enemy, float dt, List<BasePackage> posPackets)
-    {
-        enemy.SyncTimer += dt;
-        if (enemy.SyncTimer < PositionSyncInterval) return;
-        enemy.SyncTimer = 0f;
-        posPackets.Add(BuildPositionPackage(enemy));
     }
 
     #endregion

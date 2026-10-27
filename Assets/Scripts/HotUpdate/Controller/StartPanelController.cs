@@ -69,17 +69,7 @@ namespace HotUpdate.Controller
             // 背包以服务端 role_bag_item 为准：驱动盘（含等级 / 词条 / 穿戴）与材料数量一次落地
             AppContext.Depot.ApplyServerBag(info.DriverDiskMap.Values);
             AppContext.Material.ApplyServerBag(info.MaterialMap.Values);
-
-            AppContext.Proto.RequestChangeScene(LobbySceneName, sceneRet =>
-            {
-                if (sceneRet.CmdCode != CmdCode.Succeed)
-                {
-                    Debug.LogError("跳转场景失败：" + sceneRet.CmdCode);
-                    return;
-                }
-
-                AppContext.Scene.LoadScene(LobbySceneName, 0.5f, TransitionPanel.ScrollBgType.Normal, OnCoveredHandle);
-            });
+            AppContext.Scene.LoadScene(LobbySceneName, 0.5f, TransitionPanel.ScrollBgType.Normal, OnCoveredHandle);
         }
 
         private void OnCoveredHandle()

@@ -170,12 +170,16 @@ namespace HotUpdate.Player
             if (_skillCombo.CurAttackIndex == -1) _skillCombo.CurAttackIndex = 0;
             AttackData attackData = _skillCombo.CurrentAttackData;
             if (attackData == null) return;
+
+            // 攻击的目标已经倒下：不播命中特效、不发攻击请求
+            EnemyCtrl enemy = ((Component)hurt).GetComponent<EnemyCtrl>();
+            if (enemy is not null && enemy.IsDead) return;
+
             HitData hitData = attackData.hitData;
             _presentation.PlayHitEffects(hitData, _skillCombo.CurVFXIndex, hurtPos);
             hurt.OnHurt(hitData, hurtSource);
 
             // 发送攻击请求到服务端
-            EnemyCtrl enemy = ((Component)hurt).GetComponent<EnemyCtrl>();
             if (enemy is not null && enemy.serverInstanceId > 0)
             {
                 bool isExAttack = _stateMachine.CurrentState == PlayerStateType.Ex;

@@ -27,15 +27,16 @@ public class Gate_LoginCtrl : IContainer
             case NetDefine.CMD_SaveRoleCode:
                 OnSaveRoleHandle(serverBase, basePackage);
                 break;
-            case NetDefine.CMD_ChangeSceneCode:
+            /*case NetDefine.CMD_ChangeSceneCode:
                 OnChangeSceneHandle(serverBase, basePackage);
-                break;
+                break;*/
             default:
                 LogMsg.Info("[Gate_LoginCtrl]有没有注册的请求码", ConsoleColor.Red);
                 break;
         }
     }
 
+    /*
     // 跳转场景请求
     private void OnChangeSceneHandle(ServerBase serverBase, BasePackage basePackage)
     {
@@ -56,6 +57,7 @@ public class Gate_LoginCtrl : IContainer
         serverBase._Client.SendData(basePackage);
         LogMsg.Info("[Gate]收到跳转场景请求:" + req);
     }
+    */
 
     // 保存角色数据请求
     private void OnSaveRoleHandle(ServerBase serverBase, BasePackage basePackage)
@@ -113,12 +115,13 @@ public class Gate_LoginCtrl : IContainer
             case NetDefine.CMD_SaveRoleCode:
                 OnSaveRoleResultHandle(session, basePackage);
                 break;
-            case NetDefine.CMD_ChangeSceneCode:
+            /*case NetDefine.CMD_ChangeSceneCode:
                 OnChangeSceneResultHandle(session, basePackage);
-                break;
+                break;*/
         }
     }
 
+    /*
     // 场景切换数据返回
     private void OnChangeSceneResultHandle(Session session, BasePackage basePackage)
     {
@@ -131,6 +134,7 @@ public class Gate_LoginCtrl : IContainer
         LogMsg.Info("[Gate]跳转场景结果:" + ret);
         session.SendData(basePackage);
     }
+    */
 
     // 保存角色数据返回
     private void OnSaveRoleResultHandle(Session session, BasePackage basePackage)
