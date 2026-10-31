@@ -617,7 +617,7 @@ public class LoginCtrl : IContainer
     private void OnGetRewardHandle(ServerBase serverBase, BasePackage basePackage)
     {
         GetRewardReq req = GetRewardReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到获得奖励请求:" + req);
     }
 
@@ -625,7 +625,7 @@ public class LoginCtrl : IContainer
     private void OnTaskProgressHandle(ServerBase serverBase, BasePackage basePackage)
     {
         TaskProgressNtf ntf = TaskProgressNtf.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到任务进度上报转发:" + ntf);
     }
 
@@ -633,7 +633,7 @@ public class LoginCtrl : IContainer
     private void OnTaskProgressReqHandle(ServerBase serverBase, BasePackage basePackage)
     {
         TaskProgressReq req = TaskProgressReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到任务进度拉取转发:" + req);
     }
 
@@ -641,7 +641,7 @@ public class LoginCtrl : IContainer
     private void OnDriverDiskUpgradeHandle(ServerBase serverBase, BasePackage basePackage)
     {
         DriverDiskUpgradeReq req = DriverDiskUpgradeReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到驱动盘升级转发:" + req);
     }
 
@@ -649,7 +649,7 @@ public class LoginCtrl : IContainer
     private void OnDriverDiskEquipHandle(ServerBase serverBase, BasePackage basePackage)
     {
         DriverDiskEquipReq req = DriverDiskEquipReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到驱动盘装备转发:" + req);
     }
 
@@ -657,7 +657,7 @@ public class LoginCtrl : IContainer
     private void OnBagInfoHandle(ServerBase serverBase, BasePackage basePackage)
     {
         BagInfoReq req = BagInfoReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到背包拉取转发:" + req);
     }
 
@@ -665,7 +665,7 @@ public class LoginCtrl : IContainer
     private void OnFriendListHandle(ServerBase serverBase, BasePackage basePackage)
     {
         FriendListReq req = FriendListReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到好友列表转发: roleId=" + req.RoleId);
     }
 
@@ -673,7 +673,7 @@ public class LoginCtrl : IContainer
     private void OnAddFriendHandle(ServerBase serverBase, BasePackage basePackage)
     {
         AddFriendReq req = AddFriendReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到添加好友转发: " + req.FromRoleId + " -> " + req.ToRoleId);
     }
 
@@ -681,7 +681,7 @@ public class LoginCtrl : IContainer
     private void OnHandleFriendHandle(ServerBase serverBase, BasePackage basePackage)
     {
         HandleFriendReq req = HandleFriendReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到处理好友申请转发: roleId=" + req.RoleId);
     }
 
@@ -689,7 +689,7 @@ public class LoginCtrl : IContainer
     private void OnSendFriendMsgHandle(ServerBase serverBase, BasePackage basePackage)
     {
         SendFriendMsgReq req = SendFriendMsgReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到私聊消息转发: " + req.SenderRoleId + " -> " + req.ReceiverRoleId);
     }
 
@@ -697,7 +697,7 @@ public class LoginCtrl : IContainer
     private void OnFriendHistoryHandle(ServerBase serverBase, BasePackage basePackage)
     {
         FriendHistoryReq req = FriendHistoryReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到聊天记录转发: roleId=" + req.RoleId);
     }
 
@@ -875,7 +875,7 @@ public class LoginCtrl : IContainer
             GateSessionId = basePackage.GateSessionId,
             Data = new BackToLoginReq { RoleId = req.RoleId }.ToByteString(),
         };
-        serverBase._Client.SendData(resetPkg);
+        serverBase.Client.SendData(resetPkg);
 
         ExitGameRoomRet ret = new ExitGameRoomRet
         {
@@ -923,7 +923,7 @@ public class LoginCtrl : IContainer
         dropReq.Drops.Add(drops);
         basePackage.ProtoCode = NetDefine.CMD_EnemyDropCode;
         basePackage.Data = dropReq.ToByteString();
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
 
         LogMsg.Info($"[Login]击杀上报转发中心服: roleId={req.RoleId} enemy={enemyName} 掉落种类={drops.Count}");
     }
@@ -1017,7 +1017,7 @@ public class LoginCtrl : IContainer
     private void OnSaveRoleHandle(ServerBase serverBase, BasePackage basePackage)
     {
         SaveRoleReq req = SaveRoleReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到保存角色请求:" + req);
     }
 
@@ -1025,7 +1025,7 @@ public class LoginCtrl : IContainer
     private void OnSetAvatarHandle(ServerBase serverBase, BasePackage basePackage)
     {
         SetAvatarReq req = SetAvatarReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到设置头像请求: roleId=" + req.RoleId + " avatar=" + req.Avatar);
     }
 
@@ -1033,7 +1033,7 @@ public class LoginCtrl : IContainer
     private void OnFriendMsgReadHandle(ServerBase serverBase, BasePackage basePackage)
     {
         MarkFriendMsgReadReq req = MarkFriendMsgReadReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到标记私聊已读转发: roleId=" + req.RoleId + " friend=" + req.FriendRoleId);
     }
 
@@ -1042,7 +1042,7 @@ public class LoginCtrl : IContainer
     {
         BackToLoginReq req = BackToLoginReq.Parser.ParseFrom(basePackage.Data);
         PlayerSceneMgr.Instance.OnPlayerLeave(req.RoleId);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到退出登录请求: roleId=" + req.RoleId);
     }
 
@@ -1052,7 +1052,7 @@ public class LoginCtrl : IContainer
     private void OnStartGameHandle(ServerBase serverBase, BasePackage basePackage)
     {
         StartGameReq req = StartGameReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到开始游戏请求:" + req);
     }
 
@@ -1060,7 +1060,7 @@ public class LoginCtrl : IContainer
     private void OnLoginGameServerHandle(ServerBase serverBase, BasePackage basePackage)
     {
         LoginGameServerReq req = LoginGameServerReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到登录游戏服务器请求:" + req);
     }
 
@@ -1068,7 +1068,7 @@ public class LoginCtrl : IContainer
     private void OnCreateRoleHandle(ServerBase serverBase, BasePackage basePackage)
     {
         CreateRoleReq req = CreateRoleReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到创建角色请求:" + req);
     }
 
@@ -1076,7 +1076,7 @@ public class LoginCtrl : IContainer
     private void OnGetServerListHandle(ServerBase serverBase, BasePackage basePackage)
     {
         GetServerListReq req = GetServerListReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到获取服务器列表请求:" + req);
     }
 
@@ -1085,7 +1085,7 @@ public class LoginCtrl : IContainer
     {
         LoginReq req = LoginReq.Parser.ParseFrom(basePackage.Data);
 
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到登录请求:" + req);
     }
 
@@ -1107,7 +1107,7 @@ public class LoginCtrl : IContainer
         }
         */
 
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Login]收到注册请求:" + req);
     }
 

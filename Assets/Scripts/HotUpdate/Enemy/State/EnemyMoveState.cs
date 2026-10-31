@@ -52,6 +52,7 @@ namespace HotUpdate.Enemy
         public override void Update()
         {
             if (!enemy.IsHost || enemy.IsDead) return;
+            if (enemy.IsInHitStop) return; // 顿帧期间冻结
 
             if (!enemy.HasTarget)
             {

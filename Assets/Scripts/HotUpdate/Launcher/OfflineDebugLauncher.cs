@@ -28,8 +28,8 @@ namespace HotUpdate.Launcher
         private const float DebugExAttack = 500f;
 
         // 离线木桩：数量 / 血量 / 围绕玩家的距离
-        private const int DummyCount = 3;
-        private const float DummyHealth = 5000f;
+        private const int DummyCount = 1;
+        private const float DummyHealth = 50000f;
         private const float DummyRadius = 6f;
         private const int DummyInstanceIdBase = 9000;
 

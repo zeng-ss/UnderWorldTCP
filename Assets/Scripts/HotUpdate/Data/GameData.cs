@@ -40,7 +40,12 @@ namespace HotUpdate.Data
         [Header("大小")] public Vector3 spawnScale;
         public float spawnTime; //延迟时间
         public bool canRotate = true; // 是否可以旋转
-        public bool isInHitStop; // 是否需要顿帧
+
+        [Tooltip("这一刀是否顿帧。多刀连段时只勾最后一刀，前面几刀不顿，节奏才不散")]
+        public bool isInHitStop;
+
+        [Tooltip("这一刀的顿帧帧数（60fps）：2 = 轻击，6~10 = 重击，0 = 用 AttackData 的秒数 / 连段递增默认值")]
+        public int hitStopFrames;
     }
 
     // 命中数据
@@ -50,6 +55,7 @@ namespace HotUpdate.Data
         [Header("命中音效")] public AudioClip hitClip;
         [Header("命中效果")] public List<GameObject> hitPrefabs;
         [Header("屏幕震动")] public float screenImpulseValue;
+        [Header("屏幕震动时长（秒，0 = 用相机默认）")] public float shakeDuration;
         [Header("色差效果")] public float chromaticAberrationValue;
         [Header("受击变红效果")] public float vignetteValue;
         public float damageValue; // 敌人的伤害数值 玩家的攻击数值在 PlayerData里面
@@ -74,6 +80,17 @@ namespace HotUpdate.Data
         public bool isHeavyEntry;
 
         [Tooltip("这一段是否冲刺杀")] public bool isRushAttack;
+
+        [Header("同一次挥砍内的重复命中")]
+        [Tooltip("大于 0：碰撞盒开着期间，同一目标每隔这么多秒可以再被打一次（0 = 一次挥砍只打一下）")]
+        public float rehitInterval;
+
+        [Tooltip("一次挥砍最多打几下（0 = 只受间隔限制）")]
+        public int maxHitsPerSwing;
+
+        [Header("顿帧")]
+        [Tooltip("本段攻击的顿帧时长（秒）。0 = 按连段次序自动递增（第一段 0.025，每段 +0.02，最多 0.12）")]
+        public float hitStopDuration;
 
         [Header("攻击数据")] public HitData hitData;
 

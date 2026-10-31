@@ -23,8 +23,8 @@ public class NetClient : ServerBase
     {
         _host = ip;
         _port = port;
-        _clientType = clientType;
-        _connState = ConnState.Disconnected;
+        ClientType = clientType;
+        ConnState = ConnState.Disconnected;
     }
 
     /// <summary>
@@ -34,18 +34,18 @@ public class NetClient : ServerBase
     {
         try
         {
-            if (_connState != ConnState.Disconnected)
+            if (ConnState != ConnState.Disconnected)
             {
                 return;
             }
 
-            if (_socket == null)
+            if (Socket == null)
             {
-                _socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             }
 
             //开始连接服务端 OnConnectCB连接成功之后的回调函数 
-            _socket.BeginConnect(_host, _port, OnConnectCB, null);
+            Socket.BeginConnect(_host, _port, OnConnectCB, null);
         }
         catch (Exception ex)
         {
@@ -61,10 +61,10 @@ public class NetClient : ServerBase
     {
         try
         {
-            _socket.EndConnect(ar);
-            _connState = ConnState.Connected;
+            Socket.EndConnect(ar);
+            ConnState = ConnState.Connected;
             OnConnSucced?.Invoke(); //连接成功执行回调  
-            LogMsg.Info($"连接服务端成功:{_socket.RemoteEndPoint}");
+            LogMsg.Info($"连接服务端成功:{Socket.RemoteEndPoint}");
             //开始接收服务端发来的数据
             BeginReceive();
         }
@@ -82,20 +82,20 @@ public class NetClient : ServerBase
     /// <param name="container"></param>
     public void RegistCommand(int cmd, IContainer container)
     {
-        _cmdDic.Add(cmd, container);
+        CmdDic.Add(cmd, container);
     }
 
 
     // 处理接受客户端传进来的数据成功之后做的事情
     protected override void HandleCommand(BasePackage basePackage)
     {
-        if (_clientType == ClientType.Unity)
+        if (ClientType == ClientType.Unity)
         {
             OnReceiveMsg?.Invoke(basePackage.ProtoCode, basePackage.Data);
             return;
         }
 
-        if (!_cmdDic.TryGetValue(basePackage.ProtoCode, out IContainer container) || container == null)
+        if (!CmdDic.TryGetValue(basePackage.ProtoCode, out IContainer container) || container == null)
         {
             LogMsg.Info($"[NetClient]未注册的请求码: {basePackage.ProtoCode}", ConsoleColor.Red);
             return;

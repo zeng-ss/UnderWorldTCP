@@ -20,6 +20,8 @@ MonoBehaviour:
     interruptibleTime: 0.5
     isHeavyEntry: 0
     isRushAttack: 0
+    rehitInterval: 0.01
+    maxHitsPerSwing: 2
     hitData:
       hitClip: {fileID: 8300000, guid: 4b9c1d6918c16cf4ab07098aa01ef840, type: 3}
       hitPrefabs:
@@ -36,7 +38,7 @@ MonoBehaviour:
       spawnScale: {x: 0, y: 0, z: 0}
       spawnTime: 0
       canRotate: 1
-      isInHitStop: 0
+      isInHitStop: 1
   - attackAnimationName: Attack02
     endAnimationName: Attack02End
     nextAttackIndex: -1
@@ -44,6 +46,8 @@ MonoBehaviour:
     interruptibleTime: 0.5
     isHeavyEntry: 0
     isRushAttack: 0
+    rehitInterval: 0.01
+    maxHitsPerSwing: 2
     hitData:
       hitClip: {fileID: 8300000, guid: be7658528d067aa4ab612584504b3060, type: 3}
       hitPrefabs:
@@ -68,6 +72,8 @@ MonoBehaviour:
     interruptibleTime: 0.5
     isHeavyEntry: 1
     isRushAttack: 0
+    rehitInterval: 0.01
+    maxHitsPerSwing: 3
     hitData:
       hitClip: {fileID: 8300000, guid: 723f33a93b83587428bff95cf9299112, type: 3}
       hitPrefabs:
@@ -92,6 +98,8 @@ MonoBehaviour:
     interruptibleTime: 0.5
     isHeavyEntry: 0
     isRushAttack: 0
+    rehitInterval: 0
+    maxHitsPerSwing: 0
     hitData:
       hitClip: {fileID: 8300000, guid: c914542f9b4cf5e4088485f33429109f, type: 3}
       hitPrefabs:
@@ -134,6 +142,8 @@ MonoBehaviour:
     interruptibleTime: 0.5
     isHeavyEntry: 0
     isRushAttack: 0
+    rehitInterval: 0
+    maxHitsPerSwing: 0
     hitData:
       hitClip: {fileID: 8300000, guid: c914542f9b4cf5e4088485f33429109f, type: 3}
       hitPrefabs:

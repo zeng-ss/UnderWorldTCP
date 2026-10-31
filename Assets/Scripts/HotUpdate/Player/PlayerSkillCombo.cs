@@ -51,6 +51,10 @@ namespace HotUpdate.Player
         private readonly Queue<BufferedInput> _inputBuffer = new();
         private const float InputBufferWindow = 0.3f; // 缓冲有效期（秒），超过视为误触丢弃
 
+        // 顿帧令牌：一个命中窗口（StartSkillHit → StopSkillHit）只允许触发一次顿帧。
+        // 多段重复命中（rehitInterval）算同一次挥砍，不该每一下都顿。
+        private bool _hitStopToken;
+
         public int CurVFXIndex
         {
             get => _curVFXIndex;
@@ -164,6 +168,7 @@ namespace HotUpdate.Player
 
             CurVFXIndex = 0;
             CanSwitchSkill = false;
+            _hitStopToken = false;
             _presentation.PlayAnimation(CurrentAttackData.attackAnimationName, 0.1f);
             AppContext.Proto.RequestSyncAni(AppContext.Session.RoleId, CurrentAttackData.attackAnimationName,
                 _curSkillIndex);
@@ -185,6 +190,8 @@ namespace HotUpdate.Player
         public void StartSkillHit()
         {
             if (CurAttackIndex == -1) CurAttackIndex = 0;
+
+            _hitStopToken = true; // 新的命中窗口：这一刀可以顿一次
 
             AttackData data = CurrentAttackData;
             if (data?.vfxDataList == null || data.vfxDataList.Count == 0) return;
@@ -212,7 +219,19 @@ namespace HotUpdate.Player
             _presentation.SpawnSkillVfx(vfxList[vfxIndex]);
         }
 
-        public void StopSkillHit() => CurVFXIndex++;
+        /// <summary>一次命中窗口只顿一次：取到令牌才允许触发顿帧</summary>
+        public bool TryConsumeHitStopToken()
+        {
+            if (!_hitStopToken) return false;
+            _hitStopToken = false;
+            return true;
+        }
+
+        public void StopSkillHit()
+        {
+            _hitStopToken = false;
+            CurVFXIndex++;
+        }
 
         public void SkillCanSwitch() => CanSwitchSkill = true;
 

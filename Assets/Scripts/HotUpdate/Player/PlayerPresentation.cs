@@ -78,7 +78,7 @@ namespace HotUpdate.Player
             if (hitData == null) return;
 
             SpawnHitPrefab(hitData, vfxIndex, worldPos);
-            Shake(hitData.screenImpulseValue);
+            Shake(hitData.screenImpulseValue, hitData.shakeDuration);
 
             if (_chromaticAberration != null && _vignette != null)
             {
@@ -91,20 +91,21 @@ namespace HotUpdate.Player
             AppContext.Sound.PlaySound(hitData.hitClip, worldPos);
         }
 
-        public void PlayHurtFeedback(float damageValue, float vignetteValue, float screenImpulseValue)
+        public void PlayHurtFeedback(float damageValue, float vignetteValue, float screenImpulseValue,
+            float shakeDuration = 0f)
         {
             Vector3 worldPos = _followTarget != null ? _followTarget.position : transform.position;
             if (_damageNumber != null) _damageNumber.Spawn(worldPos, damageValue);
 
-            Shake(screenImpulseValue);
+            Shake(screenImpulseValue, shakeDuration);
             PlayVignette(vignetteValue);
         }
 
         // 命中 / 受击的震屏。相机由自研的 PlayerCameraCtrl 驱动，没注入进来时静默跳过。
-        private void Shake(float strength)
+        private void Shake(float strength, float duration = 0f)
         {
             if (_camera == null) return;
-            _camera.Shake(strength);
+            _camera.Shake(strength, duration);
         }
 
         #endregion

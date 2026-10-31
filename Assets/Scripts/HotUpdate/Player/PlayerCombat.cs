@@ -123,7 +123,8 @@ namespace HotUpdate.Player
             {
                 // 屏幕反馈的强度仍取本地配置（敌人 prefab 上的 HitData），伤害数值以服务端为准
                 HitData hitData = GetAttackerHitData(ntf.EnemyInstanceId);
-                _presentation.PlayHurtFeedback(ntf.Damage, hitData?.vignetteValue ?? 0f, hitData?.screenImpulseValue ?? 0f);
+                _presentation.PlayHurtFeedback(ntf.Damage, hitData?.vignetteValue ?? 0f,
+                    hitData?.screenImpulseValue ?? 0f, hitData?.shakeDuration ?? 0f);
 
                 // 敌人武器的命中表现（特效 / 音效）。服务端只下发「命中了 + 伤害」，
                 // 命中点用本地玩家当前位置近似 —— 本地再没有武器碰撞盒参与判定。

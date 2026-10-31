@@ -25,7 +25,9 @@ namespace HotUpdate.Enemy
         {
             if (!enemy.IsHost) return;
 
-            enemy.HurtAnimAllowed = false;
+            // 默认出招不可被打断（否则玩家一直点普攻，敌人永远出不了手）；
+            // 想要「打一下就缩」的小怪，在 Inspector 上勾 interruptAttackByHurt
+            enemy.HurtAnimAllowed = enemy.InterruptAttackByHurt;
 
             if (!enemy.HasTarget)
             {
@@ -47,6 +49,7 @@ namespace HotUpdate.Enemy
         public override void Update()
         {
             if (!enemy.IsHost || enemy.IsDead) return;
+            if (enemy.IsInHitStop) return; // 顿帧期间冻结
 
             // 出招过程中持续面向目标：玩家绕背时下一刀才不会打偏（比平时跟得紧一点）
             FaceTarget(16f);

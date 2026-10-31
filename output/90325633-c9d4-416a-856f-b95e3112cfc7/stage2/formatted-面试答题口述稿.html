@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="docx-page-size" content="A4">
+<title>面试答题口述稿：五个高频问题</title>
+<style>
+:root {
+  --typography-fontFamily-heading: "黑体", SimHei, sans-serif;
+  --typography-fontFamily-body: "宋体", SimSun, serif;
+  --typography-fontFamily-mono: Consolas, monospace;
+  --typography-fontSize-title: 21pt;
+  --typography-fontSize-h2: 15pt;
+  --typography-fontSize-h3: 13pt;
+  --typography-fontSize-h4: 12pt;
+  --typography-fontSize-body: 12pt;
+  --typography-fontSize-small: 10pt;
+  --typography-lineHeight-body: 1.75;
+  --typography-lineHeight-heading: 1.35;
+  --typography-fontWeight-bold: 700;
+  --typography-fontWeight-normal: 400;
+
+  --color-primary: #2563EB;
+  --color-text: #111827;
+  --color-textSecondary: #6B7280;
+  --color-border: #D9DEE7;
+  --color-divider: #F3F4F6;
+  --color-background: #FFFFFF;
+  --color-cardBg: #F6F8FB;
+  --color-cardLine: #C9D6EA;
+  --color-warnBg: #FFF9EC;
+  --color-warnLine: #E0A93B;
+
+  --fs-title: var(--typography-fontSize-title);
+  --fs-h2: var(--typography-fontSize-h2);
+  --fs-h3: var(--typography-fontSize-h3);
+  --fs-h4: var(--typography-fontSize-h4);
+  --fs-body: var(--typography-fontSize-body);
+  --fs-small: var(--typography-fontSize-small);
+  --ff-heading: var(--typography-fontFamily-heading);
+  --ff-body: var(--typography-fontFamily-body);
+  --lh-body: var(--typography-lineHeight-body);
+  --lh-heading: var(--typography-lineHeight-heading);
+  --fw-bold: var(--typography-fontWeight-bold);
+  --color-text-secondary: var(--color-textSecondary);
+
+  --spacing-xs: 0.25em;
+  --spacing-sm: 0.4em;
+  --spacing-md: 0.6em;
+  --spacing-lg: 0.9em;
+  --spacing-xl: 1.2em;
+  --spacing-2xl: 1.6em;
+  --spacing-list: 3em;
+  --spacing-sayPad: 5pt 10pt;
+  --spacing-cellPad: 7pt 8pt;
+  --spacing-tocPad: 10pt 14pt;
+  --spacing-pagePad: 1.6cm 0;
+  --page-content-width: 15.6cm;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--ff-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--color-text);
+  background: var(--color-background);
+  max-width: var(--page-content-width);
+  margin-left: auto;
+  margin-right: auto;
+  padding: var(--spacing-pagePad);
+  text-align: justify;
+}
+
+h1.doc-title {
+  font-family: var(--ff-heading);
+  font-size: var(--fs-title);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  line-height: var(--lh-heading);
+  text-align: center;
+  text-indent: 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+p.doc-eyebrow {
+  font-family: var(--ff-heading);
+  font-size: var(--fs-small);
+  color: var(--color-primary);
+  text-align: center;
+  text-indent: 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+p.doc-subtitle {
+  font-family: var(--ff-body);
+  font-size: var(--fs-small);
+  color: var(--color-text-secondary);
+  text-align: center;
+  text-indent: 0;
+  line-height: 1.6;
+  margin-bottom: var(--spacing-xl);
+}
+
+h2 {
+  font-family: var(--ff-heading);
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  line-height: var(--lh-heading);
+  text-align: left;
+  text-indent: 0;
+  margin-top: var(--spacing-2xl);
+  margin-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: var(--spacing-xs);
+}
+
+h3 {
+  font-family: var(--ff-heading);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  line-height: var(--lh-heading);
+  text-align: left;
+  text-indent: 0;
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-sm);
+}
+
+h4 {
+  font-family: var(--ff-heading);
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-bold);
+  color: var(--color-primary);
+  line-height: var(--lh-heading);
+  text-align: left;
+  text-indent: 0;
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-xs);
+}
+
+p {
+  font-family: var(--ff-body);
+  font-size: var(--fs-body);
+  color: var(--color-text);
+  line-height: var(--lh-body);
+  text-align: justify;
+  text-indent: 2em;
+  margin-bottom: var(--spacing-md);
+}
+
+p.no-indent {
+  text-indent: 0;
+}
+
+p.say {
+  font-family: var(--ff-body);
+  font-size: var(--fs-body);
+  color: var(--color-text);
+  line-height: 1.8;
+  text-align: justify;
+  text-indent: 0;
+  border-left: 3px solid var(--color-cardLine);
+  background: var(--color-cardBg);
+  padding: var(--spacing-sayPad);
+  margin-bottom: 0;
+}
+
+p.say-end {
+  margin-bottom: var(--spacing-lg);
+}
+
+ul, ol {
+  margin-left: var(--spacing-list);
+  margin-right: 0;
+  margin-bottom: var(--spacing-md);
+}
+
+li {
+  font-family: var(--ff-body);
+  font-size: var(--fs-body);
+  color: var(--color-text);
+  line-height: var(--lh-body);
+  text-align: justify;
+  margin-bottom: var(--spacing-xs);
+}
+
+li p {
+  text-indent: 0;
+  margin-bottom: var(--spacing-xs);
+}
+
+strong {
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+}
+
+table.grid-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+table.grid-table th {
+  font-family: var(--ff-heading);
+  font-size: var(--fs-small);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  background: var(--color-divider);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-cellPad);
+  text-align: left;
+  line-height: 1.6;
+}
+
+table.grid-table td {
+  font-family: var(--ff-body);
+  font-size: var(--fs-small);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-cellPad);
+  text-align: left;
+  vertical-align: top;
+  line-height: 1.6;
+}
+
+p.pitfall {
+  font-family: var(--ff-body);
+  font-size: var(--fs-body);
+  color: var(--color-text);
+  line-height: var(--lh-body);
+  text-align: justify;
+  text-indent: 0;
+  border-left: 3px solid var(--color-warnLine);
+  background: var(--color-warnBg);
+  padding: var(--spacing-sayPad);
+  margin-bottom: var(--spacing-sm);
+}
+
+p.pitfall-end {
+  margin-bottom: var(--spacing-lg);
+}
+
+nav.doc-toc {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-tocPad);
+  margin-top: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+p.toc-title {
+  font-family: var(--ff-heading);
+  font-size: var(--fs-h4);
+  font-weight: var(--fw-bold);
+  color: var(--color-text);
+  text-indent: 0;
+  text-align: left;
+  margin-bottom: var(--spacing-sm);
+}
+
+.toc-list, .toc-list ol, .toc-list ul {
+  list-style: none;
+  list-style-type: none;
+  margin-left: 0;
+  padding-left: 0;
+}
+
+.toc-list li {
+  font-family: var(--ff-body);
+  font-size: var(--fs-small);
+  color: var(--color-text);
+  line-height: 1.9;
+  margin-bottom: 0;
+  text-indent: 0;
+}
+
+.toc-list a {
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+@page { @bottom-center { content: counter(page); } }
+</style>
+</head>
+<body>
+<section role="body">
+
+<p class="doc-eyebrow">面试准备 · 口述稿</p>
+<h1 class="doc-title">面试答题口述稿：五个高频问题</h1>
+<p class="doc-subtitle">对应《面试记录》里的 5 个问题 · 每题按「考点、口述稿、追问预案、坑」四段展开<br>整理于 2026 年 10 月 29 日</p>
+
+<nav class="doc-toc" aria-label="文档目录">
+<p class="toc-title">目录</p>
+<ol class="toc-list">
+<li><a href="#section-0">写在前面：这五个问题其实在考三件事</a></li>
+<li><a href="#section-1">一、Buff 添加时，面板怎么及时刷新对应数据</a></li>
+<li><a href="#section-2">二、多个面板堆叠，最下面的面板怎么管理</a></li>
+<li><a href="#section-3">三、热更新断点续传：10MB 下到 5MB 退出怎么办</a></li>
+<li><a href="#section-4">四、TCP 网络传输：消息怎么到 Unity，服务端之间怎么传</a></li>
+<li><a href="#section-5">五、Buff 系统该怎么设计</a></li>
+<li><a href="#section-6">附：面试前 10 分钟速记</a></li>
+</ol>
+</nav>
+
+<h2 id="section-0">写在前面：这五个问题其实在考三件事</h2>
+
+<ul>
+<li><p><strong>第一、五题</strong>考的是「数据放在哪、谁通知谁」——能不能把状态和表现拆开。</p></li>
+<li><p><strong>第二题</strong>考的是「层级与生命周期」——多层面板叠在一起时，谁在上面、谁该省、状态怎么恢复。</p></li>
+<li><p><strong>第三、四题</strong>考的是「边界与取舍」——断点续传的粒度是什么、多进程之间怎么找到对的人。</p></li>
+</ul>
+
+<p>共通的分水岭只有一个：<strong>能不能主动说出边界和代价</strong>。只说"我用了什么"，听起来像照文档抄；说清"为什么这么做、代价是什么、再往下该怎么做"，才像自己踩过。</p>
+
+<h2 id="section-1">一、Buff 添加时，面板怎么及时刷新对应数据</h2>
+
+<p>这题问的是 Buff 和面板该怎么通信。答"事件"或者"拿面板实例"都会被打断，因为这两个方向都反了。</p>
+
+<h3>（一）面试官在考什么</h3>
+
+<p>答"事件"和"拿面板实例传参"，他不满意的原因不是方案不完整，而是<strong>方向反了</strong>——这两个都是让 Buff 系统回头去通知 UI，属于逻辑层依赖表现层。</p>
+
+<p>他想听的是：<strong>面板显示的不是 Buff，是最终属性值。Buff 只是属性的一个修改器。</strong>中间缺了一层属性容器。</p>
+
+<h3>（二）口述稿</h3>
+
+<p class="say">&nbsp;&nbsp;我原来的答法确实有问题。事件是全局广播，拿面板实例是逻辑层直接持有 UI 引用，这两个都是"让 Buff 去通知界面"，方向反了。</p>
+<p class="say">&nbsp;&nbsp;正确的拆法是把 Buff 和面板解耦：<strong>面板要显示的不是"有没有这个 Buff"，而是"当前攻击力是多少"</strong>。Buff 进来只是往这个属性上加一个修改器，UI 只关心最终值。</p>
+<p class="say">&nbsp;&nbsp;所以中间要有一层属性容器 StatContainer：每个属性存基础值加一组修改器，分加法区和乘法区。最终值等于基础值加加法总和，再乘一加乘法总和。Buff 进来就加修改器，到期就删修改器，<strong>永远不直接写最终值</strong>。</p>
+<p class="say">&nbsp;&nbsp;刷新时机用脏标记加帧末合并：修改器一变，只把这个属性标脏，不当场算、不当场刷。面板在 LateUpdate 里检查自己关心的属性脏没脏，脏了才重算一次、刷一次。好处是一帧内连加 5 个 Buff，也只刷 1 次，不会出现"进战斗瞬间 UI 跳 5 下"。</p>
+<p class="say say-end">&nbsp;&nbsp;面板关闭期间怎么办？不指望事件补发。面板 OnEnable 的时候主动拉一次全量快照，因为关闭期间可能已经变了很多次，补发是不可靠的。</p>
+
+<h3>（三）为什么不用事件、也不用面板实例</h3>
+
+<p>这两点一定要能讲清楚，否则等于没答：</p>
+
+<ul>
+<li><p><strong>事件的问题</strong>：它是广播，任何一个 Buff 变化都会惊动所有监听者；监听顺序不可控；面板销毁后如果忘了退订，回调就是野引用。Buff 越多、监听者越多，越难排查。</p></li>
+<li><p><strong>拿实例的问题</strong>：逻辑层直接持有 UI 引用，面板没打开时是空引用，于是到处要判空；换一套 UI 就得改逻辑层。这是典型的反向依赖。</p></li>
+<li><p><strong>更合适的是点对点的订阅</strong>：属性值本身就是可观察的，值没变就不触发。项目里用的是可绑定属性——赋值时先比对新旧值，相同直接返回，不同才回调；面板在显示时订阅、隐藏时退订。订阅关系是"某个属性到某几个控件"，不是全局广播。</p></li>
+</ul>
+
+<h3>（四）追问预案</h3>
+
+<p>顺着往下问，大概率是这四个方向。</p>
+
+<h4>1. 面板没打开，Buff 变了，打开时不就错了？</h4>
+
+<p>所以打开时不能依赖"事件补发"，要主动拉全量。面板显示时做一次全量刷新，读当前快照；之后才是增量刷新。全量加增量两条路都要有。</p>
+
+<h4>2. 倒计时怎么刷？每帧改 Text 很费。</h4>
+
+<p>不要每帧刷。倒计时用到期时间戳算差值，0.1 到 0.2 秒刷一次就够；要走圆环进度就改图片的填充比例，改一个浮点数比改字符串便宜得多。</p>
+
+<h4>3. 一帧内多次变化，脏标记怎么合批？</h4>
+
+<p>修改器变更只置脏标记，不做任何计算；帧末统一重算一次，算完清标记。这样 N 次变更等于 1 次重算加 1 次刷新。如果 UI 本身还有动画，可以再往后延一帧，等动画播完再落值。</p>
+
+<h4>4. 为什么不在 setter 里直接刷？</h4>
+
+<p>因为 setter 不知道当前在什么阶段。战斗结算里可能连续改十几个属性，setter 里刷就是十几次 UI 重建，还可能读到中间态——只加了一半的 Buff。合并到帧末，看到的一定是稳定值。</p>
+
+<h3>（五）这题的坑</h3>
+
+<p class="pitfall">&nbsp;&nbsp;别一上来就说"用事件解耦"。事件不是解耦，是把直接依赖换成了隐式依赖，排查难度反而更高。</p>
+<p class="pitfall">&nbsp;&nbsp;别说"加个定时器每帧刷新"，那是用性能换正确性，一做大规模压测就露。</p>
+<p class="pitfall pitfall-end">&nbsp;&nbsp;一定要提"面板显示的是属性值，不是 Buff 列表"。这句话是这题的分水岭，说了面试官就知道你想到了属性层。</p>
+
+<h2 id="section-2">二、多个面板堆叠，最下面的面板怎么管理</h2>
+
+<p>多层面板是 UI 框架的必考题。答出"用栈"只算及格，真正的分在生命周期和输入这两层。</p>
+
+<h3>（一）面试官在考什么</h3>
+
+<p>这题有四层，答得越深越好：</p>
+
+<ol>
+<li><p><strong>数据结构</strong>：栈，还是字典？</p></li>
+<li><p><strong>层级</strong>：靠同级顺序、排序层级，还是多 Canvas？</p></li>
+<li><p><strong>生命周期</strong>：关掉就销毁，还是缓存复用？</p></li>
+<li><p><strong>被盖住的那层</strong>：还跑不跑？输入怎么挡？关掉上层后怎么恢复？</p></li>
+</ol>
+
+<h3>（二）口述稿</h3>
+
+<p class="say">&nbsp;&nbsp;我这边的做法是<strong>不销毁，只隐藏加出栈</strong>。</p>
+<p class="say">&nbsp;&nbsp;UIManager 里维护一个字典，面板路径对应面板实例，所有面板实例化后都挂在同一个父节点下。Unity 的 UI 渲染顺序就是同级顺序，所以"后打开的排在最后等于盖在最上面"，这本身就是栈的行为，不需要再额外维护一个栈结构。</p>
+<p class="say">&nbsp;&nbsp;关闭分两步：先播关闭动画，动画结束才隐藏；同时把这个面板从当前父节点挪回 Canvas 根下——这一步就是出栈。下次再打开，把它塞回父节点，自动变成最上层，宽高锚点用预制体的快照还原。</p>
+<p class="say">&nbsp;&nbsp;不销毁的好处是状态全保留、再打开零加载；代价是内存一直占着。所以留了两个出口：单个面板可以显式销毁并释放资源，切场景时整体清一次。</p>
+<p class="say">&nbsp;&nbsp;被完全盖住的那一层，要分三件事管。</p>
+<p class="say">&nbsp;&nbsp;<strong>一是渲染。</strong>面板被盖住但还激活，Canvas 只要有变化就会重建，是白烧性能。我的做法是按面板类型判断：独占型面板打开时，把下层的画布透明度置零、射线检测关掉，全屏不透明的甚至可以直接隐藏。但要注意，直接隐藏会打断动画、丢掉粒子和补间状态，所以要等动画播完再关，或者只关显示、不关逻辑。</p>
+<p class="say">&nbsp;&nbsp;<strong>二是输入。</strong>不能靠 UI 自己判断"谁在最上面"。我用输入锁令牌：面板打开时压一个令牌，关闭时还回去，输入层只看还有没有锁，就决定要不要响应移动和攻击。这样多层面板叠加既不会点穿，也不会出现"面板开着、角色还在跑"。</p>
+<p class="say">&nbsp;&nbsp;<strong>三是恢复。</strong>上层关掉后下层要重新可见，但数据可能已经变了——比如在设置里改了音量、在背包里用了道具。所以下层的显示流程里要主动刷一次，而不是指望上层通知它。这和第一题是同一个原则：打开时全量拉，别依赖补发。</p>
+<p class="say">&nbsp;&nbsp;最后补一句边界：这套是单 Canvas 加同级顺序，适合面板数量不多的项目。如果面板特别多、或者需要 3D 物体夹在 UI 中间，就得多 Canvas 分层加排序层级，那时候层级就得自己维护成显式的栈，不能靠同级顺序了。</p>
+<p class="say say-end">&nbsp;&nbsp;还有一点，面板不销毁意味着内存一直占着，所以要有回收策略：低频面板（比如设置、公告）在关闭后延迟一段时间释放，高频面板（背包、聊天）常驻。判断依据是"重新打开的成本"——要重新拉数据的就别急着销毁。</p>
+
+<h3>（三）追问预案</h3>
+
+<p>这四个问题基本覆盖了面试官会追的方向。</p>
+
+<h4>1. 为什么不用真正的栈结构？</h4>
+
+<p>因为需要随机访问。比如背包开着的时候收到好友消息，要判断聊天面板是不是已经开了。栈只能看栈顶，字典能常数时间查到任意面板。层级用同级顺序天然表达，顺序和栈一致，就不需要再存一份。</p>
+
+<h4>2. 关掉上层，下层要不要重新播打开动画？</h4>
+
+<p>不要。重播动画会让界面闪一下。正确的做法是下层保持可见、只做数据刷新。只有下层是被隐藏过的情况，才需要一次"恢复显示"，但也不必用打开动画。</p>
+
+<h4>3. 如果两个全屏面板互相打开，会不会死循环？</h4>
+
+<p>要加规则：面板打开时记录来源，关闭时按来源回退，而不是"关掉就露出下面任意一层"。另外要限制同类型面板只能有一个实例，字典天然保证这点，避免叠出三层背包。</p>
+
+<h4>4. UI 多了怎么优化？</h4>
+
+<p>三个方向：一是按"是否全屏不透明"决定下层是否渲染；二是面板分频，常驻 HUD 单独一个 Canvas，避免背包里的变化触发 HUD 重建；三是列表用循环复用，不要每次打开都重建所有条目。</p>
+
+<h3>（四）这题的坑</h3>
+
+<p class="pitfall">&nbsp;&nbsp;别说"用栈管理"就完了，面试官接着会问"那你要随机查某个面板怎么办"。</p>
+<p class="pitfall">&nbsp;&nbsp;别忘了输入这一层。多层面板最常见的事故就是"面板开着，角色还在走"。</p>
+<p class="pitfall pitfall-end">&nbsp;&nbsp;主动说"被盖住的那层要不要继续渲染"，这是性能意识，也是这题最容易被忽略的一层。</p>
+
+<h2 id="section-3">三、热更新断点续传：10MB 下到 5MB 退出怎么办</h2>
+
+<p>这题的关键不在"怎么续传"，而在"续传的粒度是什么"。先把粒度说清，后面的追问都好接。</p>
+
+<h3>（一）面试官在考什么</h3>
+
+<p>不是想听"我调了下载接口"，而是想知道三件事：</p>
+
+<ul>
+<li><p>你知不知道续传的<strong>粒度</strong>——是资源包级，还是字节级。</p></li>
+<li><p>你懂不懂<strong>缓存一致性</strong>——下到一半的数据为什么不会被当成好资源。</p></li>
+<li><p>版本更新时，旧缓存怎么失效。</p></li>
+</ul>
+
+<h3>（二）口述稿：30 秒版</h3>
+
+<p>被打断时用这一版，够用。</p>
+
+<p class="say">&nbsp;&nbsp;热更资源是 Addressables 管的，断点续传没有自己写，落在 Unity 的资源包缓存上。</p>
+<p class="say">&nbsp;&nbsp;启动时先检查并更新 catalog，再用获取下载大小接口汇总"还没进缓存的资源包"有多大。10MB 下到 5MB 退出，已经落盘的下次直接命中缓存，只补剩下的那部分。</p>
+<p class="say say-end">&nbsp;&nbsp;但要说清粒度：<strong>这是资源包级的续传，不是字节级</strong>。如果 5MB 那个点正好卡在某个大包中间，那个包会整个重下。因为包内部数据互相依赖，半截文件没法用；Unity 的资源包缓存也是原子写入，下完才生效，所以不会出现"半个资源被当成好资源"导致错乱。</p>
+
+<h3>（三）口述稿：2 分钟版</h3>
+
+<p>把整条链路讲完，面试官会认为你真的部署过。</p>
+
+<p class="say">&nbsp;&nbsp;热更分两条线：代码热更用 HybridCLR，资源热更用 Addressables。资源这条的启动流程是七步。</p>
+<p class="say">&nbsp;&nbsp;第一步初始化 Addressables，加载本地 catalog；第二步比对远端 catalog 的哈希，有新版本就更新；第三步加载热更进度窗口；第四步算出还差多少字节；第五步大于零就开始下载，循环读下载状态刷进度条；第六步加载 AOT 元数据；第七步加载热更程序集，最后实例化启动器进游戏。</p>
+<p class="say">&nbsp;&nbsp;断点续传能成立，靠两个东西。<strong>一是 catalog 里记了每个资源包的哈希</strong>，远端地址是"路径加包名加哈希"，缓存键带哈希，所以内容一变键就变，旧缓存自动失效、不会误用；<strong>二是获取下载大小这个接口本身只统计未缓存的部分</strong>，全部命中时返回零，直接跳过下载。</p>
+<p class="say say-end">&nbsp;&nbsp;所以"下到 5MB 退出"，对系统来说不是"续传一个 10MB 的文件"，而是"十个包下完了四个半"。下次进来它只知道还差五个半的量。</p>
+
+<h3>（四）追问预案</h3>
+
+<p>这几个追问都比较硬，尤其是字节级续传那一条。</p>
+
+<h4>1. 下到一半被杀进程，半截文件不会残留成脏数据吗？</h4>
+
+<p>不会。底层走的是 UnityWebRequest 加载资源包，包是下完才写入缓存并提交的，没下完的不会进缓存索引。最坏情况只是"这次白下了"，不会出现"文件在但内容不全"。</p>
+
+<h4>2. catalog 不是也要下载吗？顺序能反吗？</h4>
+
+<p>不能反。必须<strong>先更 catalog、再算下载量</strong>，因为新包的名字、哈希、大小都写在 catalog 里，catalog 不更新，算出来的还是旧账。</p>
+
+<h4>3. 如果要做字节级续传呢？</h4>
+
+<p>那要绕开资源包机制，自己在 HTTP 层做三件事：用 Range 头请求指定偏移；边收边追加写本地临时文件，把已下载偏移定期落到一个小清单里；下完比对哈希或大小，通过再改名成正式文件。要注意 UnityWebRequest 不暴露 Range 和追加写，得用 HttpWebRequest 或者自己封 socket。</p>
+
+<p>项目里没做这一步，因为资源是按包切分的，一个包通常几百 KB 到几 MB，重下的代价可以接受；真正需要字节级的是"整包安装包更新"这种单个超大文件。</p>
+
+<h4>4. 版本回滚怎么办？</h4>
+
+<p>catalog 换回旧版就行。缓存键带哈希，旧包如果还在缓存里就直接命中。但 Addressables 不会自动清新版本留下的孤儿包，得主动清缓存或者依赖缓存过期策略回收。</p>
+
+<h4>5. 热更失败了怎么处理？</h4>
+
+<p>这是这块做得不够的地方：现在下载失败只打了一条错误日志，流程继续往下走加载程序集，真机上会变成"资源缺了还硬进游戏"。正确做法是失败就停在热更页给重试，至少不要继续往下走。</p>
+
+<h3>（五）这题的坑</h3>
+
+<p class="pitfall">&nbsp;&nbsp;别说"我实现了断点续传"。你没实现，你用的是引擎的缓存。说"落在缓存上"更准确，也更经得起追问。</p>
+<p class="pitfall">&nbsp;&nbsp;别回避粒度问题。面试官问这题，八成就是想知道你分不分得清资源包级和字节级。</p>
+<p class="pitfall pitfall-end">&nbsp;&nbsp;主动提"先更 catalog 再算大小"。这个顺序能证明你真的调过，不是背的。</p>
+
+<h2 id="section-4">四、TCP 网络传输：消息怎么到 Unity，服务端之间怎么传</h2>
+
+<p>这句话其实是三个问题，混着答一定乱。先分层，再一层层展开。</p>
+
+<h3>（一）面试官在考什么</h3>
+
+<p>这一句话其实是<strong>三个问题</strong>，混着答一定乱：</p>
+
+<ol>
+<li><p>客户端和服务端怎么建立连接？</p></li>
+<li><p>消息怎么送到 Unity 客户端？</p></li>
+<li><p>服务端和服务端之间怎么传、怎么找到对的人？</p></li>
+</ol>
+
+<h3>（二）开场一句：先定框架</h3>
+
+<p class="say say-end">&nbsp;&nbsp;这套是 <strong>TCP 长连接加 Protobuf 加命令码路由</strong>。拓扑上客户端只连登录服一个口，登录服再作为客户端连中心服，中心服独占数据库。一条消息的旅程分三层看：连接层、编解码层、路由层。</p>
+
+<h3>（三）第一层：连接怎么建</h3>
+
+<p class="say">&nbsp;&nbsp;客户端用异步连接登录服的 10120 端口，连上后立刻挂起接收，全程异步、不阻塞主线程。</p>
+<p class="say">&nbsp;&nbsp;服务端先绑定再监听，在一条后台线程上异步接受连接；每接受一个连接就新建一个会话对象，一个连接一个会话，会话里存自增 Id 和 socket，统一注册到会话管理器，Id 用原子自增生成保证线程安全。</p>
+<p class="say say-end">&nbsp;&nbsp;<strong>关键点：服务端之间不是每个玩家一条连接。</strong>登录服和中心服之间只有一条共享的 TCP 长连接，所有玩家的请求都复用这一条，靠包里的会话 Id 区分是谁。这样连接数从"玩家数乘二"降到"玩家数加一"，代价是这条断了所有在线玩家一起断。</p>
+
+<h3>（四）第二层：一条消息长什么样</h3>
+
+<p class="say">&nbsp;&nbsp;每帧的结构是：<strong>两字节长度、一字节压缩标志、两字节 CRC16、N 字节 Protobuf</strong>。</p>
+<p class="say">&nbsp;&nbsp;长度放最前面是为了解决 TCP 粘包和半包：收包缓冲里凑够"长度加二"才切一帧，切完把剩下的数据拷回缓冲区头部，再用循环继续切，一次接收里有多帧就一次消化完；不够就跳出等下一批。</p>
+<p class="say">&nbsp;&nbsp;包体超过 200 字节才 GZip，小包不压，省 CPU。CRC16 校验的是压缩后的包体，校验不过直接丢这一帧，不进业务。</p>
+<p class="say say-end">&nbsp;&nbsp;Proto 的外层是统一信封：协议码、会话 Id、数据。数据里才是具体业务包。这样所有协议共享一个信封，中间层不用认识业务类型就能转发。</p>
+
+<h3>（五）第三层：消息怎么找到对的人</h3>
+
+<p>服务端到客户端方向：</p>
+
+<p class="say">&nbsp;&nbsp;收包的时候会打标：如果这条连接的对端是登录服，说明它是替某个 Unity 玩家转发的，就把自己的会话 Id 写进包里的会话 Id 字段。</p>
+<p class="say">&nbsp;&nbsp;回包时反过来查：中心服处理完把同一个包原样发回来，会话 Id 字段跟着回；登录服收到后按这个 Id 找到那根 Unity 连接，发回去。</p>
+<p class="say say-end">&nbsp;&nbsp;核心是<strong>不靠全局映射表，靠包自己带着回程地址</strong>。多加一层就多打一个标，回程逐层剥。</p>
+
+<p>客户端内部这一段最容易被忽略：</p>
+
+<p class="say">&nbsp;&nbsp;socket 回调在<strong>子线程</strong>上，Unity 的接口不能直接碰。所以在初始化时抓住主线程的同步上下文，收到包后派发回主线程，再按协议码分发给业务。</p>
+<p class="say say-end">&nbsp;&nbsp;协议码到处理器的映射在初始化时一次性注册好，收到包就是一次字典查找，然后反序列化、更新数据、发事件给界面。所以完整链路是：<strong>子线程收包、拆帧校验解压、反序列化、切回主线程、按协议码路由、业务</strong>。</p>
+
+<h3>（六）数据流举例</h3>
+
+<p>挑一个具体场景说，显得真的跑过。</p>
+
+<p class="say">&nbsp;&nbsp;拿位置同步举例：客户端每秒 20 次把坐标和朝向发上去；登录服收到后<strong>不落库</strong>，只更新内存里的场景表，然后遍历同场景其他玩家，给每个人单独组一个包发出去。</p>
+<p class="say say-end">&nbsp;&nbsp;敌人是另一条线：客户端只上报"我打了谁"，伤害在服务端算，算完把伤害、剩余血量、是否暴击、是否死亡广播回去，客户端只负责播表现。血量只有一个写入口，客户端没有权限改。</p>
+
+<h3>（七）追问预案</h3>
+
+<p>网络这块的追问通常围绕线程、异常和单点这三件事。</p>
+
+<h4>1. 为什么取处理器不用索引器？</h4>
+
+<p>踩过坑。索引器取不到会抛异常，而收包逻辑外面套了一层 catch，异常会被当成网络故障直接把玩家踢下线——一个没注册的协议码就能踢人。所以改成先尝试取值，并且给单条消息的处理再包一层异常捕获，处理出错只记日志，不断连接。</p>
+
+<h4>2. 多线程发送会不会串包？</h4>
+
+<p>会，所以要加锁。位置和敌人同步是从服务端逻辑线程发的，和网络线程的发送是并发的，发送时用一个锁把写 socket 串起来，保证一帧字节连续写出去、不被别的线程插进来。</p>
+
+<h4>3. 为什么高频包不打日志？</h4>
+
+<p>位置同步每秒 20 次，乘敌人数乘玩家数，一条一打直接把控制台刷爆、帧率掉一半。所以对这几个高频协议号直接跳过日志。</p>
+
+<h4>4. 为什么中心服独占数据库？</h4>
+
+<p>三个好处：只有一处能写库，不存在多进程抢同一行；中间层是纯数据通道，加机器就能扛连接；数据库不暴露给网关层，安全边界清楚。</p>
+
+<p>代价是业务都得穿两跳，延迟多一次转发，而且中心服是单点。生产级要按场景分片，中心服只做账号和跨服。</p>
+
+<h4>5. 断线重连怎么做的？</h4>
+
+<p>老实说：重连机制写了——断线后 3 秒起第一次尝试，之后每 10 秒一次，由开关控制。但这个开关在客户端没有真正打开，现在掉线就是掉线，需要重登。这是待办，不是做完了的功能。</p>
+
+<p>要做完整得补三件事：重连后重新走登录态校验、角色状态从服务端全量拉一次、服务端保留一段时间的会话等重连（现在是断开即移除）。</p>
+
+<h3>（八）这题的坑</h3>
+
+<p class="pitfall">&nbsp;&nbsp;别把"四层服务端架构"当卖点。现在主链路只有两跳，说四层会被追问端口和职责，容易露。</p>
+<p class="pitfall">&nbsp;&nbsp;一定要讲"不是每个玩家一条连接"，这是分布式网关的核心认知，也是最容易被追问的地方。</p>
+<p class="pitfall pitfall-end">&nbsp;&nbsp;讲清"包自己带回程地址"，比笼统说"用会话 Id 找"具体得多。</p>
+
+<h2 id="section-5">五、Buff 系统该怎么设计</h2>
+
+<p>开放设计题，看的不是你想到多少细节，而是有没有一条主线能把细节串起来。</p>
+
+<h3>（一）面试官在考什么</h3>
+
+<p>这是一道开放设计题，他看的不是你想不想得全，而是四件事：</p>
+
+<ul>
+<li><p>有没有<strong>分层</strong>意识——配置、运行时、结算、表现。</p></li>
+<li><p>知不知道<strong>计时该用时间戳而不是每帧递减</strong>。</p></li>
+<li><p>知不知道<strong>叠加规则</strong>是配置项而不是一堆条件分支。</p></li>
+<li><p>会不会考虑<strong>联机权威</strong>。</p></li>
+</ul>
+
+<h3>（二）口述稿：总纲</h3>
+
+<p class="say say-end">&nbsp;&nbsp;我会拆成四层：配置、运行时、结算、表现。先说结论——<strong>Buff 系统本质是一堆带时间的属性修改器</strong>，剩下的都是围绕这句话展开。</p>
+
+<h3>（三）配置层</h3>
+
+<p class="say">&nbsp;&nbsp;用表驱动：Buff 配置包含编号、名称、图标、持续时间、叠加规则、最大层数、效果列表、驱散类型、优先级。</p>
+<p class="say say-end">&nbsp;&nbsp;效果列表是数组，一条效果就是"类型加参数"。类型分四类：属性修改、周期伤害、状态控制（眩晕、沉默）、事件触发（受击时反弹伤害）。关键是<strong>新加 Buff 不改代码</strong>——只要效果类型够用，配表就能拼出来。</p>
+
+<h3>（四）运行时</h3>
+
+<p class="say">&nbsp;&nbsp;每个角色挂一个 Buff 容器，里面是 Buff 实例列表。实例存：配置编号、施法者、来源、层数、<strong>到期时间戳</strong>、下次结算时间。</p>
+<p class="say say-end">&nbsp;&nbsp;注意存的是到期时间，不是剩余秒数。每帧递减有两个问题：受帧率影响，而且一百个 Buff 每帧遍历一遍是浪费。用时间戳加一个按到期时间排序的容器，每帧只看堆顶有没有过期，复杂度从每次全扫降到只看一个。</p>
+
+<h3>（五）结算</h3>
+
+<p class="say">&nbsp;&nbsp;分两种触发方式。时间驱动：周期伤害和治疗按各自的间隔结算，间隔配在表里，不要每帧算。事件驱动：受击、暴击、死亡这些时机，由战斗流程主动查"有没有挂这类 Buff"，而不是 Buff 自己去监听一堆事件。</p>
+<p class="say say-end">&nbsp;&nbsp;后者的理由是顺序可控——技能先结算还是 Buff 先反弹，写在流程里一目了然；靠事件监听则顺序不可控。</p>
+
+<h3>（六）属性聚合</h3>
+
+<p class="say">&nbsp;&nbsp;Buff 不直接改数值，只往属性容器加修改器。最终值等于基础值加加法区、再乘乘法区。这样 Buff 增删、层数变化都只是改修改器集合，数值永远自洽，也不会出现"两个 Buff 各加 20%，结果到底加 40% 还是 44%"扯不清的问题。</p>
+<p class="say say-end">&nbsp;&nbsp;这里和第一题是同一套东西——Buff 只负责产生修改器，面板只看最终值。</p>
+
+<h3>（七）叠加规则</h3>
+
+<p class="say say-end">&nbsp;&nbsp;做成枚举：刷新时间、叠层（效果乘层数）、独立共存（各自计时）、同组互斥（新的顶掉旧的）。规则写在表里，代码只认枚举值，不写条件分支判断具体是哪个 Buff。</p>
+
+<h3>（八）表现与联机</h3>
+
+<p class="say">&nbsp;&nbsp;界面只读快照：图标、剩余时间、层数，不反向持有 Buff 对象。倒计时不要每帧刷文本，0.1 到 0.2 秒一次就够，圆环用填充比例。</p>
+<p class="say say-end">&nbsp;&nbsp;如果是联机，Buff 必须服务端权威：服务端算剩余时间、算属性、算周期伤害，客户端只播表现。项目里血量就是这么做的，客户端没有写权限，只接收服务端的受击通知覆盖显示。</p>
+
+<h3>（九）落地顺序</h3>
+
+<p class="say say-end">&nbsp;&nbsp;先做属性修改加时间到期，这两类覆盖了八成的 Buff；再做叠加规则；最后做事件触发型。别一上来就设计一个什么都能干的框架，那样第一个 Buff 都做不出来。</p>
+
+<h3>（十）追问预案</h3>
+
+<p>设计题的追问一般会往边界和防刷上走。</p>
+
+<h4>1. Buff 存不存档？下线了怎么办？</h4>
+
+<p>一般不留。下线清空，重新登录重新加。要留的话只存"配置编号、剩余时间、层数、施法者"，而且只对少数长时效 Buff 有意义。临时战斗 Buff 存了反而麻烦——下线一小时回来还剩 3 秒，体验很怪。</p>
+
+<h4>2. 一百个 Buff 怎么优化？</h4>
+
+<p>三个点：到期检查用最小堆，不要全表遍历；属性重算用脏标记合批，不要每次增删都算全量；周期伤害按各自间隔触发，不要每帧轮询。</p>
+
+<h4>3. Buff 和技能什么关系？</h4>
+
+<p>技能是"产生 Buff 的行为"，Buff 是"持续生效的状态"。技能里只调添加 Buff 的接口，不关心 Buff 内部怎么算。反过来 Buff 也不该知道是哪个技能给的，只记来源用于驱散和归属。</p>
+
+<h4>4. 怎么防止数值被刷爆？</h4>
+
+<p>三层：层数上限写在配置里；同类修改器做互斥组；服务端做最终校验，属性有下限和上限钳制。客户端算出来的只是表现，真值以服务端为准。</p>
+
+<h4>5. 加法区和乘法区为什么分开？</h4>
+
+<p>因为玩家的直觉是"两个加 20% 的装备应该加 40%"，如果全用乘法会变成 44%，看起来像 bug。所以同类加成走加法区，不同类的增益（比如套装效果）走乘法区，顺序固定，结果可预期。</p>
+
+<h3>（十一）这题的坑</h3>
+
+<p class="pitfall">&nbsp;&nbsp;别上来就讲"我要用状态机或 ECS 实现 Buff"。先把四层讲清楚，模式是后面的加分项，不是开头。</p>
+<p class="pitfall">&nbsp;&nbsp;别说"每帧遍历所有 Buff 减时间"。这一句就能暴露没做过。</p>
+<p class="pitfall pitfall-end">&nbsp;&nbsp;主动说"Buff 是带时间的属性修改器"。一句话定性，后面全是展开，面试官会觉得你有主线。</p>
+
+<h2 id="section-6">附：面试前 10 分钟速记</h2>
+
+<p>只看这一张表，能顶住八成追问。</p>
+
+<table class="grid-table">
+<thead>
+<tr>
+<th>题号</th>
+<th>一句话记法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>第一题</td>
+<td>面板看的是<strong>最终属性</strong>，Buff 只是修改器；脏标记加帧末合批；别用全局事件。</td>
+</tr>
+<tr>
+<td>第二题</td>
+<td>字典加同级顺序天然是栈；不销毁只隐藏；被盖住的那层要管渲染、输入、恢复。</td>
+</tr>
+<tr>
+<td>第三题</td>
+<td>续传是<strong>资源包级</strong>不是字节级；先更 catalog 再算大小；包是原子写入不会脏。</td>
+</tr>
+<tr>
+<td>第四题</td>
+<td>一个玩家一条连接、两个服务端一条连接；两字节长度加 CRC 加 Protobuf；包自己带回程地址。</td>
+</tr>
+<tr>
+<td>第五题</td>
+<td>配置、运行时、结算、表现四层；<strong>存到期时间戳</strong>；叠加规则做成枚举；服务端权威。</td>
+</tr>
+</tbody>
+</table>
+
+<h3>三个通用加分句</h3>
+
+<p class="no-indent">任何一题都能接，但要接得自然：</p>
+
+<ol>
+<li><p>"这块我踩过的坑是……"——具体到一个 bug，可信度立刻不一样。</p></li>
+<li><p>"如果规模再大一点，我会……"——证明你知道当前方案的边界。</p></li>
+<li><p>"这部分我还没做完，现在的问题是……"——主动认缺陷，比被问出来强。</p></li>
+</ol>
+
+<p>最后一句提醒：<strong>面试不是把所有知道的都说出来，而是让对方相信你真的做过</strong>。每题讲到"边界"就停，留给对方追问的空间，比一口气讲十分钟更有效。</p>
+
+</section>
+</body>
+</html>

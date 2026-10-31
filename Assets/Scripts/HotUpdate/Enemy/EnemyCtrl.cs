@@ -17,6 +17,12 @@ namespace HotUpdate.Enemy
         [HideInInspector] public bool isHostDriven;
         [Header("配置")] [SerializeField] private EnemyAnimConfig animConfig;
 
+        [Tooltip("出招途中是否允许被受击打断")] [SerializeField]
+        private bool interruptAttackByHurt;
+
+        [Tooltip("反击概率")] [Range(0f, 1f)] [SerializeField]
+        private float counterAttackChance = 0.3f;
+
         #region 数据
 
         public HitData hitData;
@@ -51,8 +57,13 @@ namespace HotUpdate.Enemy
 
         private EnemyMotor _motor;
         private EnemySync _sync;
-        private EnemyView _view;
+        public EnemyView View { get; private set; }
         private EnemyStateMachine _stateMachine;
+
+        // 命中顿帧：只把动画停在当前帧，不碰 Time.timeScale。
+        // 状态机与位移同步也跟着停，否则冻结期间还会转身 / 平移。
+        private bool _inHitStop;
+        public bool IsInHitStop => _inHitStop;
 
         #endregion
 
@@ -86,7 +97,11 @@ namespace HotUpdate.Enemy
             if (!isHostDriven && _inited && !IsDead && EnemyManager.IsLocalHost) EnableHostMode();
             if (isHostDriven && !EnemyManager.IsLocalHost) DisableHostMode();
 
-            _view.FaceCamera();
+            View.FaceCamera();
+
+            // 顿帧：动画已停住，位置 / 朝向 / 上报也一起停，否则会「冻着滑」
+            if (_inHitStop) return;
+
             _motor.TickGravity(Time.deltaTime);
 
             if (isHostDriven)
@@ -118,7 +133,7 @@ namespace HotUpdate.Enemy
 
             _motor = new EnemyMotor(this);
             _sync = new EnemySync(this, _motor);
-            _view = new EnemyView(this, healthBar, fillImage, healthText, damageNumber, hitData);
+            View = new EnemyView(this, healthBar, fillImage, healthText, damageNumber, hitData);
         }
 
         #endregion
@@ -148,8 +163,26 @@ namespace HotUpdate.Enemy
 
         public bool IsHost => isHostDriven;
 
-        /// <summary>已经倒下：不再作为攻击目标、不再接收位移</summary>
         public bool IsDead => currentState == EnemyStateType.Dead;
+
+        // 出招途中是否允许被受击打断
+        public bool InterruptAttackByHurt => interruptAttackByHurt;
+
+        // 每次受击时反击的概率
+        public float CounterAttackChance => counterAttackChance;
+
+        /// <summary>被打中时的顿帧：0 速度停在当前帧，时间照常流动</summary>
+        public void SetHitStop(bool on)
+        {
+            if (_inHitStop == on) return;
+            _inHitStop = on;
+
+            Animator animator = enemyModel != null ? enemyModel.Animator : null;
+            if (animator == null) return;
+
+            animator.speed = on ? 0f : 1f;
+            if (on) animator.Update(0f);
+        }
 
         public Animator ModelAnimator => enemyModel != null ? enemyModel.Animator : null;
 
@@ -157,11 +190,11 @@ namespace HotUpdate.Enemy
 
         public EnemyStateType CurrentState => currentState;
 
-        public bool HasTarget => _sync != null && _sync.HasTarget;
+        public bool HasTarget => _sync is { HasTarget: true };
 
-        public Vector3 TargetPosition => _sync != null ? _sync.TargetPosition : transform.position;
+        public Vector3 TargetPosition => _sync?.TargetPosition ?? transform.position;
 
-        public float DistanceToTarget => _sync != null ? _sync.DistanceToTarget : 0f;
+        public float DistanceToTarget => _sync?.DistanceToTarget ?? 0f;
 
         public float StopDistance { get; private set; } = 2.5f;
 
@@ -180,9 +213,7 @@ namespace HotUpdate.Enemy
             set => isCanPlayHurtAni = value;
         }
 
-        public string PickHurtAnim() => _view.PickHurtAnim();
-
-        private void RefreshHealthUI() => _view.RefreshHealth(networkHealth, maxHealthValue);
+        private void RefreshHealthUI() => View.RefreshHealth(networkHealth, maxHealthValue);
 
         #endregion
 
@@ -269,7 +300,18 @@ namespace HotUpdate.Enemy
         public void PlayAnimation(string animationName, float fixedTransitionTime = 0.1f)
         {
             _currentAnimName = animationName;
-            enemyModel.Animator.CrossFadeInFixedTime(animationName, fixedTransitionTime, 0, 0f);
+
+            Animator animator = enemyModel.Animator;
+
+            // 连续受击会重复播同一个受击动画：CrossFade 到自身不可靠（常常不重播），
+            // 这种情况直接从头 Play，才能每一下都有受击反馈。
+            if (animator.GetCurrentAnimatorStateInfo(0).IsName(animationName))
+            {
+                animator.Play(animationName, 0, 0f);
+                return;
+            }
+
+            animator.CrossFadeInFixedTime(animationName, fixedTransitionTime, 0, 0f);
         }
 
         #endregion
@@ -305,11 +347,11 @@ namespace HotUpdate.Enemy
                     // 非宿主：播受击动画，并在窗口内屏蔽服务端下发的常规动作
                     _animBlockUntil = Time.time + HurtAnimDuration;
                     currentState = EnemyStateType.Hurt;
-                    PlayAnimation(PickHurtAnim());
+                    PlayAnimation(View.PickHurtAnim());
                 }
             }
 
-            _view.ShowDamage(ret.DamageDealt, ret.IsBaoji);
+            View.ShowDamage(ret.DamageDealt, ret.IsBaoji);
         }
 
         // advanceTask：只有真正打死它的玩家才推进任务，避免同屏其他客户端重复上报
@@ -350,10 +392,8 @@ namespace HotUpdate.Enemy
 
         #region 武器 / ISkillOwner
 
-        // 玩家打中敌人时的表现（特效 + 音效），不扣血
-        public void OnHit(IHurt hurt, Vector3 hurtPos) => PlayHitFeedback(hurtPos);
-
-        public void PlayHitFeedback(Vector3 hurtPos) => _view?.PlayHitFeedback(hurtPos);
+        // 玩家打中敌人时的表现，不扣血
+        public void OnHit(IHurt hurt, Vector3 hurtPos) => View.PlayHitFeedback(hurtPos);
 
         // 敌人武器命中玩家的结果由服务端广播，这三个接口只为满足契约
         public void StartSkillHit(int weaponIndex)
@@ -382,10 +422,7 @@ namespace HotUpdate.Enemy
             if (isStartPinTip != null) isStartPinTip.SetActive(false);
 
             enemyModel.Animator.speed = 0f;
-            DOVirtual.DelayedCall(0.5f, () =>
-            {
-                enemyModel.Animator.speed = 1f;
-            });
+            DOVirtual.DelayedCall(0.5f, () => { enemyModel.Animator.speed = 1f; });
         }
 
         #endregion

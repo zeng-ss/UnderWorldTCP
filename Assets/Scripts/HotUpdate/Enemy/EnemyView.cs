@@ -34,15 +34,14 @@ namespace HotUpdate.Enemy
 
         public void RefreshHealth(float hp, float max)
         {
-            if (_fill != null) _fill.fillAmount = Mathf.Clamp01(hp / Mathf.Max(1f, max));
-            if (_healthText != null) _healthText.text = $"{hp}/{max}";
+            _fill.fillAmount = Mathf.Clamp01(hp / Mathf.Max(1f, max));
+            _healthText.text = $"{hp}/{max}";
         }
 
         // 血条始终面向相机
         public void FaceCamera()
         {
             if (_healthBar == null || Camera.main == null) return;
-
             _healthBar.transform.LookAt(Camera.main.transform.position);
             _healthBar.transform.Rotate(0f, 180f, 0f);
         }

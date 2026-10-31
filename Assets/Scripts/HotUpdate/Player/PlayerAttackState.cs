@@ -1,7 +1,7 @@
 using System.Collections;
-using System.Collections.Generic;
 using HotUpdate.Core;
 using HotUpdate.Data;
+using HotUpdate.Enemy;
 using HotUpdate.Event;
 using UnityEngine;
 
@@ -219,65 +219,86 @@ namespace HotUpdate.Player
 
         #region 顿帧
 
-        // 顿帧：用栈式嵌套记录时间缩放，重叠顿帧时能正确逐层恢复，避免 _originalTimeScale 存错值
-        public bool IsInHitStop => _hitStopStack.Count > 0; // 是否处于顿帧中
+        // 顿帧只冻结「攻击者 + 被击者」的动画，不碰 Time.timeScale：
+        // 特效、相机、UI、物理照常跑，观感才是「顿一下」而不是「整个游戏卡住」。
+        public bool IsInHitStop => _hitStopEndTime > 0f;
 
-        private float _hitStopDuration; // 顿帧持续时间
-        private float _hitStopEndTime; // 顿帧结束时间
+        private float _hitStopEndTime;   // 0 = 不在顿帧
+        private EnemyCtrl _hitStopTarget; // 被冻住的敌人（这一刀的受击者）
 
-        // 顿帧强度配置（可调整）
-        [Header("顿帧配置")] private float _hitStopTimeScale; // 顿帧时的时间缩放（0=完全暂停，0.1=轻微慢放）
-        private readonly float _hitStopDurationDefault = 0.08f; // 顿帧持续时间
-        private float _animSpeedDuringHitStop; // 顿帧时动画速度（0=冻结帧）
+        // 没配顿帧时的默认曲线：连段越往后越重（60fps 下约 1.5 / 2.7 / 3.9 / 5.1 帧）
+        private const float HitStopBase = 0.025f;
+        private const float HitStopStep = 0.02f;
+        private const float HitStopMax = 0.12f;
 
-        // 顿帧栈：每次 EnterHitStop 压入「进入前的 timeScale」，结束逐层弹栈恢复
-        private readonly Stack<float> _hitStopStack = new();
-
-        public void EnterHitStop(float duration = 0f, float timeScale = 0f)
+        public void EnterHitStop(IHurt victim)
         {
-            // 避免重复触发顿帧
             AttackData data = CachedAttackData;
-            if (data?.vfxDataList == null ||
-                Player.SkillCombo.CurVFXIndex < 0 || Player.SkillCombo.CurVFXIndex >= data.vfxDataList.Count ||
-                !data.vfxDataList[Player.SkillCombo.CurVFXIndex].isInHitStop)
-                return;
+            int vfxIndex = Player.SkillCombo.CurVFXIndex;
 
-            // 1. 压栈记录进入前的 timeScale（重叠顿帧时各层记住各层的旧值）
-            _hitStopStack.Push(Time.timeScale);
-            _hitStopDuration = duration <= 0 ? _hitStopDurationDefault : duration;
-            float targetTimeScale = timeScale <= 0 ? _hitStopTimeScale : timeScale;
-            // 2. 启动顿帧
-            _hitStopEndTime = Time.unscaledTime + _hitStopDuration; // 用unscaledTime避免时间缩放影响
-            // 3. 真顿帧：暂停全局时间（仅战斗相关，UI不受影响）
-            Time.timeScale = targetTimeScale;
-            // 4. 冻结动画：直接停在当前帧，而非慢放
-            Player.playerModel.Animator.speed = _animSpeedDuringHitStop;
-            Player.playerModel.Animator.Update(0); // 强制更新动画，冻结当前帧
+            VFXData vfx = data?.vfxDataList != null && vfxIndex >= 0 && vfxIndex < data.vfxDataList.Count
+                ? data.vfxDataList[vfxIndex]
+                : null;
+
+            // 这一刀没开顿帧就跳过（配了帧数也算开启，少勾一个开关）
+            if (vfx != null && !vfx.isInHitStop && vfx.hitStopFrames <= 0) return;
+
+            // 同一刀里的重复命中（rehitInterval）只顿第一下：每下都顿会糊成一片
+            if (!Player.SkillCombo.TryConsumeHitStopToken()) return;
+
+            _hitStopEndTime = Time.unscaledTime + ResolveHitStopDuration(data, vfx);
+
+            // 只把双方的动画停在当前帧，时间照常走
+            FreezeAnimator(Player.playerModel.Animator, true);
+
+            if (victim is EnemyCtrl enemy)
+            {
+                _hitStopTarget = enemy;
+                enemy.SetHitStop(true);
+            }
         }
 
-        // 顿帧处理专用方法
+        /// <summary>
+        /// 顿帧时长优先级：这一刀的帧数 > 这一段的秒数 > 按连段次序递增的默认值。
+        /// 连段越往后越重，尾刀自然砸得最狠。
+        /// </summary>
+        private float ResolveHitStopDuration(AttackData data, VFXData vfx)
+        {
+            if (vfx != null && vfx.hitStopFrames > 0) return vfx.hitStopFrames / 60f;
+            if (data != null && data.hitStopDuration > 0f) return data.hitStopDuration;
+
+            int step = Mathf.Max(0, Player.SkillCombo.PlayingIndex);
+            return Mathf.Min(HitStopBase + step * HitStopStep, HitStopMax);
+        }
+
+        // 顿帧期间每帧调一次：到点就恢复
         private void HandleHitStop()
         {
-            // 用unscaledTime判断顿帧是否结束（不受Time.timeScale影响）
-            if (Time.unscaledTime >= _hitStopEndTime)
+            if (Time.unscaledTime < _hitStopEndTime) return;
+            EndHitStop();
+        }
+
+        /// <summary>结束顿帧。切状态 / 死亡 / 退出攻击时也要调，否则双方会一直定住</summary>
+        public void EndHitStop()
+        {
+            if (_hitStopEndTime <= 0f) return;
+            _hitStopEndTime = 0f;
+
+            FreezeAnimator(Player.playerModel.Animator, false);
+
+            if (_hitStopTarget != null)
             {
-                // 1. 弹栈恢复时间缩放：重叠顿帧时回到「上一层进入前的值」，最终恢复到初始值
-                if (_hitStopStack.Count > 0) Time.timeScale = _hitStopStack.Pop();
-                // 2. 恢复动画速度（立即恢复，保证跟手）
-                Player.playerModel.Animator.speed = 1;
-                // 3. 若栈未清空（仍有外层顿帧未结束），保持冻结由外层继续驱动
-                if (_hitStopStack.Count > 0)
-                {
-                    Player.playerModel.Animator.speed = _animSpeedDuringHitStop;
-                    Player.playerModel.Animator.Update(0);
-                    _hitStopEndTime = Time.unscaledTime + _hitStopDuration;
-                }
-
-                return;
+                _hitStopTarget.SetHitStop(false);
+                _hitStopTarget = null;
             }
+        }
 
-            // 顿帧期间：强制冻结动画+屏蔽所有输入
-            Player.playerModel.Animator.Update(0);
+        private static void FreezeAnimator(Animator animator, bool freeze)
+        {
+            if (animator == null) return;
+
+            animator.speed = freeze ? 0f : 1f;
+            if (freeze) animator.Update(0f); // 立刻停在当前帧，不等这一帧的动画更新
         }
 
         #endregion
@@ -468,6 +489,7 @@ namespace HotUpdate.Player
 
         public override void Exit()
         {
+            EndHitStop(); // 顿帧中途被切状态（受击 / 死亡）时，必须把双方动画解冻
             TransitionTo(AttackPhase.Active); // 重置阶段，避免下次进入残留 Recovery
             Player.SkillCombo.CurAttackIndex = 0;
             Player.SkillCombo.ClearAttackInput(); // 离开攻击状态时清掉残留的缓冲按键

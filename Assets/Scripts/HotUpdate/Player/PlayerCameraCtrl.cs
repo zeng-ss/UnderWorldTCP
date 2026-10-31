@@ -137,6 +137,7 @@ namespace HotUpdate.Player
 
         private float _shakeTimer;
         private float _shakeAmp;
+        private float _shakeDuration; // 本次震屏的总时长（用于淡出比例）
 
         #region 生命周期
 
@@ -211,11 +212,15 @@ namespace HotUpdate.Player
 
         #region 外部指令
 
-        public void Shake(float strength)
+        /// <summary>震屏：strength 来自 SkillConfig（HitData.screenImpulseValue），
+        /// duration 传 0 或负数时用相机自己的默认值。</summary>
+        public void Shake(float strength, float duration = 0f)
         {
             if (strength <= 0f) return;
+
             _shakeAmp = Mathf.Max(_shakeAmp, strength);
-            _shakeTimer = shakeDuration;
+            _shakeTimer = duration > 0f ? duration : shakeDuration;
+            _shakeDuration = _shakeTimer;
         }
 
         public void EnterPin() => SwitchState(CameraState.Pin);
@@ -459,7 +464,7 @@ namespace HotUpdate.Player
             if (_shakeTimer <= 0f) return;
 
             _shakeTimer -= dt;
-            float fade = Mathf.Clamp01(_shakeTimer / Mathf.Max(0.0001f, shakeDuration));
+            float fade = Mathf.Clamp01(_shakeTimer / Mathf.Max(0.0001f, _shakeDuration > 0f ? _shakeDuration : shakeDuration));
             float amp = _shakeAmp * shakeScale * fade;
 
             cam.transform.position += Random.insideUnitSphere * amp;

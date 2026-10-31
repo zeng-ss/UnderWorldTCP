@@ -1,0 +1,55 @@
+schema_version: 1
+request_id: 90325633-c9d4-416a-856f-b95e3112cfc7
+created_at: 2026-10-29T10:32:00+08:00
+updated_at: 2026-10-29T11:18:00+08:00
+
+entry_type: full_pipeline
+stage_chain: [1, 2, 3]
+
+output_docx_path: "D:\\ASUS\\桌面\\面试答题口述稿.docx"
+output_docx_user_specified: true
+
+current_stage: completed
+
+stages:
+  stage_0:
+    status: completed
+    completed_at: 2026-10-29T10:32:00+08:00
+    decision: full_pipeline
+  stage_1:
+    status: completed
+    started_at: 2026-10-29T10:32:00+08:00
+    completed_at: 2026-10-29T10:45:00+08:00
+    output_path: "stage1/final_draft.md"
+    genre: general
+    expert_used: general-writer
+    route_tag: general_writing
+  stage_2:
+    status: completed
+    started_at: 2026-10-29T10:45:00+08:00
+    completed_at: 2026-10-29T11:05:00+08:00
+    route: html
+    html_sub: template
+    output_path: "stage2/formatted-面试答题口述稿.html"
+    output_format: html
+    skills_invoked: [design-token, doc-typeset, html-review]
+    design_tokens_path: "stage2/design_tokens.json"
+    fallback: false
+    fallback_reason: null
+  stage_3:
+    status: completed
+    started_at: 2026-10-29T11:05:00+08:00
+    completed_at: 2026-10-29T11:18:00+08:00
+    executor: "doc-converter"
+    input_format: html
+    output_path: "D:////ASUS////桌面////面试答题口述稿.docx"
+    skill_used: ["html-to-doc"]
+    present_files_opened: true
+    fallback: false
+    fallback_reason: null
+
+consistency_check:
+  output_files_exist: pass
+  stage_chain_complete: pass
+  last_checked_at: 2026-10-29T11:18:00+08:00
+  errors: []

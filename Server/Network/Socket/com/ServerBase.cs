@@ -7,33 +7,33 @@ using System.Net.Sockets;
 public class ServerBase
 {
     //客户端类型
-    public ClientType _clientType;
+    public ClientType ClientType;
 
     public Action<int, ByteString> OnReceiveMsg;
 
     //指令集
-    protected Dictionary<int, IContainer> _cmdDic = new Dictionary<int, IContainer>();
+    protected Dictionary<int, IContainer> CmdDic = new Dictionary<int, IContainer>();
 
     //缓冲区
-    private byte[] _buffer = new byte[1024 * 4];
+    private readonly byte[] _buffer = new byte[1024 * 4];
 
-    protected Socket _socket;
+    protected Socket Socket;
 
     //连接状态
-    protected ConnState _connState;
+    protected ConnState ConnState;
 
     //发送锁：位置/动作同步会从 tick 线程发出，与网络线程的发送必须串行
     private readonly object _sendLock = new object();
 
     //作为服务端时需要拿到客户端的引用  
-    public NetClient _Client;
+    public NetClient Client;
 
     /// <summary>
     /// 开始接收服务端发来的数据
     /// </summary>
     protected void BeginReceive()
     {
-        _socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, OnReceiveCB, null);
+        Socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, OnReceiveCB, null);
     }
 
     /// <summary>
@@ -45,7 +45,7 @@ public class ServerBase
         try
         {
             //返回的字节数
-            int len = _socket.EndReceive(ar);
+            int len = Socket.EndReceive(ar);
             if (len > 0)
             {
                 while (true)
@@ -104,12 +104,12 @@ public class ServerBase
 
     public virtual void Disconnect()
     {
-        _connState = ConnState.Disconnected;
+        ConnState = ConnState.Disconnected;
 
-        if (_socket != null)
+        if (Socket != null)
         {
-            _socket.Close();
-            _socket = null;
+            Socket.Close();
+            Socket = null;
         }
     }
 
@@ -144,15 +144,16 @@ public class ServerBase
                 case NetDefine.CMD_PlayerVfxCode:
                     break;
                 default:
-                    LogMsg.Info($"发送了数据:: ProtoCode: {basePackage.ProtoCode} , SessionId: {basePackage.UnitySessionId}");
+                    LogMsg.Info(
+                        $"发送了数据:: ProtoCode: {basePackage.ProtoCode} , SessionId: {basePackage.UnitySessionId}");
                     break;
             }
 
             byte[] bytes = NetUtils.Instance.MakeData(basePackage.ToByteArray());
             lock (_sendLock)
             {
-                if (_socket == null) return;
-                _socket.Send(bytes);
+                if (Socket == null) return;
+                Socket.Send(bytes);
             }
         }
         catch (Exception ex)

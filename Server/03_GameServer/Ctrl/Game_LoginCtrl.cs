@@ -50,7 +50,7 @@ public class Game_LoginCtrl : IContainer
     private void OnSaveRoleHandle(ServerBase serverBase, BasePackage basePackage)
     {
         SaveRoleReq req = SaveRoleReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Game]收到保存角色请求:" + req);
     }
 
@@ -58,7 +58,7 @@ public class Game_LoginCtrl : IContainer
     private void OnStartGameHandle(ServerBase serverBase, BasePackage basePackage)
     {
         StartGameReq req = StartGameReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Game]收到开始游戏请求:" + req);
     }
 
@@ -66,7 +66,7 @@ public class Game_LoginCtrl : IContainer
     private void OnLoginGameServerHandle(ServerBase serverBase, BasePackage basePackage)
     {
         LoginGameServerReq req = LoginGameServerReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Game]收到登录游戏服务器请求:" + req);
     }
 
@@ -74,7 +74,7 @@ public class Game_LoginCtrl : IContainer
     private void OnCreateRoleHandle(ServerBase serverBase, BasePackage basePackage)
     {
         CreateRoleReq req = CreateRoleReq.Parser.ParseFrom(basePackage.Data);
-        serverBase._Client.SendData(basePackage);
+        serverBase.Client.SendData(basePackage);
         LogMsg.Info("[Game]收到创建角色请求:" + req);
     }
 

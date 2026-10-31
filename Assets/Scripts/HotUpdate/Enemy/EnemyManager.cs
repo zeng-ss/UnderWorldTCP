@@ -179,7 +179,7 @@ namespace HotUpdate.Enemy
         public void PlayHitFeedback(int enemyInstanceId, Vector3 targetPosition)
         {
             if (!_enemies.TryGetValue(enemyInstanceId, out EnemyCtrl enemy)) return;
-            enemy.PlayHitFeedback(targetPosition + Vector3.up * HitPointHeight);
+            enemy.View.PlayHitFeedback(targetPosition + Vector3.up * HitPointHeight);
         }
 
         #endregion
